@@ -1,0 +1,7 @@
+{
+  "_comment": "Exit Cost card: $k paid to leave the city, by number of players and escape order (1st, 2nd, ...). Solo uses the 2-player row? (check solo rules).",
+  "2": [0, 10],
+  "3": [0, 5, 10],
+  "4": [0, 5, 10, 10],
+  "5": [0, 5, 5, 10, 10]
+}
