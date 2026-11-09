@@ -1,0 +1,302 @@
+{
+ "_comment": "34 Contact cards (33 base + Gas Can from Upgrade Pack). notoriety=true: using gains 1 Notoriety. step: travel/avoid icon in corner (small icons; Informer/Sewer/Spy2 corner read as footsteps, verify).",
+ "cards": [
+  {
+   "id": 1,
+   "name": "Sewer",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "sewer"
+  },
+  {
+   "id": 2,
+   "name": "Jet Ski",
+   "cost": 0,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "jetski"
+  },
+  {
+   "id": 3,
+   "name": "Informer",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "lose_notoriety"
+  },
+  {
+   "id": 4,
+   "name": "Medic",
+   "cost": 2,
+   "notoriety": false,
+   "step": "avoid",
+   "effect": "heal"
+  },
+  {
+   "id": 5,
+   "name": "Rally",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "county"
+  },
+  {
+   "id": 6,
+   "name": "Spy",
+   "cost": 3,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "refresh",
+   "variant": 2
+  },
+  {
+   "id": 7,
+   "name": "Informer",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "lose_notoriety"
+  },
+  {
+   "id": 8,
+   "name": "Chopper",
+   "cost": 2,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "chopper"
+  },
+  {
+   "id": 9,
+   "name": "Rally",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "swat"
+  },
+  {
+   "id": 10,
+   "name": "Gang",
+   "cost": 2,
+   "notoriety": true,
+   "step": "travel+avoid",
+   "effect": "gang_ability"
+  },
+  {
+   "id": 11,
+   "name": "Gang",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel+avoid",
+   "effect": "gang_ability"
+  },
+  {
+   "id": 12,
+   "name": "Boxer",
+   "cost": 2,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "avoid_types",
+   "types": [
+    "federal",
+    "swat"
+   ]
+  },
+  {
+   "id": 13,
+   "name": "Spy",
+   "cost": 3,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "take_contact",
+   "variant": 1
+  },
+  {
+   "id": 14,
+   "name": "Medic",
+   "cost": 2,
+   "notoriety": false,
+   "step": "avoid",
+   "effect": "heal"
+  },
+  {
+   "id": 15,
+   "name": "Ninja",
+   "cost": 2,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "avoid_types",
+   "types": [
+    "county",
+    "federal"
+   ]
+  },
+  {
+   "id": 16,
+   "name": "Bribe",
+   "cost": 2,
+   "notoriety": false,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "swat"
+  },
+  {
+   "id": 17,
+   "name": "Stunt",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "avoid_one_any"
+  },
+  {
+   "id": 18,
+   "name": "Spy",
+   "cost": 2,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "unlock_asset",
+   "variant": 3
+  },
+  {
+   "id": 19,
+   "name": "Fixer",
+   "cost": 3,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "extra_action"
+  },
+  {
+   "id": 20,
+   "name": "Informer",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "lose_notoriety"
+  },
+  {
+   "id": 21,
+   "name": "Sewer",
+   "cost": 2,
+   "notoriety": true,
+   "step": "travel",
+   "effect": "sewer"
+  },
+  {
+   "id": 22,
+   "name": "Snitch",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "remove_police",
+   "type": "swat"
+  },
+  {
+   "id": 23,
+   "name": "Rally",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "federal"
+  },
+  {
+   "id": 24,
+   "name": "Bribe",
+   "cost": 2,
+   "notoriety": false,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "federal"
+  },
+  {
+   "id": 25,
+   "name": "Bribe",
+   "cost": 2,
+   "notoriety": false,
+   "step": "avoid",
+   "effect": "move_police",
+   "type": "county"
+  },
+  {
+   "id": 26,
+   "name": "Medevac",
+   "cost": 0,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "medevac"
+  },
+  {
+   "id": 27,
+   "name": "Fixer",
+   "cost": 4,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "extra_action"
+  },
+  {
+   "id": 28,
+   "name": "Snitch",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "remove_police",
+   "type": "county"
+  },
+  {
+   "id": 29,
+   "name": "General Store",
+   "cost": 2,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "gain_income"
+  },
+  {
+   "id": 30,
+   "name": "Fast Car",
+   "cost": 3,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "avoid_all_tile"
+  },
+  {
+   "id": 31,
+   "name": "Snitch",
+   "cost": 1,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "remove_police",
+   "type": "federal"
+  },
+  {
+   "id": 32,
+   "name": "Fighter",
+   "cost": 2,
+   "notoriety": true,
+   "step": "avoid",
+   "effect": "avoid_types",
+   "types": [
+    "county",
+    "swat"
+   ]
+  },
+  {
+   "id": 33,
+   "name": "Gas Can",
+   "cost": 0,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "plus_mp",
+   "upgrade": true
+  },
+  {
+   "id": 34,
+   "name": "Chopper",
+   "cost": 3,
+   "notoriety": false,
+   "step": "travel",
+   "effect": "chopper"
+  }
+ ]
+}
