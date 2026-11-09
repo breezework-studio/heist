@@ -1,0 +1,16 @@
+{
+  "_comment": "11 Fixer tiles (8 base + 3 Upgrade Pack). One use each (x1). Back: $100 bill with wrench.",
+  "fixers": [
+    {"id": "telephone", "name": "Telephone", "cost": 2, "effect": "take_contact"},
+    {"id": "safe", "name": "Safe", "cost": 3, "effect": "gain_income"},
+    {"id": "disguise", "name": "Disguise", "cost": 2, "effect": "lose_notoriety"},
+    {"id": "idcard", "name": "ID Card", "cost": 4, "effect": "extra_action"},
+    {"id": "firstaid", "name": "First Aid Kit", "cost": 1, "effect": "heal"},
+    {"id": "motorcycle", "name": "Motorcycle", "cost": 2, "effect": "gang_ability"},
+    {"id": "energy", "name": "Energy Drink", "cost": 2, "effect": "refresh"},
+    {"id": "helicopter", "name": "Helicopter", "cost": 1, "effect": "chopper"},
+    {"id": "scuba", "name": "Scuba", "cost": 1, "effect": "jetski", "upgrade": true},
+    {"id": "skater", "name": "Skater", "cost": 2, "effect": "avoid_one_any", "upgrade": true},
+    {"id": "gold", "name": "Gold", "cost": 3, "effect": "unlock_asset", "upgrade": true}
+  ]
+}
