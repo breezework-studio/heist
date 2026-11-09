@@ -1,0 +1,16 @@
+{
+  "_comment": "Business and Safe House tiles. Business tiles: front = open (art), back = closed (padlock). Safe House tiles are the same on both sides.",
+  "businesses": [
+    {"id": "casino", "name": "Casino", "group": "purple", "icon": "dice"},
+    {"id": "bar", "name": "Bar", "group": "purple", "icon": "cocktail"},
+    {"id": "restaurant", "name": "Restaurant", "group": "purple", "icon": "cutlery"},
+    {"id": "gym", "name": "Gym", "group": "blue", "icon": "dumbbell"},
+    {"id": "nightclub", "name": "Nightclub", "group": "blue", "icon": "vinyl"},
+    {"id": "gallery", "name": "Art Gallery", "group": "blue", "icon": "easel"}
+  ],
+  "safehouses": [
+    {"id": "sh1", "name": "Safe House 1"},
+    {"id": "sh2", "name": "Safe House 2"},
+    {"id": "sh3", "name": "Safe House 3"}
+  ]
+}
