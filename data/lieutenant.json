@@ -1,0 +1,21 @@
+{
+  "_comment": "16 Lt. Costa cards (solo). Green + = Costa TAKES (places next to/on his board, face down); red X = discard to box (Safe Houses, as Sandra). Travel: draw until a location on same or adjacent tile to the player. Rules: rulebook 2022 p.23. Back: Costa portrait.",
+  "cards": [
+    {"loc": "casino", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "bar", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "restaurant", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "gym", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "nightclub", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "gallery", "notoriety": 1, "cube": true, "take": {"contacts": 1}},
+    {"loc": "sh1", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "sh2", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "sh3", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "storeA", "notoriety": 1, "cube": false, "take": {"locker": "brown", "n": 2}},
+    {"loc": "storeB", "notoriety": -1, "cube": false, "take": {"locker": "black", "n": 2}},
+    {"loc": "storeC", "notoriety": 1, "cube": false, "take": {"locker": "green", "n": 2}},
+    {"loc": "storeD", "notoriety": -1, "cube": false, "take": {"locker": "all", "n": 1}},
+    {"loc": "exit1", "notoriety": -1, "cube": false, "take": {"exit": 1}},
+    {"loc": "exit2", "notoriety": -1, "cube": false, "take": {"exit": 1}},
+    {"loc": "exit3", "notoriety": -1, "cube": false, "take": {"exit": 1}}
+  ]
+}
