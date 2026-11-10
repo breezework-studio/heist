@@ -1,0 +1,15 @@
+{
+  "_comment": "10 Player Power cards (Upgrade Pack). Coloured = the 5 base characters matching player-board colours; grey = 5 extra characters usable with any colour. Back side = flavour story only. Text verbatim from cards.",
+  "powers": [
+    {"id": "bones", "name": "Mr. Bones", "title": "The Boss", "colour": "purple", "text": "You start with 1 Gas Can. You treat all City tiles as if they had Helipads. You only have 2 MP each turn."},
+    {"id": "ruby", "name": "Ruby", "title": "Hacker", "colour": "orange", "text": "You can enter a closed Business without using a key. Gain 2 Notoriety each time you do this."},
+    {"id": "vinnie", "name": "Vinnie", "title": "Explosives", "colour": "pink", "text": "You can open Lockers without using a key. Gain 1 Notoriety each time you take a Locker tile."},
+    {"id": "claws", "name": "Claws", "title": "Safe Expert", "colour": "yellow", "text": "When you draw Exit or Locker tiles, you may draw 1 or 2 extra tiles to choose from. For each extra tile you draw, you must pay $2k."},
+    {"id": "scar", "name": "Scar", "title": "Driver", "colour": "green", "text": "During the Avoid step, you may pay $2k and discard a Gas Can to avoid 1 Police Officer of any type."},
+    {"id": "shadow", "name": "Shadow", "title": "The Muscle", "colour": "grey", "text": "You may stack up 2 Locker or Exit tiles on a single Item space. You may not replace any tiles."},
+    {"id": "dasilva", "name": "Da Silva", "title": "The Inside Man", "colour": "grey", "text": "Each time you get income, gain an additional $3k. All costs are increased by $1k."},
+    {"id": "ladyt", "name": "Lady T.", "title": "The Fixer", "colour": "grey", "text": "You can refresh Fixer tiles as if they were Equipment tiles. Each time you do this, pay $1k plus the cost of the Fixer tile."},
+    {"id": "mrv", "name": "Mr. V", "title": "The Mastermind", "colour": "grey", "text": "When you visit a Safe House, instead of losing 1 Notoriety, you may choose to gain 1 Notoriety, or not lose any. If you do any of the above, take a Wound."},
+    {"id": "kitty", "name": "Kitty", "title": "Gang Member", "colour": "grey", "text": "You begin the game in control of the Gangs from the starting City tile and $3k less. You may not hire Gangs."}
+  ]
+}
