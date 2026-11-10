@@ -360,7 +360,7 @@ function playerCard(S, p, full, viewer) {
   } else if (p.mission) h += `<div class="rowlbl">${t('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
   if (viewer === p.id) {
     const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
-    h += `<div class="rowlbl">${t('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
+    h += `<div class="rowlbl">${t('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''} g${i < 3 ? 'p' : i < 6 ? 'b' : 'r'}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
   }
   return h + '</div>';
 }
