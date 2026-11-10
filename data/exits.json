@@ -1,0 +1,7 @@
+{
+  "_comment": "10 Exit tiles in 2 stacks (black back, grey back), 5 each. Back reminder: visit open exit -> $ (income) or take Exit tile; each stack = 2x $0, 2x $50k, 1x $70k. Front: money bag with value or red X (= 0).",
+  "stacks": {
+    "black": [0, 0, 50, 50, 70],
+    "grey": [0, 0, 50, 50, 70]
+  }
+}
