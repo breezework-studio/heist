@@ -298,7 +298,7 @@ function travelResources(s, p) {
     if (C.effect === 'chopper') r.chopper.push(i); if (C.effect === 'jetski') r.jetski.push(i); if (C.effect === 'sewer') r.sewer.push(i);
     if (C.effect === 'medevac') r.medevac.push(i); if (C.effect === 'gang_ability') r.gangCard.push(i);
   });
-  p.items.forEach((x, i) => { if (x && x.kind === 'fixer' && !x.used) { const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return; if (F.effect === 'chopper') r.heliFixer = i; if (F.effect === 'jetski') r.jetski.push('f' + i); if (F.effect === 'gang_ability') r.motorcycle = i; } });
+  p.items.forEach((x, i) => { if (x && x.kind === 'fixer' && !x.used) { const F = FIXER[x.id]; if (F.effect === 'chopper') r.heliFixer = i; if (F.effect === 'jetski') r.jetski.push('f' + i); if (F.effect === 'gang_ability') r.motorcycle = i; } });
   return r;
 }
 // plan moves: returns { [destLoc]: [plans...] }, plan = {mp, path:[nodes], cells:[visited cells], avoidCells, police, uses:[...], escape?}
@@ -328,7 +328,7 @@ E.planMoves = function (s, pid) {
     for (let k = arr.length - 1; k >= 0; k--) { const x = arr[k]; if (plan.police <= x.police && plan.uses.length <= x.uses.length && plan.mp <= x.mp) arr.splice(k, 1); }
     arr.push(plan);
   };
-  const resCost = (u) => { if (u.r === 'gangHeli' || u.r === 'm1b') return 0; if (typeof u.ref === 'string') return cst(p, FIXER[p.items[+u.ref.slice(1)].id].cost); if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') return cst(p, FIXER[p.items[u.ref].id].cost); return cst(p, CONTACT[p.contacts[u.ref].card].cost); };
+  const resCost = (u) => { if (u.r === 'gangHeli' || u.r === 'm1b') return 0; if (typeof u.ref === 'string') return 0; if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') return 0; return cst(p, CONTACT[p.contacts[u.ref].card].cost); };
   for (const v of variants) {
     v.cost = v.uses.reduce((a, u) => a + resCost(u), 0);
     const G = buildGraph(s, { jetski: v.jetski || hasAb(p, 'm1a') });
@@ -729,7 +729,7 @@ function useContact(s, p, i, why) {
   if (C.notoriety) gain(s, p, 1, 'contactStar');
   ev(s, { t: 'useContact', p: p.id, card: c.card, slot: i });
 }
-function useFixer(s, p, i) { const x = p.items[i]; const F = FIXER[x.id]; x.used = true; pay(s, p, F.cost, 'fixer'); ev(s, { t: 'useFixer', p: p.id, id: x.id, slot: i }); }
+function useFixer(s, p, i) { const x = p.items[i]; const F = FIXER[x.id]; x.used = true; ev(s, { t: 'useFixer', p: p.id, id: x.id, slot: i }); }
 function useGangMember(s, p) { const g = p.gangMembers.shift(); const gang = s.gangs[g]; gang.members++; ev(s, { t: 'useGang', p: p.id, gang: g }); if (gang.members >= 2) { gang.ctrl = null; p.ctrlFree++; ev(s, { t: 'gangFree', p: p.id, gang: g }); } }
 function useTravelRes(s, p, u) {
   if (u.r === 'jetski' || u.r === 'sewer' || u.r === 'chopper' || u.r === 'medevac' || u.r === 'gangCardHeli') { if (typeof u.ref === 'string' && u.ref[0] === 'f') useFixer(s, p, +u.ref.slice(1)); else useContact(s, p, u.ref, 'move'); }
@@ -762,8 +762,8 @@ function execOptions(s, p, when) {
     o.push({ src: 'contact', i, eff: C.effect, type: C.type, cost: cst(p, C.cost) });
   });
   p.items.forEach((x, i) => {
-    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return;
-    if (!effOK(F.effect)) return; o.push({ src: 'fixer', i, eff: F.effect, cost: cst(p, F.cost) });
+    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id];
+    if (!effOK(F.effect)) return; o.push({ src: 'fixer', i, eff: F.effect, cost: 0 });
   });
   p.unlocked.forEach((u, i) => {
     if (!u || u.used) return; const A = ASSET[u.id]; const cost = cst(p, UNLOCK_COSTS[i]); if (p.money < cost) return;
@@ -843,9 +843,9 @@ function avoidOptions(s, p, list, t) {
     if (C.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: cst(p, C.cost) }));
   });
   p.items.forEach((x, i) => {
-    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return;
-    if (F.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: cst(p, F.cost) }));
-    if (F.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: cst(p, F.cost) }));
+    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id];
+    if (F.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: 0 }));
+    if (F.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: 0 }));
   });
   p.unlocked.forEach((u, i) => {
     if (!u || u.used) return; const A = ASSET[u.id]; const cost = cst(p, UNLOCK_COSTS[i]); if (p.money < cost) return;
