@@ -179,7 +179,7 @@ function renderMap(view) {
   // tiles
   S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); s += tileSVG(c.tile, c.rot, o.x, o.y, { id: 'tile-' + i, cls: G.dropCell === i ? 'dropin' : '' }); });
   // ghost placement
-  if (view.ghost) { const o = cellXY(view.ghost.cell); s += `<g opacity=".85">${tileSVG(view.ghost.tile, view.ghost.rot, o.x, o.y, { id: 'ghost' })}</g><polygon points="${hexPts(o.x, o.y)}" fill="none" stroke="#e8b546" stroke-width="5"/>`; }
+  if (view.ghost) { const o = cellXY(view.ghost.cell); const gd = (G.S.display || []).find(x => x.tile === view.ghost.tile); s += `<g opacity=".85">${tileSVG(view.ghost.tile, view.ghost.rot, o.x, o.y, { id: 'ghost' })}${gd ? E.PTYPES.filter(ty => gd.police[ty]).map(ty => copSVG(view.ghost.cell, ty)).join('') : ''}</g><polygon points="${hexPts(o.x, o.y)}" fill="none" stroke="#e8b546" stroke-width="5"/>`; }
   // dest cells (police move)
   if (view.cellDests) view.cellDests.forEach(i => { const o = cellXY(i); s += `<polygon class="cell-dest" data-celldest="${i}" points="${hexPts(o.x, o.y, 0.92)}"/>`; });
   // path preview
@@ -351,9 +351,13 @@ function renderBar() {
   }
   if (G.sel.execCop) { el.innerHTML = `<div class="msg">${head} — ${nm('move_' + G.sel.execCop.type) || ''}<small>${t('pickOfficer')}</small></div><button id="bBack">${t('cancel')}</button>`; $('#bBack').onclick = () => { G.sel = {}; renderMap(); renderBar(); }; }
 }
+function displayCops(tl) {
+  const d = (G.S.display || []).find(x => x.tile === tl); if (!d) return '';
+  return E.PTYPES.filter(ty => d.police[ty]).map(ty => `<g transform="translate(${COPPOS[ty]},${-R0 * 0.7})"><circle r="19" fill="#000a"/><g transform="translate(-17,-18) scale(1.42)" fill="${COP[ty]}" stroke="#fff" stroke-width="1.2">${IC.raw('shield')}</g></g>`).join('');
+}
 function placeBar(el, pd, head) {
   const S = G.S;
-  const tiles = pd.display.map(tl => `<span class="hextile ${G.sel.tile === tl ? 'sel' : ''}" data-tile="${tl}"><svg width="78" height="68" viewBox="-104 -90 208 180">${svgDefs()}${tileSVG(tl, 0, 0, 0, { id: 'pv' + tl })}${E.TILE[tl].locs.map(l => { const g = tileGeo(tl, 0); const p = g.locs[l.id]; const nmI = { business: 'dice', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' }[l.type]; return `<circle cx="${p.x}" cy="${p.y}" r="24" fill="#fff" stroke="#000" stroke-width="3"/><g transform="translate(${p.x - 16},${p.y - 16}) scale(1.33)" fill="#222">${IC.raw(nmI)}</g>`; }).join('')}</svg></span>`).join('');
+  const tiles = pd.display.map(tl => `<span class="hextile ${G.sel.tile === tl ? 'sel' : ''}" data-tile="${tl}"><svg width="78" height="68" viewBox="-104 -90 208 180">${svgDefs()}${tileSVG(tl, 0, 0, 0, { id: 'pv' + tl })}${E.TILE[tl].locs.map(l => { const g = tileGeo(tl, 0); const p = g.locs[l.id]; const nmI = { business: 'dice', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' }[l.type]; return `<circle cx="${p.x}" cy="${p.y}" r="24" fill="#fff" stroke="#000" stroke-width="3"/><g transform="translate(${p.x - 16},${p.y - 16}) scale(1.33)" fill="#222">${IC.raw(nmI)}</g>`; }).join('')}${displayCops(tl)}</svg></span>`).join('');
   const canConfirm = G.sel.tile && G.sel.cell != null;
   const TL = G.sel.tile ? E.TILE[G.sel.tile] : null;
   let extra = '';
