@@ -923,7 +923,7 @@ function visit(s, p, t) {
         ev(s, { t: 'cube', p: p.id, at: k.id, income: val === '$' });
         if (val === '$') income(s, p, 'safehouse');
         if (p.power === 'mrv' && !t.mrvDone) { ask(s, p.id, 'choose', { q: 'mrv', opts: ['lose', 'none', 'gain'] }, { k: 'visitStep', t: Object.assign({}, t, { mrvDone: true, step: 0, resumeSH: true }) }); return; }
-        lose(s, p, 1, 'safehouse');
+        lose(s, p, 1, 'shVisit');
         const keys = s.shKeys[k.id];
         if (keys.length) {
           const colors = [...new Set(keys)];
@@ -1087,7 +1087,7 @@ function visitResolve(s, p, pd, a, c) {
     }
     case 'unlock': if (a) push(s, { k: 'unlock', pid: p.id }, nextT()); else push(s, nextT()); return;
     case 'church': if (a) { pay(s, p, 1, 'church'); lose(s, p, 1, 'church'); } push(s, nextT()); return;
-    case 'mrv': if (a === 'lose') lose(s, p, 1, 'safehouse'); else { if (a === 'gain') gain(s, p, 1, 'power'); wound(s, p, 'power'); } push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return;
+    case 'mrv': if (a === 'lose') lose(s, p, 1, 'shVisit'); else { if (a === 'gain') gain(s, p, 1, 'power'); wound(s, p, 'power'); } push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return;
   }
 }
 

@@ -1208,7 +1208,7 @@ function visit(s, p, t) {
         ev(s, { t: 'cube', p: p.id, at: k.id, income: val === '$' });
         if (val === '$') income(s, p, 'safehouse');
         if (p.power === 'mrv' && !t.mrvDone) { ask(s, p.id, 'choose', { q: 'mrv', opts: ['lose', 'none', 'gain'] }, { k: 'visitStep', t: Object.assign({}, t, { mrvDone: true, step: 0, resumeSH: true }) }); return; }
-        lose(s, p, 1, 'safehouse');
+        lose(s, p, 1, 'shVisit');
         const keys = s.shKeys[k.id];
         if (keys.length) {
           const colors = [...new Set(keys)];
@@ -1372,7 +1372,7 @@ function visitResolve(s, p, pd, a, c) {
     }
     case 'unlock': if (a) push(s, { k: 'unlock', pid: p.id }, nextT()); else push(s, nextT()); return;
     case 'church': if (a) { pay(s, p, 1, 'church'); lose(s, p, 1, 'church'); } push(s, nextT()); return;
-    case 'mrv': if (a === 'lose') lose(s, p, 1, 'safehouse'); else { if (a === 'gain') gain(s, p, 1, 'power'); wound(s, p, 'power'); } push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return;
+    case 'mrv': if (a === 'lose') lose(s, p, 1, 'shVisit'); else { if (a === 'gain') gain(s, p, 1, 'power'); wound(s, p, 'power'); } push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return;
   }
 }
 
@@ -2047,7 +2047,7 @@ I.narrate = function (e, ctx) {
 };
 I.whyText = function (why) {
   const pt = I.lang === 'pt';
-  const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income',
+  const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income', shVisit: pt ? 'visita à Casa Segura' : 'Safe House visit',
     crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
     lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
   if (!why) return '';

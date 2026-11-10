@@ -250,7 +250,7 @@ I.narrate = function (e, ctx) {
 };
 I.whyText = function (why) {
   const pt = I.lang === 'pt';
-  const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income',
+  const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income', shVisit: pt ? 'visita à Casa Segura' : 'Safe House visit',
     crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
     lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
   if (!why) return '';
