@@ -556,7 +556,7 @@ function contactSheet(pd, p) {
   const sel = G.sel.card;
   sheet(`<h3>${t('contactTitle')}</h3><div class="sub">${t('pickCard')}</div><div class="cardrow">${pd.display.map(c => contactCardHTML(c, 'pick ' + (sel === c ? 'sel' : ''))).join('')}</div>
    ${sel ? `<div class="sub" style="margin-top:6px"><b>${E.CONTACT[sel].name}</b>: ${T.effect(E.CONTACT[sel].effect, E.CONTACT[sel].types || (E.CONTACT[sel].type ? [E.CONTACT[sel].type] : null))}</div><div class="row">${pd.hasEmpty ? `<button class="pri" id="bB">${t('optB')}</button>` : ''}${pd.mine.length ? `<button id="bC">${t('optC')}</button>` : ''}<button class="ghost" id="bA">${t('optA')}</button></div><div id="repl" class="cardrow"></div>` : ''}`, el => {
-    $$('.ccard.pick', el).forEach(c => c.onclick = () => { G.sel.card = c.dataset.card; contactSheet(pd, p); });
+    $$('.ccard.pick', el).forEach(c => c.onclick = () => { G.sel.card = pd.display.find(x => String(x) === c.dataset.card); contactSheet(pd, p); });
     $('#bB') && ($('#bB').onclick = () => human({ card: sel, opt: 'B' }));
     $('#bA') && ($('#bA').onclick = () => human({ card: sel, opt: 'A' }));
     $('#bC') && ($('#bC').onclick = () => { $('#repl').innerHTML = pd.mine.map(m => contactCardHTML(m.card, 'pick', `data-i="${m.i}"`)).join(''); $$('#repl .ccard').forEach(c => c.onclick = () => human({ card: sel, opt: 'C', replace: +c.dataset.i })); });
@@ -969,7 +969,8 @@ async function loop() {
 }
 function human(a) {
   const S = G.S; G.sel = {}; closeSheet(); $('.pop') && $('.pop').remove();
-  try { E.act(S, a); } catch (err) { console.error(err); showError(err); return; }
+  const snap = E.clone(S);
+  try { E.act(S, a); } catch (err) { console.error(err); Object.keys(S).forEach(k => delete S[k]); Object.assign(S, snap); showError(err); loop(); return; }
   loop();
 }
 function showError(err) { const d = document.createElement('div'); d.className = 'tip'; d.style.cssText = 'left:10px;top:60px;max-width:90vw;pointer-events:auto;background:#5a1212'; d.innerHTML = `<b>Oops</b>${String(err && err.message || err)}<br><button onclick="this.parentNode.remove()">OK</button>`; document.body.appendChild(d); }
@@ -983,7 +984,7 @@ function showMenu() {
   <div class="menu-btns">${hasSave() ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button></div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
-  $('#mCont') && ($('#mCont').onclick = () => { try { const sv = JSON.parse(localStorage.getItem('heist.save')); G.S = sv.S; G.logLines = (sv.log || []); startScreen(); } catch (e) { showSetup(); } });
+  $('#mCont') && ($('#mCont').onclick = () => { try { const sv = JSON.parse(localStorage.getItem('heist.save')); G.S = sv.S; E.resume(G.S); G.logLines = (sv.log || []); startScreen(); } catch (e) { showSetup(); } });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
 }
 const SEATS = ['orange', 'purple', 'pink', 'yellow', 'green'];

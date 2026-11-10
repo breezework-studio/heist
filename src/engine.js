@@ -402,6 +402,7 @@ function isOpenExit(s, locId) { const k = locKind(s, locId); return k && k.type 
 E.isOpenExit = isOpenExit;
 
 // ---------- the main loop ----------
+E.resume = (s) => { if (!s.pending && !s.over) run(s); return s; };
 function run(s) {
   let guard = 0;
   while (!s.pending && s.queue.length && guard++ < 100000) {
@@ -632,7 +633,7 @@ function resolve(s, pd, a, c) {
       break;
     }
     case 'takeContact': {
-      const card = a.card; const i = s.cdisplay.indexOf(card); if (i < 0) throw new Error('no card');
+      const i = s.cdisplay.findIndex(c => String(c) === String(a.card)); if (i < 0) throw new Error('no card'); const card = s.cdisplay[i];
       s.cdisplay.splice(i, 1);
       if (a.opt === 'B') { const e = emptyContact(p); if (e < 0) throw new Error('no space'); p.contacts[e] = { kind: 'contact', card, used: false }; ev(s, { t: 'contact', p: p.id, card, slot: e }); }
       else if (a.opt === 'C') { const old = p.contacts[a.replace]; if (!old || old.kind !== 'contact') throw new Error('bad replace'); p.contacts[a.replace] = { kind: 'contact', card, used: false }; ev(s, { t: 'contact', p: p.id, card, slot: a.replace, replaced: old.card }); gain(s, p, 1, 'replace'); }
