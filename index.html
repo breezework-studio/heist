@@ -2682,7 +2682,8 @@ function renderMap(view) {
   }
   // locations
   view._labels = []; const allLocs = [];
-  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
+  // locations are clipped to their own tile: spaces that reach the edge sit flush against it, like on the real tiles
+  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); s += `<clipPath id="lc-${i}"><polygon points="${hexPts(o.x, o.y, 0.985)}"/></clipPath><g clip-path="url(#lc-${i})">`; E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); s += '</g>'; });
   const copsAt = []; S.cells.forEach((c, i) => { if (c) E.PTYPES.forEach(ty => { if (c.police[ty]) copsAt.push(copXY(i, ty)); }); });
   const labelsSVG = placeLabels(view._labels, allLocs, copsAt);
   // police
