@@ -188,6 +188,7 @@ AI.decide = function (E, s) {
         case 'exit': return o.includes('tile') && p.money >= reserve(E, s, p) ? 'tile' : 'income';
         case 'clawsExtra': return spendable(E, s, p) >= 4 ? Math.min(1, o[o.length - 1]) : 0;
         case 'mrv': return 'lose';
+        case 'slotPick': { const val = x => !x ? -1 : x.kind === 'fixer' ? (x.used ? 0 : 30) : x.kind === 'equip' ? (x.used ? 5 : 20) : 40 + (x.val || 0); return o.slice().sort((a, b) => val(p.items[a]) - val(p.items[b]))[0]; }
         case 'mission': return { 1: 'c', 2: 'a', 3: 'a', 4: 'c', 5: 'b', 6: 'b' }[pd.mission] || 'a';
       }
       return o[0];

@@ -26,7 +26,7 @@ en: {
   q: {
     incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
-    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep',
+    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', slotPick: 'No empty item space — which tile do you replace? (+1 notoriety)', exitPick: 'Choose an exit tile to keep',
     clawsExtra: 'Claws: draw extra tiles ($2k each)?', mrv: 'Mr. V at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Lady T.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
@@ -35,6 +35,7 @@ en: {
   nbHelp: 'You have 4 notoriety cubes. Each gain moves a cube from the middle to the red box (▲), each loss to the blue box (▼). Your marker only moves after everyone has acted: up 1 per red cube, down 1 per blue cube. If all 4 cubes are already placed, a gain takes a cube back from the blue box and a loss takes one back from the red box — so you never go beyond +4 or −4 in one round. Example: +2 then −2 leaves 2 red and 2 blue (no change); one more gain then returns a blue cube, for a net +1.',
   setTitle: 'Complete all 3 → choose one', setDisc: 'Extra Action', or: 'or', setBiz: 'unlock asset, −1 notoriety', setSh: 'unlock asset, receive income', setYou: n => `You: ${n}/3`, setGot: 'got it:',
   setHelpBiz: 'At the end of the turn in which you have visited all 3 Businesses of this group, choose: take an Extra Action disc, OR unlock an asset and lose 1 notoriety. Once per group per game.', setHelpSh: 'At the end of the turn in which you have visited all 3 Safe Houses, choose: take an Extra Action disc, OR unlock an asset and receive income. Once per game.',
+  slotReplace: 'goes to the box',
   showBoard: 'Show full player board', left: n => `${n} left in the pile`, leftT: 'Tiles left', leftHelp: 'How many tiles are still in the supply / pile.', thTitle: n => `Notoriety line ${n}`, chip: { cards: 'Contact cards', equip: 'Equipment & Fixers', bags: 'Money bags (lockers & exits)', keys: 'Keys', cuffs: 'Handcuffs' },
   chipHelp: { cards: 'How many Contact cards they hold (count for lockers, exit tiles and the end score).', equip: 'Equipment and Fixer tiles in their item spaces.', bags: 'Locker and Exit tiles — their values are secret.', keys: 'Keys taken from Safe Houses, by colour. Open lockers of that colour or a closed Business.', cuffs: 'Handcuffs block Contact spaces and cost a card at the end.' },
   stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
@@ -84,7 +85,7 @@ pt: {
   q: {
     incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
-    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar',
+    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', slotPick: 'Não há espaço de item livre — que peça substituis? (+1 de notoriedade)', exitPick: 'Escolhe a peça de saída a guardar',
     clawsExtra: 'Claws: tirar peças extra ($2k cada)?', mrv: 'Mr. V na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Lady T.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
@@ -93,6 +94,7 @@ pt: {
   nbHelp: 'Tens 4 cubos de notoriedade. Cada ganho passa um cubo do meio para a caixa vermelha (▲), cada perda para a caixa azul (▼). O marcador só se mexe depois de todos jogarem: sobe 1 por cada cubo vermelho e desce 1 por cada azul. Se os 4 cubos já estiverem colocados, um ganho devolve um cubo da caixa azul e uma perda devolve um da vermelha — por isso nunca passas de +4 ou −4 numa ronda. Exemplo: +2 e depois −2 deixa 2 vermelhos e 2 azuis (fica igual); mais um ganho devolve um azul, ficando +1.',
   setTitle: 'Completa os 3 → escolhe um', setDisc: 'Ação Extra', or: 'ou', setBiz: 'desbloquear ativo, −1 notoriedade', setSh: 'desbloquear ativo, receber rendimento', setYou: n => `Tu: ${n}/3`, setGot: 'já ganharam:',
   setHelpBiz: 'No fim do turno em que visitaste os 3 Businesses deste grupo, escolhes: um disco de Ação Extra, OU desbloquear um ativo e perder 1 de notoriedade. Uma vez por grupo em todo o jogo.', setHelpSh: 'No fim do turno em que visitaste as 3 Casas Seguras, escolhes: um disco de Ação Extra, OU desbloquear um ativo e receber rendimento. Uma vez em todo o jogo.',
+  slotReplace: 'vai para a caixa',
   showBoard: 'Ver o tabuleiro completo', left: n => `restam ${n} na pilha`, leftT: 'Peças restantes', leftHelp: 'Quantas peças ainda restam na reserva / pilha.', thTitle: n => `Linha de notoriedade ${n}`, chip: { cards: 'Cartas de Contacto', equip: 'Equipamento e Fixers', bags: 'Sacos de dinheiro (cacifos e saídas)', keys: 'Chaves', cuffs: 'Algemas' },
   chipHelp: { cards: 'Quantas cartas de Contacto tem (contam para os cacifos, peças de saída e pontuação final).', equip: 'Equipamento e Fixers nos espaços de item.', bags: 'Peças de cacifo e de saída — os valores são secretos.', keys: 'Chaves tiradas das Casas Seguras, por cor. Abrem cacifos dessa cor ou um Business fechado.', cuffs: 'As algemas bloqueiam espaços de Contacto e custam uma carta no fim.' },
   stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
@@ -226,7 +228,7 @@ I.narrate = function (e, ctx) {
     case 'gas': return pt ? `⛽ ${N(e.p)} leva uma lata de gasolina` : `⛽ ${N(e.p)} takes a gas can`;
     case 'gasUse': return pt ? `⛽ ${N(e.p)} gasta gasolina (+1 mov.)` : `⛽ ${N(e.p)} burns gas (+1 MP)`;
     case 'item': return e.item.kind === 'locker' || e.item.kind === 'exit' ? (pt ? `💰 ${N(e.p)} guarda um saco de dinheiro` : `💰 ${N(e.p)} stashes a money bag`) : (pt ? `${N(e.p)} compra ${I.name(e.item.id)}` : `${N(e.p)} buys ${I.name(e.item.id)}`);
-    case 'itemLost': return pt ? `${N(e.p)} deixa um item para trás` : `${N(e.p)} leaves an item behind`;
+    case 'itemLost': { const x = e.item || {}; const what = x.kind === 'equip' || x.kind === 'fixer' ? I.name(x.id) : x.kind === 'locker' ? (pt ? 'peça de cacifo' : 'locker tile') : x.kind === 'exit' ? (pt ? 'peça de saída' : 'exit tile') : (pt ? 'um item' : 'an item'); return pt ? `${N(e.p)} manda para a caixa: ${what}` : `${N(e.p)} sends to the box: ${what}`; }
     case 'locker': return pt ? `🗄 ${N(e.p)} abre um cacifo ${I.name(e.color)}` : `🗄 ${N(e.p)} opens a ${I.name(e.color)} locker`;
     case 'exitTile': return null;
     case 'refresh': return pt ? `${N(e.p)} recupera todo o material` : `${N(e.p)} refreshes everything`;

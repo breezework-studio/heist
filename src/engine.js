@@ -524,6 +524,7 @@ function task(s, t) {
     case '_escapePay': escapePay(s, t); break;
     case 'ladyRefresh': { const p = P(s, t.pid); const x = p.items[t.i]; if (!x || !x.used) break; const price = 1 + FIXER[x.id].cost; if (p.money < cst(p, price)) break; ask(s, p.id, 'yesno', { q: 'ladyRefresh', fixer: x.id, price: cst(p, price) }, { k: 'ladyRefresh', pid: p.id, i: t.i }); break; }
     case 'missionCheck': missionCheck(s, P(s, t.pid)); break;
+    case 'placeAsk': { const p = P(s, t.pid); ask(s, p.id, 'choose', { q: 'slotPick', item: t.item, opts: nonAssetItems(p) }, { k: 'placeAsk', pid: p.id, item: t.item }); break; }
     case 'swapOrder': { const p = P(s, t.pid); const idx = s.order.indexOf(p.id); if (idx <= 0 || !tokenOK(p, 'm4b')) break; ask(s, p.id, 'yesno', { q: 'swapOrder', ahead: s.order[idx - 1] }, { k: 'swapOrder', pid: p.id }); break; }
     case 'takeContact': {
       const p = P(s, t.pid); if (!s.cdisplay.length) break;
@@ -640,6 +641,7 @@ function resolve(s, pd, a, c) {
       break;
     }
     case 'unlock': doUnlock(s, p, a); break;
+    case 'placeAsk': { const ok = nonAssetItems(p); placeItem(s, p, c.item, ok.includes(a) ? a : ok[0]); break; }
     case 'ladyRefresh': if (a) { const x = p.items[c.i]; pay(s, p, 1 + FIXER[x.id].cost, 'power'); x.used = false; ev(s, { t: 'refreshFixer', p: p.id, id: x.id }); } break;
     case 'swapOrder': if (a) { const idx = s.order.indexOf(p.id); const o = s.order; [o[idx - 1], o[idx]] = [o[idx], o[idx - 1]]; useToken(s, p); ev(s, { t: 'order', order: o.slice() }); } break;
     case 'mission': p.mission.ability = a; ev(s, { t: 'missionAbility', p: p.id, id: p.mission.id, ab: a }); break;
@@ -1024,8 +1026,12 @@ function placeItem(s, p, item, slot) {
     p.items[i] = item; ev(s, { t: 'item', p: p.id, item, slot: i }); return true;
   }
   let i = slot != null ? slot : emptyItem(p);
-  if (i < 0 || (p.items[i] && p.items[i].kind === 'asset')) { const na = nonAssetItems(p); i = na.length ? na[0] : -1; }
-  if (i < 0) return false;
+  if (i >= 0 && p.items[i] && p.items[i].kind === 'asset') i = -1;
+  if (i < 0) {
+    // no empty space: the player chooses which tile to replace (+1 notoriety)
+    const na = nonAssetItems(p); if (!na.length) { ev(s, { t: 'itemLost', p: p.id, item, slot: -1 }); return false; }
+    push(s, { k: 'placeAsk', pid: p.id, item }); return 'ask';
+  }
   if (p.items[i]) { ev(s, { t: 'itemLost', p: p.id, item: p.items[i], slot: i }); gain(s, p, 1, 'replace'); }
   p.items[i] = item; ev(s, { t: 'item', p: p.id, item, slot: i }); return true;
 }
@@ -1038,9 +1044,9 @@ function visitResolve(s, p, pd, a, c) {
     case 'gas': if (a) { p.gas++; s.gasSupply--; ev(s, { t: 'gas', p: p.id }); } push(s, nextT()); return;
     case 'equip': {
       if (!a || a === 'none') { push(s, nextT({ step: 3 })); return; }
-      const Q = EQUIP[a]; pay(s, p, Q.cost, 'buyEquip'); s.equip[a]--; placeItem(s, p, { kind: 'equip', id: a, used: false });
+      const Q = EQUIP[a]; pay(s, p, Q.cost, 'buyEquip'); s.equip[a]--;
       const bought = (t.bought || []).concat([a]);
-      push(s, Object.assign({}, t, { step: bought.length >= 2 ? 3 : 2, bought })); return;
+      push(s, Object.assign({}, t, { step: bought.length >= 2 ? 3 : 2, bought })); placeItem(s, p, { kind: 'equip', id: a, used: false }); return;
     }
     case 'locker': {
       if (!a || a === 'none') return;
@@ -1082,8 +1088,7 @@ function visitResolve(s, p, pd, a, c) {
     case 'exitPick': {
       const i = Math.max(0, Math.min(t.drawn.length - 1, a | 0)); const val = t.drawn[i];
       const rest = t.drawn.filter((_, j) => j !== i); s.exitStacks[t.si].push(...rest); shuffle(s, s.exitStacks[t.si]);
-      placeItem(s, p, { kind: 'exit', stack: t.si, val }); ev(s, { t: 'exitTile', p: p.id });
-      push(s, nextT()); return;
+      ev(s, { t: 'exitTile', p: p.id }); push(s, nextT()); placeItem(s, p, { kind: 'exit', stack: t.si, val }); return;
     }
     case 'unlock': if (a) push(s, { k: 'unlock', pid: p.id }, nextT()); else push(s, nextT()); return;
     case 'church': if (a) { pay(s, p, 1, 'church'); lose(s, p, 1, 'church'); } push(s, nextT()); return;

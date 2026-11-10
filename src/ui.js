@@ -586,6 +586,11 @@ function chooseSheet(pd, p) {
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${fixerCardHTML(o)}<span style="font-size:13px">${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${equipTileHTML(o, G.S.equip[o])}<span style="font-size:13px">${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
   if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${lockerBackHTML(o, G.S.lockers[o].length)}` });
+  if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
+    const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
+    const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
+    const state = x.kind === 'fixer' ? (x.used ? (pt ? 'já usado' : 'already used') : (pt ? 'ainda por usar' : 'not used yet')) : x.kind === 'equip' ? (x.used ? (pt ? 'virado (volta ao descansar)' : 'flipped (back on Rest)') : (pt ? 'pronto a usar' : 'ready')) : (pt ? 'dinheiro no fim' : 'money at the end');
+    return { v: o, html: `${icn}<span><b>${name}</b><br><small>${x.kind === 'fixer' ? 'Fixer · ' : x.kind === 'equip' ? (pt ? 'Equipamento · ' : 'Equipment · ') : ''}${state}</small><br><small>→ ${t('slotReplace')}</small></span>` }; });
   if (q === 'clawsExtra') opts = pd.opts.map(o => ({ v: o, html: `${ic('bag', '', '#2d7a2a')}<b>${t('extraN', o)}</b>` }));
   if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
   if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
