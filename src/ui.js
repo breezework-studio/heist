@@ -60,7 +60,17 @@ function tileGeo(tile, rot) {
   const TL = E.TILE[tile]; const zones = {}, locs = {};
   Object.entries(TL.shapes).forEach(([a, P]) => { zones[a] = rotP(polyCentroid(P), rot); });
   TL.areas.forEach(a => { if (!zones[a]) zones[a] = { x: 0, y: 0 }; });
-  TL.locs.forEach(l => { locs[l.id] = rotP(l.pos, rot); });
+  // hex-shaped spaces that reach the tile edge: put one facet exactly on that edge (and keep every space inside the tile)
+  const LOCR = { business: 33, safehouse: 33, gang: 33 };
+  TL.locs.forEach(l => {
+    let p = l.pos.slice(); const r = LOCR[l.type];
+    if (r) {
+      const a = r * Math.sqrt(3) / 2, Ah = H0; const touch = []; TL.sides.forEach((sd, e) => { if (sd.some(([x]) => x === '@' + l.id)) touch.push(e); });
+      const N = e => { const g = rad(VANG[e] + 30); return [Math.cos(g), Math.sin(g)]; };
+      for (let it = 0; it < 20; it++) for (let e = 0; e < 6; e++) { const [nx, ny] = N(e); const d = p[0] * nx + p[1] * ny; const want = Ah - a; if (touch.includes(e) ? Math.abs(d - want) > 0.01 : d > want) { p[0] += (want - d) * nx; p[1] += (want - d) * ny; } }
+    }
+    locs[l.id] = rotP(p, rot);
+  });
   // police: a row of 3 in the free part of the tile, away from the locations
   let best = null, bs = -1;
   for (let k = 0; k < 24; k++) for (const r of [0.6, 0.45]) {
@@ -190,8 +200,8 @@ function locSVG(S, l, x, y, view) {
   else if (k.type === 'heliport') body = `<circle class="ring" r="${r}" fill="#cfe7f5" stroke="#2f72c6" stroke-width="4"/>` + icn('heli', '#1d3f6e', 26);
   else if (k.type === 'gang') {
     const gg = S.gangs[id]; const ctrl = gg && gg.ctrl != null;
-    body = `<path class="ring" d="M-33,-16 L-12,-31 L25,-29 L34,5 L21,31 L-21,29 L-34,9Z" fill="#d9c08a" stroke="${ctrl ? pcolor(gg.ctrl) : '#7a6230'}" stroke-width="${ctrl ? 6 : 3}"/>` + icn('skull', '#3a2a12', 24);
-    if (gg) for (let i = 0; i < gg.members; i++) body += `<g transform="translate(${-12 + i * 24},22)">${icn('biker', '#2a2a2a', 14)}</g>`;
+    body = `<polygon class="ring" points="${hexPts(0, 0, 0.33)}" fill="#e2c98f" stroke="${ctrl ? pcolor(gg.ctrl) : '#8a6a2a'}" stroke-width="${ctrl ? 5 : 3}"/>` + `<g transform="translate(0,-5)">${icn('skull', '#3a2a12', 22)}</g>`;
+    if (gg) for (let i = 0; i < gg.members; i++) body += `<g transform="translate(${-9 + i * 18},14)">${icn('biker', '#2a2a2a', 13)}</g>`;
   }
   let label = '';
   if (dest) { const best = dest[0]; label = `<g><rect x="-34" y="-11" width="68" height="20" rx="10" fill="${esc ? '#e8b546' : '#111c'}" stroke="#fff3"/><text y="4" text-anchor="middle" font-family="Barlow Condensed,Arial" font-size="13" fill="${esc ? '#221a05' : '#fff'}">${best.mp}${t('mp')}${best.police ? ' · ' + best.police + '⚑' : ''}</text></g>`; }
@@ -251,7 +261,7 @@ function renderMap(view) {
   // locations
   view._labels = []; const allLocs = [];
   // locations are clipped to their own tile: spaces that reach the edge sit flush against it, like on the real tiles
-  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); s += `<clipPath id="lc-${i}"><polygon points="${hexPts(o.x, o.y, 0.985)}"/></clipPath><g clip-path="url(#lc-${i})">`; E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); s += '</g>'; });
+  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
   const copsAt = []; S.cells.forEach((c, i) => { if (c) E.PTYPES.forEach(ty => { if (c.police[ty]) copsAt.push(copXY(i, ty)); }); });
   const labelsSVG = placeLabels(view._labels, allLocs, copsAt);
   // police
