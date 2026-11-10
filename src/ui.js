@@ -73,13 +73,15 @@ function tileGeo(tile, rot) {
     }
     locs[l.id] = p;
   });
-  // separate overlapping locations
-  const ids = Object.keys(locs);
-  for (let it = 0; it < 30; it++) for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
-    const a = locs[ids[i]], b = locs[ids[j]]; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 0.01;
-    if (d < 70) { const push = (70 - d) / 2; const ux = dx / d || 1, uy = dy / d; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
+  // separate overlapping locations, keep them inside the tile and away from the police row at the top
+  const ids = Object.keys(locs); const copPts = Object.values(COPPOS).map(x => ({ x, y: -R0 * 0.70 }));
+  for (let it = 0; it < 60; it++) {
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+      const a = locs[ids[i]], b = locs[ids[j]]; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 0.01;
+      if (d < 72) { const push = (72 - d) / 2; const ux = dx / d || 1, uy = dy / d; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
+    }
+    ids.forEach(id => { const p = locs[id]; copPts.forEach(c => { const dx = p.x - c.x, dy = p.y - c.y, d = Math.hypot(dx, dy) || 0.01; if (d < 46) { p.x += dx / d * (46 - d) * 0.5; p.y += dy / d * (46 - d) * 0.5; } }); const d = Math.hypot(p.x, p.y); if (d > R0 * 0.52) { p.x *= R0 * 0.52 / d; p.y *= R0 * 0.52 / d; } });
   }
-  ids.forEach(id => { const p = locs[id]; const d = Math.hypot(p.x, p.y); if (d > R0 * 0.56) { p.x *= R0 * 0.56 / d; p.y *= R0 * 0.56 / d; } });
   return (geoCache[key] = { w, zones, locs });
 }
 function locXY(S, locId) { const ci = E.locCell(S, locId); if (ci < 0) return null; const c = S.cells[ci]; const g = tileGeo(c.tile, c.rot); const o = cellXY(ci); const p = g.locs[locId]; return { x: o.x + p.x, y: o.y + p.y }; }
@@ -152,6 +154,24 @@ function tileSVG(tile, rot, cx, cy, opts = {}) {
   s += '</g>';
   return s;
 }
+// MP labels of destinations: below the location by default, otherwise wherever they don't cover another location or label
+function placeLabels(labels, locs, cops = []) {
+  const W = 68, Hh = 20, placed = []; let out = '';
+  const hit = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 + 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + 2;
+  labels.forEach(L => {
+    const cands = [[0, L.r + 16], [0, -(L.r + 16)], [L.r + 38, 0], [-(L.r + 38), 0], [L.r + 30, L.r + 10], [-(L.r + 30), L.r + 10], [L.r + 30, -(L.r + 10)], [-(L.r + 30), -(L.r + 10)]];
+    let best = null, bs = Infinity;
+    cands.forEach(([dx, dy], k) => {
+      const box = { x: L.x + dx, y: L.y + dy, w: W, h: Hh }; let sc = k * 0.5;
+      locs.forEach(o => { if (Math.abs(o.x - L.x) < 1 && Math.abs(o.y - L.y) < 1) return; if (hit(box, { x: o.x, y: o.y, w: 58, h: 58 })) sc += 10; });
+      placed.forEach(b => { if (hit(box, b)) sc += 8; }); cops.forEach(c => { if (hit(box, { x: c.x, y: c.y, w: 30, h: 30 })) sc += 6; });
+      if (sc < bs) { bs = sc; best = box; }
+    });
+    placed.push(best);
+    out += `<g class="loclabel" data-loc="${L.id}" data-h="loc:${L.id}" transform="translate(${best.x.toFixed(1)},${best.y.toFixed(1)})">${L.html}</g>`;
+  });
+  return out;
+}
 function locSVG(S, l, x, y, view) {
   const id = l.id; const k = E.locKind(S, id); let body = '', r = 27;
   const dest = view.dests && view.dests[id]; const esc = dest && dest.some(p => p.escape);
@@ -163,8 +183,9 @@ function locSVG(S, l, x, y, view) {
     if (closed) body += `<g transform="translate(12,-20)">${icn('lock', '#f2c629', 16)}</g>`;
     const cubes = S.bizCubes[b] || []; cubes.forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'safehouse') {
-    const sh = k.id; body = `<polygon class="ring" points="${hexPts(0, 0, 0.29)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/>` + icn('house', '#fff', 22) + `<text x="13" y="-9" font-family="Barlow Condensed,Arial" font-weight="700" font-size="16" fill="#fff">${sh.slice(2)}</text>`;
-    (S.shKeys[sh] || []).forEach((c, i) => body += `<circle cx="${-14 + i * 10}" cy="-24" r="4.5" fill="${{ green: '#3eae50', black: '#222', brown: '#9b5a2a' }[c]}" stroke="#fff" stroke-width="1.5"/>`);
+    const sh = k.id; const keys = S.shKeys[sh] || [];
+    body = `<polygon class="ring" points="${hexPts(0, 0, 0.29)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/><g transform="translate(0,${keys.length ? 5 : 0})">${icn('house', '#fff', keys.length ? 18 : 22)}</g><text x="${keys.length ? 11 : 13}" y="${keys.length ? 0 : -9}" font-family="Barlow Condensed,Arial" font-weight="700" font-size="16" fill="#fff">${sh.slice(2)}</text>`;
+    keys.forEach((c, i) => body += `<g transform="translate(${(i - (keys.length - 1) / 2) * 15},-14)"><circle r="7" fill="#fff"/><g transform="translate(-6,-6) scale(.5)" fill="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}" color="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}">${IC.raw('key')}</g></g>`);
     (S.shCubes[sh] || []).forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'exit') {
     const n = k.n; const closed = S.patrolSpaces[n] >= 2;
@@ -184,8 +205,9 @@ function locSVG(S, l, x, y, view) {
     if (gg) for (let i = 0; i < gg.members; i++) body += `<g transform="translate(${-12 + i * 24},22)">${icn('biker', '#2a2a2a', 14)}</g>`;
   }
   let label = '';
-  if (dest) { const best = dest[0]; label = `<g transform="translate(0,${r + 16})"><rect x="-34" y="-11" width="68" height="20" rx="10" fill="${esc ? '#e8b546' : '#111c'}" stroke="#fff3"/><text y="4" text-anchor="middle" font-family="Barlow Condensed,Arial" font-size="13" fill="${esc ? '#221a05' : '#fff'}">${best.mp}${t('mp')}${best.police ? ' · ' + best.police + '⚑' : ''}</text></g>`; }
-  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" filter="url(#sh)">${dest ? `<circle class="halo" r="30"/>` : ''}${body}${label}</g>`;
+  if (dest) { const best = dest[0]; label = `<g><rect x="-34" y="-11" width="68" height="20" rx="10" fill="${esc ? '#e8b546' : '#111c'}" stroke="#fff3"/><text y="4" text-anchor="middle" font-family="Barlow Condensed,Arial" font-size="13" fill="${esc ? '#221a05' : '#fff'}">${best.mp}${t('mp')}${best.police ? ' · ' + best.police + '⚑' : ''}</text></g>`; }
+  if (label && view._labels) view._labels.push({ id, x, y, r, html: label });
+  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" filter="url(#sh)">${dest ? `<circle class="halo" r="30"/>` : ''}${body}</g>`;
 }
 function copSVG(ci, type, cls = '', pickable = false) {
   const p = copXY(ci, type);
@@ -238,12 +260,15 @@ function renderMap(view) {
     }
   }
   // locations
-  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
+  view._labels = []; const allLocs = [];
+  S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
+  const copsAt = []; S.cells.forEach((c, i) => { if (c) E.PTYPES.forEach(ty => { if (c.police[ty]) copsAt.push(copXY(i, ty)); }); });
+  const labelsSVG = placeLabels(view._labels, allLocs, copsAt);
   // police
   S.cells.forEach((c, i) => { if (!c) return; E.PTYPES.forEach(ty => { if (c.police[ty]) s += copSVG(i, ty, '', view.pickCops && view.pickCops.has(i + ':' + ty)); }); });
   // pawns
   const spots = pawnSpots(S); S.players.concat(S.npcs || []).forEach(q => { const p = spots[q.id]; if (p) s += pawnSVG(S, q, p.x, p.y); });
-  s += badges + '</g>';
+  s += labelsSVG + badges + '</g>';
   svg.innerHTML = s;
   fitMap();
 }
