@@ -222,7 +222,7 @@ function renderTop() {
   const tl = [0, 1, 2, 3, 4].map(i => `<div class="tl ${S.part === i ? 'on' : ''} ${i < S.part ? 'past' : ''} ${i >= 3 ? 'opt' : ''}" data-h="part:${i}">${ic(i === 0 ? 'sun' : i === 3 || i === 4 ? 'moon' : i === 2 ? 'sun' : 'sun', '', i >= 3 ? '#9fb3d9' : undefined)}</div>`).join('');
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
-  el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="exits">${exits}</div>
+  el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
   <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button><button class="tbtn" id="bMenu">${ic('menu')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
@@ -297,10 +297,13 @@ function contactCardHTML(card, cls = '', extra = '') {
 }
 function marketHTML(S) {
   let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('notoriety')} · ${t('players')}</div><div class="track">`;
+  h += `<div class="rowlbl">${t('turnOrder')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
+  h += `<div class="rowlbl">${t('notoriety')}</div><div class="track">`;
   for (let lv = 1; lv <= S.cfg.max; lv++) {
     const here = S.players.concat(S.npcs || []).filter(q => q.notor === lv && !q.arrested);
-    h += `<div class="trow ${S.cfg.th.includes(lv) ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
+    const ti = S.cfg.th.indexOf(lv);
+    if (ti >= 0) h += `<div class="thlbl">▲ ${t('thGain')[ti]}</div>`;
+    h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
   }
   h += `</div><div class="rowlbl">${t('businesses')}</div>`;
   window.HEIST_DATA.locations.businesses.forEach(b => { const cubes = S.bizCubes[b.id]; h += `<div class="biz" data-h="biz:${b.id}">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)} ${S.closed[b.id] ? ic('lock', '', '#f2c629') : ''}<span class="mini-cubes">${cubes.map(c => `<i style="background:${pcolor(c.pid)}"></i>`).join('')}</span></div>`; });
@@ -517,7 +520,7 @@ function helpHTML(key) {
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }

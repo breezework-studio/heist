@@ -161,7 +161,11 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .mini-cubes{display:flex;gap:2px;margin-left:auto}.mini-cubes i{width:10px;height:10px;border-radius:2px}
 .track{display:flex;flex-direction:column-reverse;gap:2px}
 .trow{display:flex;align-items:center;gap:6px;height:26px;padding:0 6px;border-radius:4px;background:#0002;position:relative}
-.trow.th{border-top:2px solid var(--red)}
+.trow.th{border-bottom:3px solid var(--red)}
+.thlbl{font-size:11.5px;color:#ff9a8a;padding:1px 6px 4px 28px;line-height:1.2}
+.order{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}.order span{display:inline-flex;align-items:center;gap:5px;background:#0003;border-radius:14px;padding:3px 9px 3px 4px;font-size:13px}.order b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font-size:11px;color:#111}
+.topord{display:flex;gap:3px;align-items:center}.topord i{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px #0006;display:inline-block}.topord i.cur{outline:2px solid #fff}
+@media (max-width:760px){.topord{display:none}}
 .trow .lv{width:16px;font-family:var(--ff-ui);color:var(--muted)}
 .trow .pen{margin-left:auto;font-size:12px;color:#ff9a8a}
 .log{font-size:13.5px;line-height:1.35}
@@ -189,6 +193,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .planlist{display:flex;flex-direction:column;gap:6px}
 .planlist .choice{justify-content:space-between}
 .pop{position:absolute;z-index:9;min-width:230px;max-width:300px;padding:10px 12px}
+.paper button.ghost{color:var(--ink);border:1px solid #0003}
+.pop button.pri{background:var(--red);color:#fff}
 .tip{position:fixed;z-index:50;max-width:280px;background:#0b0d12f2;color:#eee;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;pointer-events:none;box-shadow:0 8px 20px #000a}
 .tip b{color:var(--mustard);font-family:var(--ff-ui);font-size:15px;display:block;margin-bottom:2px}
 /* ---------- effects ---------- */
@@ -1767,6 +1773,7 @@ en: {
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  turnOrder: 'Turn order', thGain: ['line 1: unlock 1 asset · lower players move police toward you', 'line 2: unlock 2 assets · lower players move police toward you', 'line 3: unlock 1 asset + Extra Action · lower players move police toward you'],
   modeBoth: 'Both', extraN: n => n ? `Draw ${n} extra ($${2 * n}k)` : 'No extra tiles', choosePower: 'Power for each player', randomPower: 'Random',
   opt: { disc: 'Extra Action disc', unlock: 'Unlock an asset', unlockBiz: 'Unlock an asset & lose 1 notoriety', unlockSh: 'Unlock an asset & gain income', income: 'Receive income', tile: 'Take an Exit tile', heal: n => n ? `Heal ${n} ($${[0, 1, 3, 6][n]}k)` : 'No healing' },
   cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
@@ -1811,6 +1818,7 @@ pt: {
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  turnOrder: 'Ordem de turno', thGain: ['linha 1: desbloqueias 1 ativo · quem tem menos notoriedade move polícia para perto de ti', 'linha 2: desbloqueias 2 ativos · quem tem menos notoriedade move polícia para perto de ti', 'linha 3: desbloqueias 1 ativo + Ação Extra · quem tem menos notoriedade move polícia para perto de ti'],
   modeBoth: 'Ambos', extraN: n => n ? `Tirar ${n} extra ($${2 * n}k)` : 'Sem peças extra', choosePower: 'Poder de cada jogador', randomPower: 'Aleatório',
   opt: { disc: 'Disco de Ação Extra', unlock: 'Desbloquear ativo', unlockBiz: 'Desbloquear ativo e perder 1 de notoriedade', unlockSh: 'Desbloquear ativo e receber rendimento', income: 'Receber rendimento', tile: 'Tirar peça de saída', heal: n => n ? `Curar ${n} ($${[0, 1, 3, 6][n]}k)` : 'Não curar' },
   cards: 'Contactos', items: 'Itens', assets: 'Ativos desbloqueados', locked: 'bloqueado', keys: 'Chaves', gang: 'Gang', discs: 'Ações extra', gas: 'Gasolina',
@@ -2362,7 +2370,7 @@ function renderTop() {
   const tl = [0, 1, 2, 3, 4].map(i => `<div class="tl ${S.part === i ? 'on' : ''} ${i < S.part ? 'past' : ''} ${i >= 3 ? 'opt' : ''}" data-h="part:${i}">${ic(i === 0 ? 'sun' : i === 3 || i === 4 ? 'moon' : i === 2 ? 'sun' : 'sun', '', i >= 3 ? '#9fb3d9' : undefined)}</div>`).join('');
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
-  el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="exits">${exits}</div>
+  el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
   <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button><button class="tbtn" id="bMenu">${ic('menu')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
@@ -2437,10 +2445,13 @@ function contactCardHTML(card, cls = '', extra = '') {
 }
 function marketHTML(S) {
   let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('notoriety')} · ${t('players')}</div><div class="track">`;
+  h += `<div class="rowlbl">${t('turnOrder')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
+  h += `<div class="rowlbl">${t('notoriety')}</div><div class="track">`;
   for (let lv = 1; lv <= S.cfg.max; lv++) {
     const here = S.players.concat(S.npcs || []).filter(q => q.notor === lv && !q.arrested);
-    h += `<div class="trow ${S.cfg.th.includes(lv) ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
+    const ti = S.cfg.th.indexOf(lv);
+    if (ti >= 0) h += `<div class="thlbl">▲ ${t('thGain')[ti]}</div>`;
+    h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
   }
   h += `</div><div class="rowlbl">${t('businesses')}</div>`;
   window.HEIST_DATA.locations.businesses.forEach(b => { const cubes = S.bizCubes[b.id]; h += `<div class="biz" data-h="biz:${b.id}">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)} ${S.closed[b.id] ? ic('lock', '', '#f2c629') : ''}<span class="mini-cubes">${cubes.map(c => `<i style="background:${pcolor(c.pid)}"></i>`).join('')}</span></div>`; });
@@ -2657,7 +2668,7 @@ function helpHTML(key) {
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }

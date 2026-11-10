@@ -154,7 +154,11 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .mini-cubes{display:flex;gap:2px;margin-left:auto}.mini-cubes i{width:10px;height:10px;border-radius:2px}
 .track{display:flex;flex-direction:column-reverse;gap:2px}
 .trow{display:flex;align-items:center;gap:6px;height:26px;padding:0 6px;border-radius:4px;background:#0002;position:relative}
-.trow.th{border-top:2px solid var(--red)}
+.trow.th{border-bottom:3px solid var(--red)}
+.thlbl{font-size:11.5px;color:#ff9a8a;padding:1px 6px 4px 28px;line-height:1.2}
+.order{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}.order span{display:inline-flex;align-items:center;gap:5px;background:#0003;border-radius:14px;padding:3px 9px 3px 4px;font-size:13px}.order b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font-size:11px;color:#111}
+.topord{display:flex;gap:3px;align-items:center}.topord i{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px #0006;display:inline-block}.topord i.cur{outline:2px solid #fff}
+@media (max-width:760px){.topord{display:none}}
 .trow .lv{width:16px;font-family:var(--ff-ui);color:var(--muted)}
 .trow .pen{margin-left:auto;font-size:12px;color:#ff9a8a}
 .log{font-size:13.5px;line-height:1.35}
@@ -182,6 +186,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .planlist{display:flex;flex-direction:column;gap:6px}
 .planlist .choice{justify-content:space-between}
 .pop{position:absolute;z-index:9;min-width:230px;max-width:300px;padding:10px 12px}
+.paper button.ghost{color:var(--ink);border:1px solid #0003}
+.pop button.pri{background:var(--red);color:#fff}
 .tip{position:fixed;z-index:50;max-width:280px;background:#0b0d12f2;color:#eee;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;pointer-events:none;box-shadow:0 8px 20px #000a}
 .tip b{color:var(--mustard);font-family:var(--ff-ui);font-size:15px;display:block;margin-bottom:2px}
 /* ---------- effects ---------- */
