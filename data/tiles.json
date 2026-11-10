@@ -1,0 +1,19 @@
+{
+ "_comment": "City tiles, flat-top hex. edges = 12 half-edge land types clockwise: top(L,R), upper-right(top,bottom), lower-right(top,bottom), bottom(R,L), lower-left(bottom,top), upper-left(bottom,top). Land: I industrial (black), C commercial (grey/beige), R residential (green), W water (blue). borders = land pairs touching inside the tile. locs = locations with adjacent land types. Transcribed from photos; approximate at half-edge precision.",
+ "tiles": [
+  {"id":"S1","stack":"start","edges":["R","W","W","W","W","C","C","I","I","I","I","R"],"borders":["RW","RI","RC","IC","WC"],"locs":[{"type":"store","id":"storeD","adj":"RC"},{"type":"gang","id":"gang1","adj":"CW"}]},
+  {"id":"S2","stack":"start","helipad":true,"edges":["I","C","C","W","W","W","W","R","R","R","I","I"],"borders":["IC","CW","WR","RI"],"locs":[{"type":"hospital","id":"hospital","adj":"ICWR"}]},
+  {"id":"A1","stack":"A","edges":["R","R","R","W","W","W","W","R","R","R","R","R"],"borders":["RW"],"locs":[{"type":"subway","id":"subway1","adj":"R"},{"type":"exit","id":"exit2","adj":"RW"}]},
+  {"id":"A2","stack":"A","ferry":true,"edges":["I","I","I","W","W","C","C","C","C","W","W","I"],"borders":["IW","WC"],"locs":[{"type":"exit","id":"exit3","adj":"IW"},{"type":"church","id":"church","adj":"WC"}]},
+  {"id":"A3","stack":"A","helipad":true,"edges":["C","C","C","C","C","R","R","R","R","R","R","C"],"borders":["CR"],"locs":[{"type":"clinic","id":"clinic","adj":"C"},{"type":"safehouse","id":"shslot1","adj":"CR"}]},
+  {"id":"B1","stack":"B","helipad":true,"edges":["R","R","R","R","I","I","I","I","I","I","R","R"],"borders":["RI"],"locs":[{"type":"safehouse","id":"shslot2","adj":"RI"},{"type":"subway","id":"subway2","adj":"R"}]},
+  {"id":"B2","stack":"B","helipad":true,"edges":["R","R","R","R","I","I","I","I","I","I","R","R"],"borders":["RI"],"locs":[{"type":"business","id":"bizslot1","adj":"RI"},{"type":"gang","id":"gang2","adj":"RI"}]},
+  {"id":"B3","stack":"B","edges":["R","R","R","W","W","W","W","I","I","I","I","R"],"borders":["RI","RW","IW"],"locs":[{"type":"heliport","id":"heliport","adj":"RIW"},{"type":"safehouse","id":"shslot3","adj":"RW"}]},
+  {"id":"C1","stack":"C","edges":["C","W","W","W","W","C","C","C","C","C","C","C"],"borders":["CW"],"locs":[{"type":"exit","id":"exit1","adj":"CW"},{"type":"store","id":"storeA","adj":"C"}]},
+  {"id":"C2","stack":"C","edges":["C","C","C","W","W","W","W","W","W","C","C","C"],"borders":["CW"],"locs":[{"type":"gang","id":"gang3","adj":"CW"},{"type":"business","id":"bizslot2","adj":"CW"}]},
+  {"id":"C3","stack":"C","edges":["R","R","R","W","W","W","W","I","I","I","I","R"],"borders":["RI","RW","IW"],"locs":[{"type":"store","id":"storeB","adj":"RI"},{"type":"business","id":"bizslot3","adj":"IW"}]},
+  {"id":"D1","stack":"D","ferry":true,"edges":["I","I","I","I","I","W","W","W","W","W","W","I"],"borders":["IW"],"locs":[{"type":"subway","id":"subway3","adj":"I"},{"type":"business","id":"bizslot4","adj":"W"}]},
+  {"id":"D2","stack":"D","ferry":true,"edges":["R","R","R","R","W","C","C","C","C","W","W","R"],"borders":["RW","WC"],"locs":[{"type":"store","id":"storeC","adj":"R"},{"type":"business","id":"bizslot5","adj":"CW"}]},
+  {"id":"D3","stack":"D","helipad":true,"edges":["C","I","I","I","I","I","C","C","C","C","C","C"],"borders":["CI"],"locs":[{"type":"business","id":"bizslot6","adj":"C"},{"type":"gang","id":"gang4","adj":"CI"}]}
+ ]
+}
