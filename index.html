@@ -228,6 +228,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .opt-btn{font-size:13px;padding:6px 9px}
 .planlist{display:flex;flex-direction:column;gap:6px}
 .planlist .choice{justify-content:space-between}
+.draggable{cursor:move;touch-action:none;user-select:none}.grip{color:#0006;font-size:15px;margin-right:2px}.rsteps{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.6}.rsteps .lt{padding:0 5px;border-radius:4px;color:#fff;font-size:12px}.lt.I{background:var(--I)}.lt.C{background:#a99668}.lt.R{background:var(--R)}.lt.W{background:var(--W)}.rsteps .ic{width:14px;height:14px;vertical-align:-2px}
 .pop{position:absolute;z-index:9;min-width:230px;max-width:300px;padding:10px 12px}
 .paper button.ghost{color:var(--ink);border:1px solid #0003}
 .pop button.pri{background:var(--red);color:#fff}
@@ -2706,7 +2707,7 @@ function placeBar(el, pd, head) {
     $('#bPlace').onclick = () => { const a = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot, biz: ($('#selBiz') || {}).value, sh: ($('#selSh') || {}).value }; human(a); };
   }
 }
-function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); }
+function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
   const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Scar ⛽' : x.src === 'mission' ? t('mission') : x.src;
@@ -2771,17 +2772,55 @@ function chooseSheet(pd, p) {
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
   sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
 }
+// where to put the destination popover: inside the map area, away from the drawn route
+function placePop(el, S, plan) {
+  const host = $('#mapwrap').getBoundingClientRect(); const M = $('#world').getScreenCTM(); const svg = $('#map');
+  const scr = q => { const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; const r = pt.matrixTransform(M); return { x: r.x - host.left, y: r.y - host.top }; };
+  const pts = (plan ? routePts(S, bestPath(S, plan.path, plan.alts)) : []).map(scr);
+  if (!pts.length) return;
+  const pad = 46; const bb = { x0: Math.min(...pts.map(q => q.x)) - pad, x1: Math.max(...pts.map(q => q.x)) + pad, y0: Math.min(...pts.map(q => q.y)) - pad, y1: Math.max(...pts.map(q => q.y)) + pad };
+  const w = el.offsetWidth, h = el.offsetHeight, W = host.width, H = host.height; const m = 8;
+  const cands = [[bb.x1 + 6, (bb.y0 + bb.y1) / 2 - h / 2], [bb.x0 - w - 6, (bb.y0 + bb.y1) / 2 - h / 2], [(bb.x0 + bb.x1) / 2 - w / 2, bb.y1 + 6], [(bb.x0 + bb.x1) / 2 - w / 2, bb.y0 - h - 6], [W - w - m, m], [m, m], [W - w - m, H - h - m], [m, H - h - m]];
+  const clamp = ([x, y]) => [Math.max(m, Math.min(W - w - m, x)), Math.max(m, Math.min(H - h - m, y))];
+  const overlap = ([x, y]) => Math.max(0, Math.min(x + w, bb.x1) - Math.max(x, bb.x0)) * Math.max(0, Math.min(y + h, bb.y1) - Math.max(y, bb.y0));
+  let best = null, bo = Infinity; cands.map(clamp).forEach(c => { const o = overlap(c); if (o < bo - 1) { bo = o; best = c; } });
+  el.style.left = best[0] + 'px'; el.style.top = best[1] + 'px';
+}
+// drag a floating window by its title
+function makeDraggable(el, handle) {
+  if (!handle) return; handle.classList.add('draggable'); let d = null;
+  handle.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; const r = el.getBoundingClientRect(), hr = el.parentElement.getBoundingClientRect(); d = { dx: e.clientX - r.left, dy: e.clientY - r.top, hr }; el.style.transform = 'none'; el.style.left = (r.left - hr.left) + 'px'; el.style.top = (r.top - hr.top) + 'px'; el.style.bottom = 'auto'; handle.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
+  handle.addEventListener('pointermove', e => { if (!d) return; const x = Math.max(0, Math.min(d.hr.width - 60, e.clientX - d.hr.left - d.dx)), y = Math.max(0, Math.min(d.hr.height - 30, e.clientY - d.hr.top - d.dy)); el.style.left = x + 'px'; el.style.top = y + 'px'; });
+  const up = () => { d = null; }; handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
+}
+// readable list of what each movement point is spent on
+function routeSteps(S, path, pl) {
+  const pt = G.prefs.lang === 'pt'; const isZ = n => n.indexOf(':') >= 0 && !/^[~^%]/.test(n);
+  const LN = { I: pt ? 'Industrial' : 'Industrial', C: pt ? 'Comercial' : 'Commercial', R: pt ? 'Residencial' : 'Residential', W: pt ? 'Água' : 'Water' };
+  const out = []; let mp = 0; let water = false;
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1], b = path[i];
+    if (isZ(b) && b.split(':')[1] === 'W') water = true;
+    if (/^~/.test(b)) { out.push(`🚇 ${pt ? 'metro (+1)' : 'subway (+1)'}`); continue; }
+    if (/^\^/.test(b)) { mp++; out.push(`<b>${mp}</b> ${ic('heli')} ${pt ? 'voo' : 'flight'}`); continue; }
+    if (/^%/.test(b)) { out.push(`${ic('sewer')} ${pt ? 'esgotos' : 'sewer'}`); continue; }
+    if (!isZ(a) && isZ(b)) { mp++; out.push(`<b>${mp}</b> ${pt ? 'sair para' : 'leave to'} <span class="lt ${b.split(':')[1]}">${LN[b.split(':')[1]]}</span>`); }
+    else if (isZ(a) && isZ(b)) { const A = a.split(':')[1], B = b.split(':')[1]; if (A !== B) { mp++; out.push(`<b>${mp}</b> <span class="lt ${A}">${LN[A]}</span> → <span class="lt ${B}">${LN[B]}</span>`); } }
+    else if (isZ(a) && !isZ(b)) { mp++; out.push(`<b>${mp}</b> ${pt ? 'entrar' : 'enter'}`); }
+  }
+  if (water && pl.variant !== 'jetski') out.push(`⛴ ${pt ? 'ferry: há um F nesta massa de água' : 'ferry: this body of water has an F'}`);
+  else if (water) out.push(`${ic('wave')} Jet Ski`);
+  return out.join(' · ');
+}
 function destPopover(locId) {
   const S = G.S; const pd = S.pending; const plans = pd.moves[locId]; if (!plans) return;
   const pp = $('.pop'); pp && pp.remove();
   const el = document.createElement('div'); el.className = 'pop paper';
-  el.innerHTML = `<h3 style="margin:0 0 6px;font-family:var(--ff-type)">${locName(locId)}</h3><div class="planlist">${plans.map((pl, i) => `<div class="choice" data-i="${i}" style="flex-direction:column;align-items:stretch">
-    <div style="display:flex;justify-content:space-between;gap:8px"><b>${t('variant.' + pl.variant)}</b><span>${pl.mp} ${t('mp')}${pl.extraMp ? ' · ' + t('extraMp', pl.extraMp) : ''} · ${pl.police} ${ic('shield', '', '#d23b33')}</span></div>
+  el.innerHTML = `<h3 class="draggable" style="margin:0 0 6px;font-family:var(--ff-type)"><span class="grip">⠿</span> ${locName(locId)}</h3><div class="planlist">${plans.map((pl, i) => `<div class="choice" data-i="${i}" style="flex-direction:column;align-items:stretch">
+    <div style="display:flex;justify-content:space-between;gap:8px"><b>${t('variant.' + pl.variant)}</b><span>${pl.mp} ${t('mp')}${pl.extraMp ? ' · ' + t('extraMp', pl.extraMp) : ''} · ${pl.police} ${ic('shield', '', '#d23b33')}</span></div><div class="rsteps">${routeSteps(S, bestPath(S, pl.path, pl.alts), pl)}</div>
     <div class="row" style="margin-top:4px">${pl.escape ? `<button class="gold" data-esc="1" data-i="${i}">${ic('car')} ${t('escape')}</button>` : ''}<button class="pri" data-i="${i}">${t('move')}</button></div></div>`).join('')}</div><div class="row" style="margin-top:8px"><button class="ghost" id="bX">${t('cancel')}</button></div>`;
   $('#mapwrap').appendChild(el);
-  const p = locXY(S, locId); const svg = $('#map'); const pt = svg.createSVGPoint(); pt.x = p.x; pt.y = p.y; const sc = pt.matrixTransform($('#world').getScreenCTM()); const host = $('#mapwrap').getBoundingClientRect();
-  let x = sc.x - host.left + 30, y = sc.y - host.top - 40; x = Math.min(x, host.width - 250); y = Math.max(6, Math.min(y, host.height - el.offsetHeight - 6)); if (x < 6) x = 6;
-  el.style.left = x + 'px'; el.style.top = y + 'px';
+  placePop(el, S, plans[G.sel.plan || 0]); makeDraggable(el, $('h3', el));
   $$('.planlist .choice', el).forEach(c => c.onmouseenter = () => { G.sel.plan = +c.dataset.i; renderMap(); });
   $$('button[data-i]', el).forEach(b => b.onclick = (ev) => { ev.stopPropagation(); human({ type: 'move', dest: locId, plan: +b.dataset.i, escape: !!b.dataset.esc }); });
   $('#bX').onclick = () => { el.remove(); G.sel = {}; renderMap(); };
