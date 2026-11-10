@@ -530,8 +530,8 @@ function placeBar(el, pd, head) {
 function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
-  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Scar ⛽' : x.src === 'mission' ? t('mission') : x.src;
-  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : 'bandage';
+  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Scar ⛽' : x.src === 'mission' ? t('mission') : x.src === 'equip' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src;
+  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : x.src === 'equip' ? IC.EQUIP[G.S.players[G.S.pending.pid].items[x.i].id] : 'bandage';
   return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
 }
 function abilitiesSheet(ex, when) {
@@ -563,11 +563,21 @@ function contactSheet(pd, p) {
   });
 }
 function avoidSheet(pd, p) {
-  const offs = pd.officers;
-  const rows = offs.map(o => {
-    const opts = pd.options.map((x, i) => ({ x, i })).filter(({ x }) => x.cell === o.cell && (x.scope === 'tile' || (x.scope === 'types' && (x.types.includes(o.type) || o.type === 'sandra')) || x.type === o.type));
-    const lbl = (x) => { const L = exLabel(x); return `${L.src}${x.cost ? ' $' + x.cost + 'k' : ''}${x.scope === 'tile' ? ' ⬡' : ''}`; };
-    return `<div class="off-row"><span class="who">${o.type === 'sandra' || o.type === 'costa' ? ic('cop', '', o.type === 'sandra' ? '#a8956a' : '#2b3f6b') : ic('shield', '', COP[o.type])} ${t('types.' + o.type)}</span>${opts.length ? opts.map(({ x, i }) => `<button class="opt-btn" data-i="${i}" title="${exLabel(x).eff}">${lbl(x)}</button>`).join('') : `<span style="color:#a33">🩸 ${o.type === 'costa' ? (p.money >= 3 ? '$3k' : '2×') : ''}</span>`}</div>`;
+  const offs = pd.officers; const pt = G.prefs.lang === 'pt';
+  const btn = ({ x, i }, wide) => { const L = exLabel(x); return `<button class="opt-btn" data-i="${i}" title="${L.eff}">${ic(L.icon)} ${L.src}${x.cost ? ' $' + x.cost + 'k' : ''}${wide ? ' <small>— ' + wide + '</small>' : ''}</button>`; };
+  const who = o => o.type === 'sandra' || o.type === 'costa' ? ic('cop', '', o.type === 'sandra' ? '#a8956a' : '#2b3f6b') : ic('shield', '', COP[o.type]);
+  const cells = [...new Set(offs.map(o => o.cell))];
+  const rows = cells.map((cell, ci) => {
+    const here = offs.filter(o => o.cell === cell);
+    const all = pd.options.map((x, i) => ({ x, i })).filter(({ x }) => x.cell === cell);
+    // options that clear several officers of this tile at once
+    const tileOpts = all.filter(({ x }) => x.scope === 'tile' || x.scope === 'types');
+    const tileRow = tileOpts.length ? `<div class="off-row tilewide"><span class="who">⬡ ${pt ? 'Toda a peça' : 'Whole tile'}</span>${tileOpts.map(o => btn(o, o.x.scope === 'tile' ? (pt ? `evita os ${here.length}` : `avoids all ${here.length}`) : (o.x.types || []).map(ty => t('types.' + ty)).join('+'))).join('')}</div>` : '';
+    const offRows = here.map(o => {
+      const one = all.filter(({ x }) => x.scope !== 'tile' && x.scope !== 'types' && x.type === o.type);
+      return `<div class="off-row"><span class="who">${who(o)} ${t('types.' + o.type)}</span>${one.length ? one.map(z => btn(z)).join('') : `<span class="noopt">${tileOpts.length ? (pt ? 'só com a opção da peça' : 'only with a whole-tile option') : (pt ? '🩸 sem opção: ferimento' : '🩸 no option: wound')}${o.type === 'costa' ? (p.money >= 3 ? ' ($3k)' : ' (2×)') : ''}</span>`}</div>`;
+    }).join('');
+    return `<div class="avtile"><div class="avh">${pt ? 'Peça' : 'Tile'} ${ci + 1}${cells.length > 1 ? '' : ''} · ${here.length} ${pt ? (here.length === 1 ? 'polícia' : 'polícias') : (here.length === 1 ? 'officer' : 'officers')}</div>${tileRow}${offRows}</div>`;
   }).join('');
   const nw = offs.filter(o => o.type !== 'costa').length; const costa = offs.find(o => o.type === 'costa');
   sheet(`<h3>${t('avoidTitle')}</h3><div class="sub">${t('avoidHint')}</div>${rows}<div class="row"><button class="pri" id="bDone">${nw ? t('acceptWounds', nw) : t('done')}${costa ? (p.money >= 3 ? ' + $3k' : '') : ''}</button></div>`, el => {

@@ -204,6 +204,7 @@ module.exports = [
 <h4>My item spaces are full and I get a new tile. What happens?</h4><p>You choose which tile to replace (it goes to the box) and gain 1 notoriety. The game asks you.</p>
 <h4>Can I cross water?</h4><p>Only if that body of water has an F (ferry) on any of its tiles — the ferry serves all connected water — or with a Jet Ski.</p>
 <h4>When are two tiles connected?</h4><p>Where the same land colour really touches along the shared edge (even a short stretch). Locations that reach the tile edge also touch what is across it.</p>
+<h4>Does a gang biker avoid all the police on a tile?</h4><p>Yes. In the Avoid step a biker (or the Motorcycle fixer, Fast Car card, avoid-tile asset) ignores every officer on one tile. In the avoid window these appear on the “Whole tile” line; equipment and cards like Stunt avoid one officer at a time.</p>
 <h4>I gained 2 and lost 2 notoriety. Then gained 1 more?</h4><p>2 red + 2 blue = no change. With all 4 cubes used, the next gain takes a blue cube back: net +1. Your box "Notoriety this round" shows it.</p>`,
 `<h4>Posso visitar mais do que um local no mesmo turno?</h4><p>Não. Mover = Viajar → Evitar → Visitar, e só visitas o local onde acabas. O Metro e o Heliporto usam-se durante a viagem (não são visitas); não podes passar por outros locais. Para visitar outro precisas do próximo turno ou de um disco de Ação Extra (Noite/Madrugada).</p>
 <h4>Posso usar o motard do gang depois de visitar, para voar para outro sítio?</h4><p>Não. O voo do motard só funciona no passo Viajar. Depois da Visita a ação acabou. Peças com pegadas = só a Viajar; escudo = só a Evitar; sem símbolo = a qualquer momento (mas nenhuma te leva a outro local).</p>
@@ -216,5 +217,6 @@ module.exports = [
 <h4>Tenho os espaços de item cheios e recebo uma peça nova. O que acontece?</h4><p>Escolhes que peça substituir (vai para a caixa) e ganhas 1 de notoriedade. O jogo pergunta-te.</p>
 <h4>Posso atravessar água?</h4><p>Só se essa massa de água tiver um F (ferry) em qualquer das suas peças — o ferry serve toda a água ligada — ou com um Jet Ski.</p>
 <h4>Quando é que duas peças estão ligadas?</h4><p>Onde a mesma cor de terreno se toca mesmo ao longo da margem comum (basta um troço pequeno). Locais que chegam à margem também tocam no que está do outro lado.</p>
+<h4>O motard do gang evita toda a polícia de uma peça?</h4><p>Sim. No passo Evitar, um motard (ou o fixer Mota, a carta Fast Car, o ativo de evitar uma peça) ignora todos os polícias de uma peça. Na janela de evitar aparecem na linha “Toda a peça”; o equipamento e cartas como Stunt evitam um polícia de cada vez.</p>
 <h4>Ganhei 2 e perdi 2 de notoriedade. E se ganhar mais 1?</h4><p>2 vermelhos + 2 azuis = fica igual. Com os 4 cubos usados, o ganho seguinte devolve um azul: +1 no total. A caixa "Notoriedade desta ronda" mostra isto.</p>`) },
 ];
