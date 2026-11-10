@@ -1018,6 +1018,18 @@ function lockerOptions(s, p) {
   return o;
 }
 E.lockerOptions = lockerOptions;
+// why a locker cannot be opened (for the UI): returns null when it can
+E.lockerWhyNot = function (s, p, col) {
+  const L = D.lockers.lockers[col]; const cc = contactCount(p); const tot = p.notor + cc;
+  if (!s.lockers[col].length) return { r: 'empty' };
+  const key = Object.entries(p.keys).find(([, v]) => !v.used && v.color === col);
+  const mk = p.unlocked.findIndex(x => x && x.id === 'master_key' && !x.used);
+  if (!key && !(mk >= 0 && p.money >= cst(p, UNLOCK_COSTS[mk])) && p.power !== 'vinnie') return { r: 'key' };
+  if (tot < L.min) return { r: 'score', have: tot, need: L.min };
+  const draw = col === 'green' ? cc + 1 : col === 'black' ? cc : cc - 1; if (draw < 1) return { r: 'draw', cc };
+  if (emptyItem(p) < 0 && !nonAssetItems(p).length) return { r: 'space' };
+  return null;
+};
 function placeItem(s, p, item, slot) {
   if (p.power === 'shadow') {
     let i = emptyItem(p);

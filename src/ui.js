@@ -585,9 +585,14 @@ function chooseSheet(pd, p) {
   if (q === 'key') opts = pd.opts.map(o => ({ v: o, html: `${ic('key', '', keyC[o])}<b>${nm(o)}</b>` }));
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${fixerCardHTML(o)}<span style="font-size:13px">${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${equipTileHTML(o, G.S.equip[o])}<span style="font-size:13px">${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
-  if (q === 'locker') opts = pd.opts.map(o => { if (o === 'none') return { v: o, cls: 'narrow', html: `<b>${t('none')}</b>` };
-    const L = window.HEIST_DATA.lockers.lockers[o]; const cc = E.contactCount(p); const n = Math.max(0, Math.min(G.S.lockers[o].length, cc + (+L.draw || 0)));
-    return { v: o, cls: 'wide', html: `${lockerBackHTML(o, G.S.lockers[o].length)}<span style="font-size:13.5px">${t('lockerDo', n, p.notor + cc, L.min)}</span>` }; });
+  if (q === 'locker') {
+    const cc = E.contactCount(p);
+    opts = [{ v: 'none', cls: 'narrow', html: `<b>${t('none')}</b>` }].concat(['green', 'black', 'brown'].map(o => {
+      const L = window.HEIST_DATA.lockers.lockers[o]; const n = Math.max(0, Math.min(G.S.lockers[o].length, cc + (+L.draw || 0)));
+      const ok = pd.opts.includes(o); const why = ok ? null : E.lockerWhyNot(G.S, p, o);
+      return { v: o, cls: 'lockopt' + (ok ? '' : ' off'), off: !ok, h: ok ? '' : 'lockno:' + o, html: `${lockerBackHTML(o, G.S.lockers[o].length)}<span class="ltxt">${ok ? `<b class="big">${t('lockerN', n)}</b><br><small>${t('lockerDo2', p.notor + cc, L.min)}</small>` : `<b>${t('lockerNo')}</b><br><small>${t('lockerWhy.' + why.r, why)}</small>`}</span>` };
+    }));
+  }
   if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
     const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
     const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
@@ -597,7 +602,7 @@ function chooseSheet(pd, p) {
   if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
   if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
-  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice ${o.cls || ''}" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
+  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice ${o.cls || ''}" data-i="${i}" ${o.h ? `data-h="${o.h}"` : ''}>${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const o = opts[+b.dataset.i]; if (!o.off) human(o.v); }));
 }
 // where to put the destination popover: inside the map area, away from the drawn route
 function placePop(el, S, plan) {
@@ -765,6 +770,7 @@ function helpHTML(key) {
     case 'biz': { const L = Object.keys(S.bizSlots || {}).find(x => S.bizSlots[x] === id); return L ? helpHTML('loc:' + L) : `<b>${nm(id)}</b>${topic('business')}`; }
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
+    case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
     case 'ui': if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
