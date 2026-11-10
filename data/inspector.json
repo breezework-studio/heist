@@ -1,0 +1,21 @@
+{
+  "_comment": "16 Inspector (Sandra) cards, 2-player mode: one per location in the city (6 businesses, 3 safe houses, 4 stores, 3 exits). notoriety: +1/-1 for Sandra. cube: place Sandra cube on location. discard: what Sandra removes from the game (contacts = 2 rightmost contact cards). Back: Sandra portrait. Rules: rulebook 2022 p.22.",
+  "cards": [
+    {"loc": "casino", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "bar", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "restaurant", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "gym", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "nightclub", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "gallery", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
+    {"loc": "sh1", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "sh2", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "sh3", "notoriety": -1, "cube": true, "discard": {"fixer": 1, "key": 1}},
+    {"loc": "storeA", "notoriety": 1, "cube": false, "discard": {"contacts": 2, "locker": "brown"}},
+    {"loc": "storeB", "notoriety": -1, "cube": false, "discard": {"contacts": 2, "locker": "black"}},
+    {"loc": "storeC", "notoriety": 1, "cube": false, "discard": {"contacts": 2, "locker": "green"}},
+    {"loc": "storeD", "notoriety": -1, "cube": false, "discard": {"contacts": 2, "locker": "all"}},
+    {"loc": "exit1", "notoriety": -1, "cube": false, "discard": {"contacts": 2, "exit": 1}},
+    {"loc": "exit2", "notoriety": -1, "cube": false, "discard": {"contacts": 2, "exit": 1}},
+    {"loc": "exit3", "notoriety": -1, "cube": false, "discard": {"contacts": 2, "exit": 1}}
+  ]
+}
