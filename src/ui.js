@@ -418,6 +418,16 @@ function lockerBackHTML(col, left) {
   const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>${cnt[v]}/${L.tiles.length}</b></div>`).join('');
   return `<div class="ltile ${col}" data-h="locker:${col}"><div class="lh"><span class="nm">${nm(col)}</span>${ic('lock')}</div><div class="lr"><div class="req">${L.min}+</div><div class="drw">${ic('card')}${draw || '='}</div></div><div class="comp">${comp}</div><div class="ft" data-h="ui:left">${t('left', left)}</div></div>`;
 }
+// "complete the set of 3" reward box: the two choices, your progress and who already got it
+function setBonusHTML(S, g) {
+  const viewer = viewerId(); const me = S.players[viewer];
+  const keys = g === 'sh' ? ['sh1', 'sh2', 'sh3'] : window.HEIST_DATA.locations.businesses.filter(b => b.group === g).map(b => b.id);
+  const col = g === 'purple' ? '#9050c8' : g === 'blue' ? '#2f62c0' : '#d23b33';
+  const n = me ? keys.filter(k => me.visited[k]).length : 0;
+  const got = S.players.concat(S.npcs || []).filter(q => q.bonus && q.bonus[g]);
+  const optB = g === 'sh' ? `${ic('unlock')} + ${ic('money', '', '#7fd67f')}` : `${ic('unlock')} + ${ic('starMinus', '', '#6fb0ff')}`;
+  return `<div class="setb" style="border-color:${col}" data-h="ui:set_${g}"><div class="st"><span class="dots">${keys.map(k => `<i style="${me && me.visited[k] ? 'background:' + col : ''};border-color:${col}"></i>`).join('')}</span>${t('setTitle')}</div><div class="so"><span class="opt">${ic('disc', '', '#e8b546')} ${t('setDisc')}</span><em>${t('or')}</em><span class="opt">${optB} ${t(g === 'sh' ? 'setSh' : 'setBiz')}</span></div><div class="sp">${t('setYou', n)}${got.length ? ' · ' + t('setGot') + ' ' + got.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('') : ''}</div></div>`;
+}
 function marketHTML(S) {
   let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
   h += `<div class="rowlbl">${t('turnOrder')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
@@ -435,10 +445,12 @@ function marketHTML(S) {
     const cubes = S.bizCubes[b.id]; const N = S.cfg.closeAt; const closed = S.closed[b.id];
     const slots = Array.from({ length: Math.max(N, cubes.length) }, (_, i) => `<b class="${i < cubes.length ? 'f' : ''} ${i >= N ? 'x' : ''}" style="${i < cubes.length ? 'background:' + pcolor(cubes[i].pid) : ''}"></b>`).join('');
     h += `<div class="bizrow ${closed ? 'cl' : ''}" data-h="biz:${b.id}"><div class="bh">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)}<span class="cap">${slots}${closed ? ' ' + ic('lock', '', '#f2c629') + ' ' + t('closed') : ''}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`;
+    const grp = window.HEIST_DATA.locations.businesses.filter(x => x.group === b.group); if (grp[grp.length - 1].id === b.id) h += setBonusHTML(S, b.group);
   });
   h += `<div class="rowlbl">${t('safehouses')}</div>`;
   h += `<div class="legend">${t('shLegend')}</div>`;
   ['sh1', 'sh2', 'sh3'].forEach(k => { const cubes = S.shCubes[k] || []; h += `<div class="bizrow"><div class="bh">${ic('house', '', '#ff7a6e')} ${nm(k)}<span class="cap">${(S.shKeys[k] || []).map(c => ic('key', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])).join('') || '<em>' + t('noKeys') + '</em>'}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`; });
+  h += setBonusHTML(S, 'sh');
   h += `<div class="rowlbl">${t('fixers')}</div><div class="cardrow wrap">${S.fixers.map(f => fixerCardHTML(f)).join('')}</div>`;
   h += `<div class="rowlbl">${t('equipment')}</div><div class="cardrow wrap">${Object.keys(S.equip).map(k => equipTileHTML(k, S.equip[k])).join('')}<div class="etile gas" data-h="stat:gas"><div class="nm">${t('gas')}</div>${ic('gas', 'big', '#7fc3ff')}<div class="av">+1 ${t('mp')}</div><div class="ft"><span>${t('free')}</span><span>×${S.gasSupply}</span></div></div></div>`;
   h += `<div class="rowlbl">${t('lockers')}</div><div class="legend">${t('lockerLegend')}</div><div class="cardrow wrap">${['green', 'black', 'brown'].map(c => lockerBackHTML(c, S.lockers[c].length)).join('')}</div>`;
@@ -736,7 +748,7 @@ function helpHTML(key) {
     case 'biz': { const L = Object.keys(S.bizSlots || {}).find(x => S.bizSlots[x] === id); return L ? helpHTML('loc:' + L) : `<b>${nm(id)}</b>${topic('business')}`; }
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
