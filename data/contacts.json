@@ -1,5 +1,5 @@
 {
- "_comment": "34 Contact cards (33 base + Gas Can from Upgrade Pack). notoriety=true: using gains 1 Notoriety. step: travel/avoid icon in corner (small icons; Informer/Sewer/Spy2 corner read as footsteps, verify).",
+ "_comment": "34 Contact cards (33 base + Gas Can from Upgrade Pack). notoriety=true: using gains 1 Notoriety. step: travel/avoid icon in corner (Informer/Sewer/Spy corners confirmed footsteps = travel by user).",
  "cards": [
   {
    "id": 1,
