@@ -220,9 +220,9 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .choice{display:flex;align-items:center;gap:8px;background:#fff8;border:1px solid #0002;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink);text-align:left;font-family:var(--ff-body);font-size:14px}
 .choice:hover{background:#fff}
 .choice .ic{width:24px;height:24px}
-.choice .ccard .ic,.choice .etile .ic,.choice .ltile .ic{width:auto;height:auto}
+.choice .ccard .ic,.choice .etile .ic{width:auto;height:auto}.choice .ltile{min-height:0}
 .choice b{font-family:var(--ff-ui);font-size:16px}
-.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}.choice.wide{grid-column:span 2;gap:14px}.choice.narrow{justify-content:center}@media (max-width:620px){.choice.wide{grid-column:1/-1}}
 .off-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #0002;flex-wrap:wrap}
 .off-row .who{min-width:120px;font-family:var(--ff-ui);font-size:16px}
 .off-row .done{color:#2b8a3e;font-weight:700}
@@ -1840,7 +1840,7 @@ en: {
   setTitle: 'Complete all 3 → choose one', setDisc: 'Extra Action', or: 'or', setBiz: 'unlock asset, −1 notoriety', setSh: 'unlock asset, receive income', setYou: n => `You: ${n}/3`, setGot: 'got it:',
   setHelpBiz: 'At the end of the turn in which you have visited all 3 Businesses of this group, choose: take an Extra Action disc, OR unlock an asset and lose 1 notoriety. Once per group per game.', setHelpSh: 'At the end of the turn in which you have visited all 3 Safe Houses, choose: take an Extra Action disc, OR unlock an asset and receive income. Once per game.',
   slotReplace: 'goes to the box',
-  showBoard: 'Show full player board', left: n => `${n} left in the pile`, leftT: 'Tiles left', leftHelp: 'How many tiles are still in the supply / pile.', thTitle: n => `Notoriety line ${n}`, chip: { cards: 'Contact cards', equip: 'Equipment & Fixers', bags: 'Money bags (lockers & exits)', keys: 'Keys', cuffs: 'Handcuffs' },
+  showBoard: 'Show full player board', left: n => `${n} left in the pile`, lockerDo: (n, have, need) => `You draw <b>${n}</b> tile${n === 1 ? '' : 's'} in secret and keep 1.<br><small>Needs ${need}+ (you have ${have}: notoriety + cards). Uses your key. ×N = how many of each value the pile had at the start.</small>`, leftT: 'Tiles left', leftHelp: 'How many tiles are still in the supply / pile.', thTitle: n => `Notoriety line ${n}`, chip: { cards: 'Contact cards', equip: 'Equipment & Fixers', bags: 'Money bags (lockers & exits)', keys: 'Keys', cuffs: 'Handcuffs' },
   chipHelp: { cards: 'How many Contact cards they hold (count for lockers, exit tiles and the end score).', equip: 'Equipment and Fixer tiles in their item spaces.', bags: 'Locker and Exit tiles — their values are secret.', keys: 'Keys taken from Safe Houses, by colour. Open lockers of that colour or a closed Business.', cuffs: 'Handcuffs block Contact spaces and cost a card at the end.' },
   stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
   lockerLegend: 'Back of each locker: open it if notoriety + Contact cards ≥ the number; you draw tiles = your cards ± the value shown. You need a key of that colour.',
@@ -1899,7 +1899,7 @@ pt: {
   setTitle: 'Completa os 3 → escolhe um', setDisc: 'Ação Extra', or: 'ou', setBiz: 'desbloquear ativo, −1 notoriedade', setSh: 'desbloquear ativo, receber rendimento', setYou: n => `Tu: ${n}/3`, setGot: 'já ganharam:',
   setHelpBiz: 'No fim do turno em que visitaste os 3 Businesses deste grupo, escolhes: um disco de Ação Extra, OU desbloquear um ativo e perder 1 de notoriedade. Uma vez por grupo em todo o jogo.', setHelpSh: 'No fim do turno em que visitaste as 3 Casas Seguras, escolhes: um disco de Ação Extra, OU desbloquear um ativo e receber rendimento. Uma vez em todo o jogo.',
   slotReplace: 'vai para a caixa',
-  showBoard: 'Ver o tabuleiro completo', left: n => `restam ${n} na pilha`, leftT: 'Peças restantes', leftHelp: 'Quantas peças ainda restam na reserva / pilha.', thTitle: n => `Linha de notoriedade ${n}`, chip: { cards: 'Cartas de Contacto', equip: 'Equipamento e Fixers', bags: 'Sacos de dinheiro (cacifos e saídas)', keys: 'Chaves', cuffs: 'Algemas' },
+  showBoard: 'Ver o tabuleiro completo', left: n => `restam ${n} na pilha`, lockerDo: (n, have, need) => `Tiras <b>${n}</b> peça${n === 1 ? '' : 's'} em segredo e guardas 1.<br><small>Precisa de ${need}+ (tens ${have}: notoriedade + cartas). Gasta a tua chave. ×N = quantas peças de cada valor a pilha tinha no início.</small>`, leftT: 'Peças restantes', leftHelp: 'Quantas peças ainda restam na reserva / pilha.', thTitle: n => `Linha de notoriedade ${n}`, chip: { cards: 'Cartas de Contacto', equip: 'Equipamento e Fixers', bags: 'Sacos de dinheiro (cacifos e saídas)', keys: 'Chaves', cuffs: 'Algemas' },
   chipHelp: { cards: 'Quantas cartas de Contacto tem (contam para os cacifos, peças de saída e pontuação final).', equip: 'Equipamento e Fixers nos espaços de item.', bags: 'Peças de cacifo e de saída — os valores são secretos.', keys: 'Chaves tiradas das Casas Seguras, por cor. Abrem cacifos dessa cor ou um Business fechado.', cuffs: 'As algemas bloqueiam espaços de Contacto e custam uma carta no fim.' },
   stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
   lockerLegend: 'Verso de cada cacifo: abre-se se notoriedade + cartas de Contacto ≥ número; tiras peças = as tuas cartas ± o valor indicado. Precisas de uma chave dessa cor.',
@@ -2870,7 +2870,7 @@ function equipTileHTML(id, left) {
 function lockerBackHTML(col, left) {
   const L = window.HEIST_DATA.lockers.lockers[col]; const draw = { '+1': '+1', '0': '', '-1': '−1' }[L.draw];
   const cnt = {}; L.tiles.forEach(v => cnt[v] = (cnt[v] || 0) + 1);
-  const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>${cnt[v]}/${L.tiles.length}</b></div>`).join('');
+  const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>×${cnt[v]}</b></div>`).join('');
   return `<div class="ltile ${col}" data-h="locker:${col}"><div class="lh"><span class="nm">${nm(col)}</span>${ic('lock')}</div><div class="lr"><div class="req">${L.min}+</div><div class="drw">${ic('card')}${draw || '='}</div></div><div class="comp">${comp}</div><div class="ft" data-h="ui:left">${t('left', left)}</div></div>`;
 }
 // "complete the set of 3" reward box: the two choices, your progress and who already got it
@@ -3030,7 +3030,9 @@ function chooseSheet(pd, p) {
   if (q === 'key') opts = pd.opts.map(o => ({ v: o, html: `${ic('key', '', keyC[o])}<b>${nm(o)}</b>` }));
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${fixerCardHTML(o)}<span style="font-size:13px">${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${equipTileHTML(o, G.S.equip[o])}<span style="font-size:13px">${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
-  if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${lockerBackHTML(o, G.S.lockers[o].length)}` });
+  if (q === 'locker') opts = pd.opts.map(o => { if (o === 'none') return { v: o, cls: 'narrow', html: `<b>${t('none')}</b>` };
+    const L = window.HEIST_DATA.lockers.lockers[o]; const cc = E.contactCount(p); const n = Math.max(0, Math.min(G.S.lockers[o].length, cc + (+L.draw || 0)));
+    return { v: o, cls: 'wide', html: `${lockerBackHTML(o, G.S.lockers[o].length)}<span style="font-size:13.5px">${t('lockerDo', n, p.notor + cc, L.min)}</span>` }; });
   if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
     const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
     const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
@@ -3040,7 +3042,7 @@ function chooseSheet(pd, p) {
   if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
   if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
-  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
+  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice ${o.cls || ''}" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
 }
 // where to put the destination popover: inside the map area, away from the drawn route
 function placePop(el, S, plan) {

@@ -213,9 +213,9 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .choice{display:flex;align-items:center;gap:8px;background:#fff8;border:1px solid #0002;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink);text-align:left;font-family:var(--ff-body);font-size:14px}
 .choice:hover{background:#fff}
 .choice .ic{width:24px;height:24px}
-.choice .ccard .ic,.choice .etile .ic,.choice .ltile .ic{width:auto;height:auto}
+.choice .ccard .ic,.choice .etile .ic{width:auto;height:auto}.choice .ltile{min-height:0}
 .choice b{font-family:var(--ff-ui);font-size:16px}
-.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}.choice.wide{grid-column:span 2;gap:14px}.choice.narrow{justify-content:center}@media (max-width:620px){.choice.wide{grid-column:1/-1}}
 .off-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #0002;flex-wrap:wrap}
 .off-row .who{min-width:120px;font-family:var(--ff-ui);font-size:16px}
 .off-row .done{color:#2b8a3e;font-weight:700}

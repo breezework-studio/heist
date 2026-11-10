@@ -425,7 +425,7 @@ function equipTileHTML(id, left) {
 function lockerBackHTML(col, left) {
   const L = window.HEIST_DATA.lockers.lockers[col]; const draw = { '+1': '+1', '0': '', '-1': '−1' }[L.draw];
   const cnt = {}; L.tiles.forEach(v => cnt[v] = (cnt[v] || 0) + 1);
-  const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>${cnt[v]}/${L.tiles.length}</b></div>`).join('');
+  const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>×${cnt[v]}</b></div>`).join('');
   return `<div class="ltile ${col}" data-h="locker:${col}"><div class="lh"><span class="nm">${nm(col)}</span>${ic('lock')}</div><div class="lr"><div class="req">${L.min}+</div><div class="drw">${ic('card')}${draw || '='}</div></div><div class="comp">${comp}</div><div class="ft" data-h="ui:left">${t('left', left)}</div></div>`;
 }
 // "complete the set of 3" reward box: the two choices, your progress and who already got it
@@ -585,7 +585,9 @@ function chooseSheet(pd, p) {
   if (q === 'key') opts = pd.opts.map(o => ({ v: o, html: `${ic('key', '', keyC[o])}<b>${nm(o)}</b>` }));
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${fixerCardHTML(o)}<span style="font-size:13px">${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${equipTileHTML(o, G.S.equip[o])}<span style="font-size:13px">${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
-  if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${lockerBackHTML(o, G.S.lockers[o].length)}` });
+  if (q === 'locker') opts = pd.opts.map(o => { if (o === 'none') return { v: o, cls: 'narrow', html: `<b>${t('none')}</b>` };
+    const L = window.HEIST_DATA.lockers.lockers[o]; const cc = E.contactCount(p); const n = Math.max(0, Math.min(G.S.lockers[o].length, cc + (+L.draw || 0)));
+    return { v: o, cls: 'wide', html: `${lockerBackHTML(o, G.S.lockers[o].length)}<span style="font-size:13.5px">${t('lockerDo', n, p.notor + cc, L.min)}</span>` }; });
   if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
     const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
     const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
@@ -595,7 +597,7 @@ function chooseSheet(pd, p) {
   if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
   if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
-  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
+  sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice ${o.cls || ''}" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
 }
 // where to put the destination popover: inside the map area, away from the drawn route
 function placePop(el, S, plan) {
