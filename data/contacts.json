@@ -298,5 +298,6 @@
    "step": "travel",
    "effect": "chopper"
   }
- ]
+ ],
+ "_back": "Back (shown when used/flipped face down): grey pocket with refresh icon. Cards with notoriety=true show a red star+ reminder tag on the back (no new Notoriety when flipped back up). Others plain."
 }
