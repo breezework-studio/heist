@@ -1,0 +1,5 @@
+{
+  "_comment": "6 Patrol cards: 2 per exit (1, 2, 3). One removed at random at setup -> 5 in deck. Back: police radio. Handcuffs cards: 10, red back with cuffs (cover a Contact space when arrested/wounded).",
+  "patrol": [1, 1, 2, 2, 3, 3],
+  "handcuffs": 10
+}
