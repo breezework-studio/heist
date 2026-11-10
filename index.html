@@ -234,6 +234,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .paper button.ghost{color:var(--ink);border:1px solid #0003}
 .pop button.pri{background:var(--red);color:#fff}
 .loclabel{cursor:pointer}.mpb{pointer-events:none}.mpb circle{fill:#f2c629;stroke:#1a1a1a;stroke-width:2.5}.mpb text{font:700 13px 'Barlow Condensed',sans-serif;text-anchor:middle;fill:#1a1a1a}
+.abgrp{margin:6px 0 8px}.abh{font-family:var(--ff-ui);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#5a4a2a;margin-bottom:4px;display:flex;align-items:center;gap:5px}.abh .ic{width:15px;height:15px}
 .avtile{border:1px solid #0002;border-radius:8px;padding:4px 8px;margin:6px 0;background:#fff5}.avh{font-family:var(--ff-ui);font-weight:700;font-size:13px;color:#5a4a2a;margin-bottom:2px}.off-row.tilewide{background:#f2c62922;border-radius:6px}.opt-btn .ic{width:15px;height:15px;vertical-align:-3px}.opt-btn small{font-weight:400;opacity:.85}.noopt{color:#8a5a3a;font-size:13px}
 .tip{position:fixed;z-index:50;width:max-content;max-width:280px;background:#0b0d12f2;color:#eee;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;pointer-events:none;box-shadow:0 8px 20px #000a}
 .tip ol.tsteps{margin:4px 0 2px;padding-left:18px}.tip ol.tsteps li{margin:1px 0}.tip small{display:block;color:#aab;font-size:11.5px;margin-top:3px}
@@ -3021,8 +3022,18 @@ function exLabel(x) {
   const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : x.src === 'equip' ? IC.EQUIP[G.S.players[G.S.pending.pid].items[x.i].id] : 'bandage';
   return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
 }
+// abilities grouped by where they come from (cards, equipment, fixers, assets, gang, other)
+function abilityGroups(ex) {
+  const pt = G.prefs.lang === 'pt';
+  const GR = [['contact', pt ? 'Cartas de Contacto' : 'Contact cards', 'card'], ['equip', pt ? 'Equipamento' : 'Equipment', 'helmet'], ['fixer', 'Fixers', 'wrench'], ['asset', pt ? 'Ativos desbloqueados' : 'Unlocked assets', 'unlock'], ['gang', pt ? 'Motards do gang' : 'Gang bikers', 'biker'], ['firstAid', pt ? 'Primeiros socorros' : 'First aid', 'bandage'], ['other', pt ? 'Poderes e missões' : 'Powers & missions', 'star']];
+  const key = x => GR.some(g => g[0] === x.src) ? x.src : 'other';
+  return GR.map(([k, title, icn]) => {
+    const items = ex.map((x, i) => ({ x, i })).filter(({ x }) => key(x) === k); if (!items.length) return '';
+    return `<div class="abgrp"><div class="abh">${ic(icn)} ${title}</div><div class="choices">${items.map(({ x, i }) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div></div>`;
+  }).join('');
+}
 function abilitiesSheet(ex, when) {
-  sheet(`<h3>${t('abilities')}</h3><div class="sub">${t('endHint')}</div><div class="choices">${ex.map((x, i) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div><div class="row"><button class="ghost" id="bX">${t('close')}</button></div>`, el => {
+  sheet(`<h3>${t('abilities')}</h3><div class="sub">${t('endHint')}</div>${abilityGroups(ex)}<div class="row"><button class="ghost" id="bX">${t('close')}</button></div>`, el => {
     $$('.choice', el).forEach(b => b.onclick = () => { const x = ex[+b.dataset.i]; closeSheet(); if (x.eff === 'move_police' || x.eff === 'remove_police') { G.sel = { execCop: x }; renderMap(); renderBar(); } else human({ exec: x }); });
     $('#bX').onclick = () => closeSheet();
   });

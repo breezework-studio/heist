@@ -534,8 +534,18 @@ function exLabel(x) {
   const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : x.src === 'equip' ? IC.EQUIP[G.S.players[G.S.pending.pid].items[x.i].id] : 'bandage';
   return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
 }
+// abilities grouped by where they come from (cards, equipment, fixers, assets, gang, other)
+function abilityGroups(ex) {
+  const pt = G.prefs.lang === 'pt';
+  const GR = [['contact', pt ? 'Cartas de Contacto' : 'Contact cards', 'card'], ['equip', pt ? 'Equipamento' : 'Equipment', 'helmet'], ['fixer', 'Fixers', 'wrench'], ['asset', pt ? 'Ativos desbloqueados' : 'Unlocked assets', 'unlock'], ['gang', pt ? 'Motards do gang' : 'Gang bikers', 'biker'], ['firstAid', pt ? 'Primeiros socorros' : 'First aid', 'bandage'], ['other', pt ? 'Poderes e missões' : 'Powers & missions', 'star']];
+  const key = x => GR.some(g => g[0] === x.src) ? x.src : 'other';
+  return GR.map(([k, title, icn]) => {
+    const items = ex.map((x, i) => ({ x, i })).filter(({ x }) => key(x) === k); if (!items.length) return '';
+    return `<div class="abgrp"><div class="abh">${ic(icn)} ${title}</div><div class="choices">${items.map(({ x, i }) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div></div>`;
+  }).join('');
+}
 function abilitiesSheet(ex, when) {
-  sheet(`<h3>${t('abilities')}</h3><div class="sub">${t('endHint')}</div><div class="choices">${ex.map((x, i) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div><div class="row"><button class="ghost" id="bX">${t('close')}</button></div>`, el => {
+  sheet(`<h3>${t('abilities')}</h3><div class="sub">${t('endHint')}</div>${abilityGroups(ex)}<div class="row"><button class="ghost" id="bX">${t('close')}</button></div>`, el => {
     $$('.choice', el).forEach(b => b.onclick = () => { const x = ex[+b.dataset.i]; closeSheet(); if (x.eff === 'move_police' || x.eff === 'remove_police') { G.sel = { execCop: x }; renderMap(); renderBar(); } else human({ exec: x }); });
     $('#bX').onclick = () => closeSheet();
   });
