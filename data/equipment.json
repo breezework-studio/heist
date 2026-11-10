@@ -1,0 +1,9 @@
+{
+  "_comment": "16 Equipment tiles, 4 of each type. Used in AVOID step; flip when used; Rest flips back. Back: store cart + refresh icon. Prices from board store slots ($3,$2,$2,$2) and rulebook p.24.",
+  "equipment": [
+    {"id": "helmet", "name": "Helmet", "cost": 2, "avoids": ["swat"], "count": 4},
+    {"id": "vest", "name": "Vest", "cost": 2, "avoids": ["federal"], "count": 4},
+    {"id": "hat", "name": "Hat", "cost": 2, "avoids": ["county"], "count": 4},
+    {"id": "gasmask", "name": "Gas Mask", "cost": 3, "avoids_one_of": ["swat", "county"], "count": 4}
+  ]
+}
