@@ -2,7 +2,7 @@
 const fs = require('fs'), path = require('path');
 const NEW = require('./rules-src.js');
 const OLD = require('../src/rules.js').topics;
-const ORDER = ['goal', 'day', 'city', 'actions', 'movement', 'police', 'notoriety', 'exec', 'contacts', 'business', 'safehouse', 'store', 'others', 'exits', 'assets', 'cards', 'scoring', 'twop', 'solo', 'upgrade', 'tips'];
+const ORDER = ['goal', 'day', 'city', 'actions', 'movement', 'police', 'notoriety', 'exec', 'contacts', 'business', 'safehouse', 'store', 'others', 'exits', 'assets', 'cards', 'howto', 'scoring', 'twop', 'solo', 'upgrade', 'tips', 'faq'];
 const byId = {}; OLD.forEach(t => byId[t.id] = t); NEW.forEach(t => byId[t.id] = t);
 const topics = ORDER.map(id => { if (!byId[id]) throw new Error('missing ' + id); return byId[id]; });
 const src = fs.readFileSync(path.join(__dirname, '../src/rules.js'), 'utf8');
