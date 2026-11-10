@@ -3,7 +3,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 (async () => {
-  const humans = +process.argv[2] || 1; const shots = process.argv[3];
+  const humans = +process.argv[2] || 1; const shots = process.argv[3] && process.argv[3] !== '-' ? process.argv[3] : null; const mode = process.argv[4] || 'base'; const seats = +process.argv[5] || 4;
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
@@ -15,7 +15,10 @@ const path = require('path');
   await page.click('#mNew');
   // seats: configure humans
   await page.evaluate((nh) => { const st = window.HeistUI.G; }, humans);
-  if (humans === 0) await page.click('.seg[data-c="orange"] button[data-v="ai"]');
+  const cols = ['orange', 'purple', 'pink', 'yellow', 'green'];
+  for (let i = 0; i < 5; i++) { const v = i >= seats ? 'off' : i < humans ? 'human' : 'ai'; await page.click(`.seg[data-c="${cols[i]}"] button[data-v="${v}"]`); }
+  await page.click(`#oMode button[data-v="${mode}"]`);
+  if (shots) await page.screenshot({ path: `${shots}/setup.png` });
   await page.click('#oSpeed button[data-v="fast"]');
   await page.click('#sGo');
   let shot = 0; const start = Date.now(); let decisions = 0;

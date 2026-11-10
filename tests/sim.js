@@ -1,7 +1,8 @@
 // Bot-only full games: node tests/sim.js [games] [players]
 const E = require('../src/engine.js'), AI = require('../src/ai.js'), DATA = require('../tools/data.js');
 E.init(DATA);
-const N = +process.argv[2] || 10; const fixedN = +process.argv[3] || 0;
+const N = +process.argv[2] || 10; const fixedN = +process.argv[3] || 0; const MODE = process.argv[4] || 'base';
+const POWERS = DATA.powers.powers.map(x => x.id);
 let stats = { games: 0, escaped: 0, arrested: 0, decisions: 0, totals: [], wounds: 0 };
 function check(s) {
   s.players.forEach(p => { if (p.money < 0) throw new Error('negative money p' + p.id + ' ' + p.money); if (p.wounds < 0 || p.wounds > 3) throw new Error('wounds'); if (p.notor < 1 || p.notor > s.cfg.max) throw new Error('notor'); });
@@ -13,7 +14,7 @@ function check(s) {
 }
 for (let g = 0; g < N; g++) {
   const n = fixedN || (1 + (g % 5));
-  const s = E.newGame({ seed: 1000 + g, players: Array.from({ length: n }, (_, i) => ({ ai: true })) });
+  const s = E.newGame({ seed: 1000 + g, missions: MODE === 'missions' || MODE === 'both', players: Array.from({ length: n }, (_, i) => ({ ai: true, power: (MODE === 'powers' || MODE === 'both') ? POWERS[(g * 3 + i) % POWERS.length] : null })) });
   let steps = 0;
   try {
     while (!s.over) {

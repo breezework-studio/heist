@@ -26,8 +26,12 @@ en: {
   q: {
     incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
-    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep'
+    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep',
+    clawsExtra: 'Claws: draw extra tiles ($2k each)?', mrv: 'Mr. V at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Lady T.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
   },
+  mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
+  power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  modeBoth: 'Both', extraN: n => n ? `Draw ${n} extra ($${2 * n}k)` : 'No extra tiles', choosePower: 'Power for each player', randomPower: 'Random',
   opt: { disc: 'Extra Action disc', unlock: 'Unlock an asset', unlockBiz: 'Unlock an asset & lose 1 notoriety', unlockSh: 'Unlock an asset & gain income', income: 'Receive income', tile: 'Take an Exit tile', heal: n => n ? `Heal ${n} ($${[0, 1, 3, 6][n]}k)` : 'No healing' },
   cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
   market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Escape plan', patrols: 'Exits',
@@ -66,8 +70,12 @@ pt: {
   q: {
     incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
-    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar'
+    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar',
+    clawsExtra: 'Claws: tirar peças extra ($2k cada)?', mrv: 'Mr. V na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Lady T.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
   },
+  mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
+  power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  modeBoth: 'Ambos', extraN: n => n ? `Tirar ${n} extra ($${2 * n}k)` : 'Sem peças extra', choosePower: 'Poder de cada jogador', randomPower: 'Aleatório',
   opt: { disc: 'Disco de Ação Extra', unlock: 'Desbloquear ativo', unlockBiz: 'Desbloquear ativo e perder 1 de notoriedade', unlockSh: 'Desbloquear ativo e receber rendimento', income: 'Receber rendimento', tile: 'Tirar peça de saída', heal: n => n ? `Curar ${n} ($${[0, 1, 3, 6][n]}k)` : 'Não curar' },
   cards: 'Contactos', items: 'Itens', assets: 'Ativos desbloqueados', locked: 'bloqueado', keys: 'Chaves', gang: 'Gang', discs: 'Ações extra', gas: 'Gasolina',
   market: 'Cidade', log: 'Histórico', me: 'Eu', opponents: 'Rivais', hidden: 'escondido', plan: 'Plano de fuga', patrols: 'Saídas',
@@ -104,7 +112,29 @@ const EFFECT = {
   pt: { sewer: 'Ir pelos esgotos para uma peça a 2 de distância, ignorando a polícia pelo meio', jetski: 'Atravessar água livremente neste turno', lose_notoriety: 'Perder 1 de notoriedade', heal: 'Curar 1 ferimento', move_police: t => `Mover um polícia ${t} para outra peça sem nenhum`, refresh: 'Virar de volta todas as cartas e equipamento usados', chopper: 'Voar de uma peça com heliporto para um sítio a 1–2 peças (1 mov.)', gang_ability: 'Usar uma habilidade de gang (perder 1 notoriedade / voar de heliporto / ignorar a polícia de uma peça)', avoid_types: t => `Evitar todos os polícias ${t} de uma peça`, take_contact: 'Tirar uma carta de Contacto', unlock_asset: 'Desbloquear um ativo', extra_action: 'Ganhar um disco de Ação Extra', remove_police: t => `Retirar um polícia ${t} do jogo`, avoid_one_any: 'Evitar 1 polícia de qualquer tipo', medevac: 'Voar direto para o Hospital (termina o movimento)', gain_income: 'Receber rendimento', avoid_all_tile: 'Evitar toda a polícia de uma peça', plus_mp: '+1 ponto de movimento', master_key: 'Visitar um Business fechado ou abrir qualquer cacifo' }
 };
 
+const POWER_PT = {
+  bones: 'Começas com 1 lata de gasolina. Todas as peças contam como tendo helipad. Só tens 2 pontos de movimento por turno.',
+  ruby: 'Podes entrar num Business fechado sem chave. Ganhas 2 de notoriedade de cada vez.',
+  vinnie: 'Podes abrir cacifos sem chave. Ganhas 1 de notoriedade sempre que tiras uma peça de cacifo.',
+  claws: 'Quando tiras peças de saída ou de cacifo, podes tirar 1 ou 2 extra para escolher, pagando $2k por cada.',
+  scar: 'No passo de evitar, podes pagar $2k e descartar uma lata de gasolina para evitar 1 polícia de qualquer tipo.',
+  shadow: 'Podes empilhar até 2 peças de cacifo ou de saída no mesmo espaço de item. Não podes substituir peças.',
+  dasilva: 'Sempre que recebes rendimento, ganhas mais $3k. Todos os custos aumentam $1k.',
+  ladyt: 'Podes recuperar Fixers como se fossem equipamento. De cada vez pagas $1k mais o custo do Fixer.',
+  mrv: 'Numa Casa Segura, em vez de perder 1 de notoriedade, podes ganhar 1 ou não perder nenhuma. Se o fizeres, levas um ferimento.',
+  kitty: 'Começas a controlar o gang da peça inicial e com menos $3k. Não podes contratar gangs.'
+};
+const MISSION_PT = {
+  1: { goals: ['Controlar 2 gangs', 'Ter 3 cartas sem nenhum Bribe nem Snitch'], abilities: ['Podes atravessar água.', '1 vez por dia, podes usar um helipad como se tivesses um helicóptero.', '1 vez por dia, evita 1 polícia Federal.'] },
+  2: { goals: ['Receber rendimento de 2 Businesses', 'Ter 1 peça de cacifo e 1 peça de saída'], abilities: ['Recebes mais $5k na fase de rendimento.', '1 vez por dia, no teu turno, podes tirar 1 carta de Contacto.', '1 vez por dia, evita 1 polícia SWAT.'] },
+  3: { goals: ['Visitar todos os Business do mesmo grupo', 'Ter 3 cartas sem estrela de notoriedade'], abilities: ['1 vez por dia, usa uma carta de Contacto sem pagar (automático na primeira).', 'Ao usar uma carta de Contacto, paga mais $2k para não a virar.', '1 vez por dia, move 1 polícia SWAT.'] },
+  4: { goals: ['Gastar 2 Ações Extra no mesmo dia', 'Ter 3 cartas com estrela de notoriedade'], abilities: ['Ignora a presença de outros jogadores nas Casas Seguras.', 'Troca a tua posição na ordem de turno com o jogador à tua frente (1 vez por dia).', '1 vez por dia, evita 1 polícia County.'] },
+  5: { goals: ['Visitar 2 Casas Seguras', 'Ter notoriedade 7'], abilities: ['Todas as peças contam como tendo helipad.', 'Controlas gangs de graça.', '1 vez por dia, move 1 polícia Federal.'] },
+  6: { goals: ['Ter 5 ativos desbloqueados', 'Ter 3 equipamentos virados para cima'], abilities: ['Os ativos desbloqueados com escudo podem evitar 1 polícia de qualquer tipo.', '1 vez por dia, ignora um ganho de 1 de notoriedade (automático).', '1 vez por dia, move 1 polícia County.'] }
+};
 const I = { lang: 'en' };
+I.powerText = (pw) => I.lang === 'pt' ? POWER_PT[pw.id] : pw.text;
+I.missionText = (m) => I.lang === 'pt' ? MISSION_PT[m.id] : m;
 I.set = (l) => { I.lang = l === 'pt' ? 'pt' : 'en'; };
 I.t = (k, ...a) => { let v = k.split('.').reduce((o, x) => o && o[x], L[I.lang]); if (v == null) v = k.split('.').reduce((o, x) => o && o[x], L.en); return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
 I.name = (k) => NAMES[I.lang][k] || NAMES.en[k] || k;
@@ -181,6 +211,11 @@ I.narrate = function (e, ctx) {
     case 'lockerDiscard': return pt ? `${N(e.p)} esvazia um cacifo ${I.name(e.color)}` : `${N(e.p)} empties a ${I.name(e.color)} locker`;
     case 'exitDiscard': return pt ? `${N(e.p)} descarta uma peça de saída` : `${N(e.p)} discards an exit tile`;
     case 'gameOver': return pt ? '🏁 Fim do jogo' : '🏁 Game over';
+    case 'missionDone': return pt ? `🎯 ${N(e.p)} cumpre a missão!` : `🎯 ${N(e.p)} completes their mission!`;
+    case 'missionAbility': return pt ? `${N(e.p)} escolhe uma habilidade da missão` : `${N(e.p)} picks a mission ability`;
+    case 'token': return pt ? `${N(e.p)} usa a habilidade diária` : `${N(e.p)} uses their daily ability`;
+    case 'notorIgnored': return pt ? `${N(e.p)} ignora 1 de notoriedade` : `${N(e.p)} ignores 1 notoriety`;
+    case 'refreshFixer': return pt ? `${N(e.p)} recupera o Fixer ${I.name(e.id)}` : `${N(e.p)} refreshes the ${I.name(e.id)} Fixer`;
     default: return null;
   }
 };
@@ -188,7 +223,7 @@ I.whyText = function (why) {
   const pt = I.lang === 'pt';
   const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income',
     crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
-    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
+    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
   if (!why) return '';
   if (why.startsWith('police:')) return ' (' + I.t('types.' + why.slice(7)) + ')';
   const w = m[why]; return w ? ` (${w})` : '';

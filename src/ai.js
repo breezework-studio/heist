@@ -159,6 +159,8 @@ AI.decide = function (E, s) {
         case 'gas': return true;
         case 'unlock': return true;
         case 'church': return p.notor + p.red - p.blue > 1 && spendable(E, s, p) >= 1;
+        case 'ladyRefresh': return spendable(E, s, p) >= pd.price;
+        case 'swapOrder': return true;
       }
       return true;
     }
@@ -184,6 +186,9 @@ AI.decide = function (E, s) {
         }
         case 'locker': { const pr = ['brown', 'black', 'green']; const c = o.filter(x => x !== 'none').sort((a, b) => pr.indexOf(a) - pr.indexOf(b))[0]; return c || 'none'; }
         case 'exit': return o.includes('tile') && p.money >= reserve(E, s, p) ? 'tile' : 'income';
+        case 'clawsExtra': return spendable(E, s, p) >= 4 ? Math.min(1, o[o.length - 1]) : 0;
+        case 'mrv': return 'lose';
+        case 'mission': return { 1: 'c', 2: 'a', 3: 'a', 4: 'c', 5: 'b', 6: 'b' }[pd.mission] || 'a';
       }
       return o[0];
     }

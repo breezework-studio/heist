@@ -341,8 +341,14 @@ E.newGame = function (opts) {
     contacts: [null, null, { kind: 'asset', id: 'avoid_tile', locked: true }, { kind: 'asset', id: 'master_key', locked: true }, { kind: 'asset', id: 'heal', locked: true }],
     cuffs: 0, unlocked: [{ id: 'extra_action', used: false }, null, null, null, null, null],
     gas: 0, gangMembers: [], ctrlFree: 2, firstAid: true, rest: true, wounds: 0, discs: 0,
-    keys: {}, visited: {}, bonus: {}, escaped: false, arrested: false, escapeOrder: 0, stash: []
+    keys: {}, visited: {}, bonus: {}, escaped: false, arrested: false, escapeOrder: 0, stash: [],
+    power: p.power || null, mission: null, discDay: {}, keepFaceUp: true
   }));
+  if (opts.missions) { const ms = shuffle(s, D.missions.missions.map(m => m.id)); s.players.forEach((p, i) => { p.mission = { id: ms[i % ms.length], done: false, ability: null, token: true }; }); }
+  s.players.forEach(p => {
+    if (p.power === 'bones' && s.gasSupply > 0) { p.gas = 1; s.gasSupply--; }
+    if (p.power === 'kitty') { p.money -= 3; const g1k = TILE.S1.locs.find(l => l.type === 'gang').id; s.gangs[g1k] = { members: 0, ctrl: p.id }; p.gangMembers = [g1k, g1k]; p.ctrlFree = 1; }
+  });
   s.npcs = [];
   const used = new Set(s.players.map(p => p.color)); const freeCol = () => { const c = COLORS.find(x => !used.has(x)); used.add(c); return c; };
   const mkNpc = (id, kind, name) => ({ id, npc: kind, name, color: freeCol(), loc: 'hospital', notor: 1, red: 0, blue: 0, discs: 0, visited: {}, bonus: {}, escaped: false, arrested: false, wounds: 0, contacts: [], stacks: [], debt: 0, escapeOrder: 0 });
@@ -399,6 +405,7 @@ function contactCount(p) { let n = 0; p.contacts.forEach((c, i) => { if (c && c.
 E.contactCount = contactCount;
 function othersAt(s, pid, loc) { return everyone(s).filter(q => q.id !== pid && !q.escaped && !q.arrested && q.loc === loc).length; }
 function gain(s, p, k, why) { // notoriety cubes
+  if (k > 0 && tokenOK(p, 'm6b')) { useToken(s, p); k--; ev(s, { t: 'notorIgnored', p: p.id }); }
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.red++; else if (p.blue > 0) p.blue--; }
   if (k) ev(s, { t: 'notor', p: p.id, d: +k, why });
 }
@@ -406,9 +413,15 @@ function lose(s, p, k, why) {
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.blue++; else if (p.red > 0) p.red--; }
   if (k) ev(s, { t: 'notor', p: p.id, d: -k, why });
 }
-function pay(s, p, amt, why) { p.money -= amt; if (amt) ev(s, { t: 'money', p: p.id, d: -amt, why }); }
+function cst(p, base) { return base > 0 && p.power === 'dasilva' ? base + 1 : base; }
+function gangCost(p) { return hasAb(p, 'm5b') ? 0 : 5; }
+function hasAb(p, ab) { return !!(p.mission && p.mission.ability && ('m' + p.mission.id + p.mission.ability) === ab); }
+function tokenOK(p, ab) { return hasAb(p, ab) && p.mission.token; }
+function useToken(s, p) { p.mission.token = false; ev(s, { t: 'token', p: p.id }); }
+E.cst = cst; E.hasAb = hasAb;
+function pay(s, p, amt, why) { if (amt > 0 && p.power === 'dasilva' && !['lateFee', 'exitCost', 'bribe'].includes(why)) amt += 1; p.money -= amt; if (amt) ev(s, { t: 'money', p: p.id, d: -amt, why }); }
 function earn(s, p, amt, why) { p.money += amt; if (amt) ev(s, { t: 'money', p: p.id, d: amt, why }); }
-function income(s, p, why) { earn(s, p, p.income, why || 'income'); }
+function income(s, p, why) { earn(s, p, p.income + (p.power === 'dasilva' ? 3 : 0), why || 'income'); }
 function wound(s, p, why) {
   if (p.wounds < 3) { p.wounds++; ev(s, { t: 'wound', p: p.id, why }); return; }
   // handcuffs
@@ -494,25 +507,25 @@ E.buildGraph = buildGraph;
 function canEnd(s, p, locId, cash) {
   if (cash == null) cash = p.money;
   const k = locKind(s, locId); if (!k) return false;
-  if (k.type === 'business') { if (!k.id) return false; if (p.visited[k.id]) return false; if (s.closed[k.id] && !hasAnyKey(p, cash)) return false; }
+  if (k.type === 'business') { if (!k.id) return false; if (p.visited[k.id]) return false; if (s.closed[k.id] && p.power !== 'ruby' && !hasAnyKey(p, cash)) return false; }
   if (k.type === 'safehouse') { if (!k.id || p.visited[k.id]) return false; }
-  if (k.type === 'gang') { const g = s.gangs[locId]; if (!g || g.ctrl != null || g.members < 2) return false; if (othersAt(s, p.id, locId)) return false; if (cash < 5 || p.ctrlFree < 1) return false; }
+  if (k.type === 'gang') { const g = s.gangs[locId]; if (!g || g.ctrl != null || g.members < 2) return false; if (othersAt(s, p.id, locId)) return false; if (cash < cst(p, gangCost(p)) || p.ctrlFree < 1 || p.power === 'kitty') return false; }
   return true;
 }
 E.canEnd = canEnd;
-function hasAnyKey(p, cash) { if (cash == null) cash = p.money; return Object.values(p.keys).some(k => !k.used) || p.unlocked.some((u, i) => u && u.id === 'master_key' && !u.used && cash >= UNLOCK_COSTS[i]); }
+function hasAnyKey(p, cash) { if (cash == null) cash = p.money; return Object.values(p.keys).some(k => !k.used) || p.unlocked.some((u, i) => u && u.id === 'master_key' && !u.used && cash >= cst(p, UNLOCK_COSTS[i])); }
 function policeOnCells(s, cells) { let n = 0; cells.forEach(i => { const c = s.cells[i]; if (c) PTYPES.forEach(t => { if (c.police[t]) n++; }); }); return n; }
 
 // travel resources available for planning
 function travelResources(s, p) {
   const r = { gasTok: p.gas, gasCard: null, chopper: [], jetski: [], sewer: [], medevac: [], heliFixer: null, gangHeli: p.gangMembers.length > 0, gangCard: [], motorcycle: null };
   p.contacts.forEach((c, i) => {
-    if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card]; if (p.money < C.cost) return;
+    if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card]; if (p.money < cst(p, C.cost)) return;
     if (C.effect === 'plus_mp' && !r.gasCard) r.gasCard = i;
     if (C.effect === 'chopper') r.chopper.push(i); if (C.effect === 'jetski') r.jetski.push(i); if (C.effect === 'sewer') r.sewer.push(i);
     if (C.effect === 'medevac') r.medevac.push(i); if (C.effect === 'gang_ability') r.gangCard.push(i);
   });
-  p.items.forEach((x, i) => { if (x && x.kind === 'fixer' && !x.used) { const F = FIXER[x.id]; if (p.money < F.cost) return; if (F.effect === 'chopper') r.heliFixer = i; if (F.effect === 'jetski') r.jetski.push('f' + i); if (F.effect === 'gang_ability') r.motorcycle = i; } });
+  p.items.forEach((x, i) => { if (x && x.kind === 'fixer' && !x.used) { const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return; if (F.effect === 'chopper') r.heliFixer = i; if (F.effect === 'jetski') r.jetski.push('f' + i); if (F.effect === 'gang_ability') r.motorcycle = i; } });
   return r;
 }
 // plan moves: returns { [destLoc]: [plans...] }, plan = {mp, path:[nodes], cells:[visited cells], avoidCells, police, uses:[...], escape?}
@@ -527,6 +540,7 @@ E.planMoves = function (s, pid) {
   if (res.gangHeli) heliSrc.push({ r: 'gangHeli', ref: 0 });
   if (res.gangCard.length) heliSrc.push({ r: 'gangCardHeli', ref: res.gangCard[0] });
   if (res.motorcycle != null) heliSrc.push({ r: 'motorcycleHeli', ref: res.motorcycle });
+  if (tokenOK(p, 'm1b')) heliSrc.unshift({ r: 'm1b', ref: 0 });
   heliSrc.slice(0, 2).forEach(h => variants.push({ key: h.r, uses: [h], heli: true }));
   const extra = res.gasTok + (res.gasCard != null ? 1 : 0);
   const out = {};
@@ -538,11 +552,11 @@ E.planMoves = function (s, pid) {
     for (let k = arr.length - 1; k >= 0; k--) { const x = arr[k]; if (plan.police <= x.police && plan.uses.length <= x.uses.length && plan.mp <= x.mp) arr.splice(k, 1); }
     arr.push(plan);
   };
-  const resCost = (u) => { if (u.r === 'gangHeli') return 0; if (typeof u.ref === 'string') return FIXER[p.items[+u.ref.slice(1)].id].cost; if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') return FIXER[p.items[u.ref].id].cost; return CONTACT[p.contacts[u.ref].card].cost; };
+  const resCost = (u) => { if (u.r === 'gangHeli' || u.r === 'm1b') return 0; if (typeof u.ref === 'string') return cst(p, FIXER[p.items[+u.ref.slice(1)].id].cost); if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') return cst(p, FIXER[p.items[u.ref].id].cost); return cst(p, CONTACT[p.contacts[u.ref].card].cost); };
   for (const v of variants) {
     v.cost = v.uses.reduce((a, u) => a + resCost(u), 0);
-    const G = buildGraph(s, { jetski: v.jetski });
-    const budget = 3 + extra;
+    const G = buildGraph(s, { jetski: v.jetski || hasAb(p, 'm1a') });
+    const base = p.power === 'bones' ? 2 : 3; const budget = base + extra;
     // DFS over states
     const seen = new Map();
     const st = [{ node: p.loc, mp: 0, cells: [startCell], path: [p.loc], sub: false, heli: false, sewer: false, bonus: 0 }];
@@ -556,7 +570,7 @@ E.planMoves = function (s, pid) {
         if (canEnd(s, p, x.node, p.money - v.cost) || (s.day === 3 && isOpenExit(s, x.node))) {
           const endCell = G.cellOf[x.node]; const av = [...new Set(x.cells)].filter(c => c !== endCell);
           if (v.heli && !x.heli) { /* variant requires using its ability */ } else if (v.sewer && !x.sewer) { } else {
-            const mpOver = Math.max(0, x.mp - 3 - x.bonus);
+            const mpOver = Math.max(0, x.mp - base - x.bonus);
             addPlan(x.node, { mp: x.mp, extraMp: mpOver, path: x.path.slice(), avoidCells: av, police: policeOnCells(s, av), uses: v.uses.slice(), sub: x.sub, variant: v.key });
           }
         }
@@ -580,7 +594,7 @@ E.planMoves = function (s, pid) {
       }
       // heliport location / heli ability
       const onHeliport = G.isLoc[x.node] === 'heliport';
-      const onHelipad = TILE[s.cells[G.cellOf[x.node]].tile].helipad || (p.power === 'bones');
+      const onHelipad = TILE[s.cells[G.cellOf[x.node]].tile].helipad || p.power === 'bones' || hasAb(p, 'm5a');
       if ((onHeliport || (v.heli && !x.heli && onHelipad)) && x.mp + 1 <= cap) {
         const from = G.cellOf[x.node];
         for (const id in G.cellOf) {
@@ -634,6 +648,7 @@ function task(s, t) {
   switch (t.k) {
     case 'dayStart': {
       ev(s, { t: 'day', day: s.day });
+      s.players.forEach(p => { if (p.mission) p.mission.token = true; });
       const ts = [];
       if (s.day > 1) ts.push({ k: 'income' });
       ts.push({ k: 'patrol' }, { k: 'city', placed: 0, idx: 0 }, { k: 'turnOrder' });
@@ -643,12 +658,12 @@ function task(s, t) {
     }
     case 'income': {
       ev(s, { t: 'phase', ph: 'income' });
-      s.order.forEach(pid => { const p = P(s, pid); if (!p.escaped && !p.arrested) income(s, p, 'income'); });
-      push(s, ...s.order.filter(pid => { const p = P(s, pid); return !p.escaped && !p.arrested && p.notor <= 2 && p.money >= 3 && lockedAssets(p).length; }).map(pid => ({ k: 'incomeUnlock', pid })));
+      s.order.forEach(pid => { const p = P(s, pid); if (p.npc || p.escaped || p.arrested) return; income(s, p, 'income'); if (hasAb(p, 'm2a')) earn(s, p, 5, 'mission'); });
+      push(s, ...s.order.filter(pid => { const p = P(s, pid); return !p.escaped && !p.arrested && p.notor <= 2 && p.money >= cst(p, 3) && lockedAssets(p).length; }).map(pid => ({ k: 'incomeUnlock', pid })));
       break;
     }
     case 'incomeUnlock': {
-      const p = P(s, t.pid); if (p.notor > 2 || p.money < 3) break;
+      const p = P(s, t.pid); if (p.notor > 2 || p.money < cst(p, 3)) break;
       ask(s, t.pid, 'yesno', { q: 'incomeUnlock' }, { k: 'incomeUnlock' }); break;
     }
     case 'patrol': {
@@ -680,6 +695,7 @@ function task(s, t) {
       const prev = s.order.slice();
       const ord = prev.slice().sort((a, b) => (P(s, b).notor - P(s, a).notor) || (prev.indexOf(b) - prev.indexOf(a)));
       s.order = ord; ev(s, { t: 'order', order: ord.slice() });
+      push(s, ...ord.filter(id => id < 100 && tokenOK(P(s, id), 'm4b')).map(id => ({ k: 'swapOrder', pid: id })));
       break;
     }
     case 'part': {
@@ -730,6 +746,9 @@ function task(s, t) {
     }
     case 'visit': visit(s, P(s, t.pid), t); break;
     case '_escapePay': escapePay(s, t); break;
+    case 'ladyRefresh': { const p = P(s, t.pid); const x = p.items[t.i]; if (!x || !x.used) break; const price = 1 + FIXER[x.id].cost; if (p.money < cst(p, price)) break; ask(s, p.id, 'yesno', { q: 'ladyRefresh', fixer: x.id, price: cst(p, price) }, { k: 'ladyRefresh', pid: p.id, i: t.i }); break; }
+    case 'missionCheck': missionCheck(s, P(s, t.pid)); break;
+    case 'swapOrder': { const p = P(s, t.pid); const idx = s.order.indexOf(p.id); if (idx <= 0 || !tokenOK(p, 'm4b')) break; ask(s, p.id, 'yesno', { q: 'swapOrder', ahead: s.order[idx - 1] }, { k: 'swapOrder', pid: p.id }); break; }
     case 'takeContact': {
       const p = P(s, t.pid); if (!s.cdisplay.length) break;
       ask(s, p.id, 'contact', { display: s.cdisplay.slice(), hasEmpty: emptyContact(p) >= 0, mine: myContacts(p) }, { k: 'takeContact', pid: p.id });
@@ -745,6 +764,7 @@ function task(s, t) {
       // group bonuses
       for (const g in GROUPS) if (!p.bonus[g] && GROUPS[g].every(b => p.visited[b])) { p.bonus[g] = true; push(s, { k: 'bonus', pid: p.id, g }); return; }
       if (!p.bonus.sh && ['sh1', 'sh2', 'sh3'].every(x => p.visited[x])) { p.bonus.sh = true; push(s, { k: 'bonus', pid: p.id, g: 'sh' }); return; }
+      if (p.mission && !p.mission.done && !p.escaped && !p.arrested && missionMet(s, p)) { push(s, { k: 'missionCheck', pid: p.id }, { k: 'turnEnd', pid: p.id, skipExec: t.skipExec }); return; }
       if (p.escaped || p.arrested) break;
       const ex = execOptions(s, p, 'end');
       if (ex.length && !t.skipExec) { ask(s, p.id, 'end', { exec: ex }, { k: 'end', pid: p.id }); break; }
@@ -761,6 +781,7 @@ function task(s, t) {
       push(s, { k: 'adjust', i: t.i + 1 });
       const p = P(s, pid); if (p.arrested) break;
       adjustNotoriety(s, p);
+      if (p.mission && !p.mission.done && missionMet(s, p)) push(s, { k: 'missionCheck', pid: p.id });
       break;
     }
     case 'policeMove': {
@@ -843,7 +864,10 @@ function resolve(s, pd, a, c) {
       break;
     }
     case 'unlock': doUnlock(s, p, a); break;
-    case 'useDisc': if (a) { p.discs--; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } break;
+    case 'ladyRefresh': if (a) { const x = p.items[c.i]; pay(s, p, 1 + FIXER[x.id].cost, 'power'); x.used = false; ev(s, { t: 'refreshFixer', p: p.id, id: x.id }); } break;
+    case 'swapOrder': if (a) { const idx = s.order.indexOf(p.id); const o = s.order; [o[idx - 1], o[idx]] = [o[idx], o[idx - 1]]; useToken(s, p); ev(s, { t: 'order', order: o.slice() }); } break;
+    case 'mission': p.mission.ability = a; ev(s, { t: 'missionAbility', p: p.id, id: p.mission.id, ab: a }); break;
+    case 'useDisc': if (a) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } break;
     case 'end': {
       if (a && a.exec) { doExec(s, p, a.exec); push(s, { k: 'turnEnd', pid: p.id }); }
       else push(s, { k: 'turnEnd', pid: p.id, skipExec: true });
@@ -877,7 +901,8 @@ function doAction(s, p, a) {
     p.contacts.forEach(c => { if (c && c.kind === 'contact') c.used = false; });
     p.items.forEach(x => { if (x && x.kind === 'equip') x.used = false; });
     p.firstAid = true;
-    push(s, { k: 'unlock', pid: p.id }, { k: 'turnEnd', pid: p.id });
+    const lt = ladyTasks(p);
+    push(s, ...lt, { k: 'unlock', pid: p.id }, { k: 'turnEnd', pid: p.id });
     return;
   }
   if (a.type === 'pass') { ev(s, { t: 'pass', p: p.id }); push(s, { k: 'turnEnd', pid: p.id }); return; }
@@ -903,6 +928,7 @@ function doAction(s, p, a) {
   }
   throw new Error('bad action');
 }
+function ladyTasks(p) { if (p.power !== 'ladyt') return []; const o = []; p.items.forEach((x, i) => { if (x && x.kind === 'fixer' && x.used) o.push({ k: 'ladyRefresh', pid: p.id, i }); }); return o; }
 function doEscape(s, p, cells) {
   const after = { k: 'escapePay', pid: p.id };
   // avoid then pay
@@ -921,7 +947,9 @@ function escapePay(s, t) {
   }
 }
 function useContact(s, p, i, why) {
-  const c = p.contacts[i]; const C = CONTACT[c.card]; c.used = true; pay(s, p, C.cost, 'contact');
+  const c = p.contacts[i]; const C = CONTACT[c.card]; c.used = true;
+  if (C.cost > 0 && tokenOK(p, 'm3a')) { useToken(s, p); } else pay(s, p, C.cost, 'contact');
+  if (hasAb(p, 'm3b') && p.keepFaceUp && p.money >= cst(p, 2)) { pay(s, p, 2, 'mission'); c.used = false; }
   if (C.notoriety) gain(s, p, 1, 'contactStar');
   ev(s, { t: 'useContact', p: p.id, card: c.card, slot: i });
 }
@@ -931,6 +959,7 @@ function useTravelRes(s, p, u) {
   if (u.r === 'jetski' || u.r === 'sewer' || u.r === 'chopper' || u.r === 'medevac' || u.r === 'gangCardHeli') { if (typeof u.ref === 'string' && u.ref[0] === 'f') useFixer(s, p, +u.ref.slice(1)); else useContact(s, p, u.ref, 'move'); }
   else if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') useFixer(s, p, u.ref);
   else if (u.r === 'gangHeli') useGangMember(s, p);
+  else if (u.r === 'm1b') useToken(s, p);
 }
 
 // ---------- executive actions (non-movement, non-avoid) ----------
@@ -951,23 +980,26 @@ function execOptions(s, p, when) {
   };
   p.contacts.forEach((c, i) => {
     if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card];
-    if (p.money < C.cost) return; if (!effOK(C.effect)) return;
+    if (p.money < cst(p, C.cost)) return; if (!effOK(C.effect)) return;
     if ((C.effect === 'move_police' || C.effect === 'remove_police') && !s.cells.some(cl => cl && cl.police[C.type])) return;
     if (C.effect === 'lose_notoriety' && when !== 'travel') return; // informer: travel step
-    o.push({ src: 'contact', i, eff: C.effect, type: C.type, cost: C.cost });
+    o.push({ src: 'contact', i, eff: C.effect, type: C.type, cost: cst(p, C.cost) });
   });
   p.items.forEach((x, i) => {
-    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < F.cost) return;
-    if (!effOK(F.effect)) return; o.push({ src: 'fixer', i, eff: F.effect, cost: F.cost });
+    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return;
+    if (!effOK(F.effect)) return; o.push({ src: 'fixer', i, eff: F.effect, cost: cst(p, F.cost) });
   });
   p.unlocked.forEach((u, i) => {
-    if (!u || u.used) return; const A = ASSET[u.id]; const cost = UNLOCK_COSTS[i]; if (p.money < cost) return;
+    if (!u || u.used) return; const A = ASSET[u.id]; const cost = cst(p, UNLOCK_COSTS[i]); if (p.money < cost) return;
     if (A.effect === 'heal' && p.wounds > 0) o.push({ src: 'asset', i, eff: 'heal', cost });
     if (A.effect === 'extra_action' && s.discs > 0) o.push({ src: 'asset', i, eff: 'extra_action', cost });
     if (A.effect === 'move_police' && s.cells.some(cl => cl && cl.police[A.type])) o.push({ src: 'asset', i, eff: 'move_police', type: A.type, cost });
   });
   if (p.firstAid && p.wounds > 0) o.push({ src: 'firstAid', eff: 'heal', cost: 0 });
   if (p.gangMembers.length && p.notor > 1) o.push({ src: 'gang', eff: 'lose_notoriety', cost: 0 });
+  if (tokenOK(p, 'm2b') && s.cdisplay.length) o.push({ src: 'mission', eff: 'take_contact', cost: 0 });
+  const mMv = { m3c: 'swat', m5c: 'federal', m6c: 'county' };
+  for (const ab in mMv) if (tokenOK(p, ab) && s.cells.some(cl => cl && cl.police[mMv[ab]])) o.push({ src: 'mission', eff: 'move_police', type: mMv[ab], cost: 0 });
   return o;
 }
 E.execOptions = execOptions;
@@ -978,11 +1010,12 @@ function doExec(s, p, x) {
   else if (x.src === 'asset') { const u = p.unlocked[x.i]; u.used = true; pay(s, p, UNLOCK_COSTS[x.i], 'asset'); ev(s, { t: 'useAsset', p: p.id, id: u.id, slot: x.i }); }
   else if (x.src === 'firstAid') { p.firstAid = false; ev(s, { t: 'firstAid', p: p.id }); }
   else if (x.src === 'gang') useGangMember(s, p);
+  else if (x.src === 'mission') useToken(s, p);
   switch (x.eff) {
     case 'lose_notoriety': lose(s, p, 1, x.src); break;
     case 'heal': heal(s, p, 1, x.src); break;
     case 'take_contact': s.queue.unshift({ k: 'takeContact', pid: p.id }); break;
-    case 'refresh': p.contacts.forEach(c => { if (c && c.kind === 'contact') c.used = false; }); p.items.forEach(it => { if (it && it.kind === 'equip') it.used = false; }); ev(s, { t: 'refresh', p: p.id }); break;
+    case 'refresh': p.contacts.forEach(c => { if (c && c.kind === 'contact') c.used = false; }); p.items.forEach(it => { if (it && it.kind === 'equip') it.used = false; }); ev(s, { t: 'refresh', p: p.id }); s.queue.unshift(...ladyTasks(p)); break;
     case 'unlock_asset': s.queue.unshift({ k: 'unlock', pid: p.id }); break;
     case 'extra_action': if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: x.src }); } break;
     case 'gain_income': income(s, p, x.src); break;
@@ -1025,25 +1058,29 @@ function avoidOptions(s, p, list, t) {
     list.forEach(off => { if (matchT(off, types)) o.push({ src: 'equip', i, scope: 'one', cell: off.cell, type: off.type, cost: 0 }); });
   });
   p.contacts.forEach((c, i) => {
-    if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card]; if (p.money < C.cost) return;
-    if (C.effect === 'avoid_types') cellsWith(C.types).forEach(cell => o.push({ src: 'contact', i, scope: 'types', types: C.types, cell, cost: C.cost }));
-    if (C.effect === 'avoid_all_tile') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
-    if (C.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'one', cell: off.cell, type: off.type, cost: C.cost }));
-    if (C.effect === 'move_police') list.filter(off => off.type === C.type || off.type === 'sandra' || off.type === 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'move', cell: off.cell, type: off.type, cost: C.cost }));
-    if (C.effect === 'remove_police') list.filter(off => off.type === C.type).forEach(off => o.push({ src: 'contact', i, scope: 'remove', cell: off.cell, type: off.type, cost: C.cost }));
-    if (C.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
+    if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card]; if (p.money < cst(p, C.cost)) return;
+    if (C.effect === 'avoid_types') cellsWith(C.types).forEach(cell => o.push({ src: 'contact', i, scope: 'types', types: C.types, cell, cost: cst(p, C.cost) }));
+    if (C.effect === 'avoid_all_tile') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: cst(p, C.cost) }));
+    if (C.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'one', cell: off.cell, type: off.type, cost: cst(p, C.cost) }));
+    if (C.effect === 'move_police') list.filter(off => off.type === C.type || off.type === 'sandra' || off.type === 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'move', cell: off.cell, type: off.type, cost: cst(p, C.cost) }));
+    if (C.effect === 'remove_police') list.filter(off => off.type === C.type).forEach(off => o.push({ src: 'contact', i, scope: 'remove', cell: off.cell, type: off.type, cost: cst(p, C.cost) }));
+    if (C.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: cst(p, C.cost) }));
   });
   p.items.forEach((x, i) => {
-    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < F.cost) return;
-    if (F.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: F.cost }));
-    if (F.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: F.cost }));
+    if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < cst(p, F.cost)) return;
+    if (F.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: cst(p, F.cost) }));
+    if (F.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: cst(p, F.cost) }));
   });
   p.unlocked.forEach((u, i) => {
-    if (!u || u.used) return; const A = ASSET[u.id]; const cost = UNLOCK_COSTS[i]; if (p.money < cost) return;
+    if (!u || u.used) return; const A = ASSET[u.id]; const cost = cst(p, UNLOCK_COSTS[i]); if (p.money < cost) return;
     if (A.effect === 'avoid_all_tile') tileCells.forEach(cell => o.push({ src: 'asset', i, scope: 'tile', cell, cost }));
     if (A.effect === 'move_police') list.filter(off => off.type === A.type || off.type === 'sandra' || off.type === 'costa').forEach(off => o.push({ src: 'asset', i, scope: 'move', cell: off.cell, type: off.type, cost }));
   });
   if (p.gangMembers.length) tileCells.forEach(cell => o.push({ src: 'gang', scope: 'tile', cell, cost: 0 }));
+  if (p.power === 'scar' && p.gas > 0 && p.money >= cst(p, 2)) list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'scar', scope: 'one', cell: off.cell, type: off.type, cost: cst(p, 2) }));
+  const mAv = { m1c: 'federal', m2c: 'swat', m4c: 'county' };
+  for (const ab in mAv) if (tokenOK(p, ab)) list.filter(off => off.type === mAv[ab] || off.type === 'sandra').forEach(off => o.push({ src: 'mission', scope: 'one', cell: off.cell, type: off.type, cost: 0 }));
+  if (hasAb(p, 'm6a')) p.unlocked.forEach((u, i) => { if (!u || u.used || !/^move_/.test(u.id)) return; const cost = cst(p, UNLOCK_COSTS[i]); if (p.money < cost) return; list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'asset', i, scope: 'one', cell: off.cell, type: off.type, cost })); });
   return o;
 }
 function applyAvoid(s, p, a, done) {
@@ -1054,6 +1091,8 @@ function applyAvoid(s, p, a, done) {
   else if (o.src === 'fixer') useFixer(s, p, o.i);
   else if (o.src === 'asset') { const u = p.unlocked[o.i]; u.used = true; pay(s, p, UNLOCK_COSTS[o.i], 'asset'); ev(s, { t: 'useAsset', p: p.id, id: u.id, slot: o.i }); }
   else if (o.src === 'gang') useGangMember(s, p);
+  else if (o.src === 'scar') { p.gas--; s.gasSupply++; pay(s, p, 2, 'power'); ev(s, { t: 'gasUse', p: p.id }); }
+  else if (o.src === 'mission') useToken(s, p);
   const cl = s.cells[o.cell];
   const npcHere = s.npcs.filter(n => !n.escaped && posCell(s, n.loc) === o.cell);
   if (o.scope === 'one') mark(o.cell, o.type);
@@ -1079,14 +1118,16 @@ function visit(s, p, t) {
   const steps = [];
   if (t.step === 0) ev(s, { t: 'visit', p: p.id, loc: t.loc, kind: k.type, id: k.id || k.n });
   const nextT = (extra) => Object.assign({}, t, { step: t.step + 1 }, extra || {});
+  if (t.resumeSH && k.type === 'safehouse' && t.step === 0) { push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return; }
   switch (k.type) {
     case 'hospital':
-      if (t.step === 0) { if (p.wounds > 0 && p.money >= 1) { ask(s, p.id, 'choose', { q: 'hospital', opts: [0, 1, 2, 3].filter(n => n <= p.wounds && p.money >= [0, 1, 3, 6][n]) }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
+      if (t.step === 0) { if (p.wounds > 0 && p.money >= cst(p, 1)) { ask(s, p.id, 'choose', { q: 'hospital', opts: [0, 1, 2, 3].filter(n => n <= p.wounds && p.money >= cst(p, [0, 1, 3, 6][n])) }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
       gain(s, p, 1, 'hospital'); return;
     case 'business': {
       if (t.step === 0) {
         if (others) gain(s, p, others, 'crowd');
-        if (s.closed[k.id] && !useKeyAny(s, p)) { ev(s, { t: 'cantVisit', p: p.id, loc: t.loc, why: 'noKey' }); return; }
+        if (s.closed[k.id] && p.power === 'ruby') gain(s, p, 2, 'power');
+        else if (s.closed[k.id] && !useKeyAny(s, p)) { ev(s, { t: 'cantVisit', p: p.id, loc: t.loc, why: 'noKey' }); return; }
         p.visited[k.id] = true; p.income = Math.max(0, p.income - 1);
         const val = D.escapePlans.cards[p.plan][PLAN_KEYS.indexOf(k.id)];
         s.bizCubes[k.id].push({ pid: p.id, income: val === '$' });
@@ -1099,12 +1140,13 @@ function visit(s, p, t) {
     }
     case 'safehouse': {
       if (t.step === 0) {
-        if (others) gain(s, p, others, 'crowd');
+        if (others && !hasAb(p, 'm4a')) gain(s, p, others, 'crowd');
         p.visited[k.id] = true; p.income = Math.max(0, p.income - 1);
         const val = D.escapePlans.cards[p.plan][PLAN_KEYS.indexOf(k.id)];
         s.shCubes[k.id].push({ pid: p.id, income: val === '$' });
         ev(s, { t: 'cube', p: p.id, at: k.id, income: val === '$' });
         if (val === '$') income(s, p, 'safehouse');
+        if (p.power === 'mrv' && !t.mrvDone) { ask(s, p.id, 'choose', { q: 'mrv', opts: ['lose', 'none', 'gain'] }, { k: 'visitStep', t: Object.assign({}, t, { mrvDone: true, step: 0, resumeSH: true }) }); return; }
         lose(s, p, 1, 'safehouse');
         const keys = s.shKeys[k.id];
         if (keys.length) {
@@ -1115,16 +1157,21 @@ function visit(s, p, t) {
         }
         push(s, nextT()); return;
       }
+      if (t.step === 0.5) {
+        const keys = s.shKeys[k.id];
+        if (keys.length) { const colors = [...new Set(keys)]; if (colors.length === 1) { takeKey(s, p, k.id, colors[0]); push(s, Object.assign({}, t, { step: 1 })); } else ask(s, p.id, 'choose', { q: 'key', opts: colors, sh: k.id }, { k: 'visitStep', t: Object.assign({}, t, { step: 0 }) }); return; }
+        push(s, Object.assign({}, t, { step: 1 })); return;
+      }
       if (t.step === 1) { // fixer
-        const af = s.fixers.filter(f => FIXER[f].cost <= p.money);
-        if (af.length && (emptyItem(p) >= 0 || nonAssetItems(p).length)) { ask(s, p.id, 'choose', { q: 'fixer', opts: ['none'].concat(af) }, { k: 'visitStep', t }); return; }
+        const af = s.fixers.filter(f => cst(p, FIXER[f].cost) <= p.money);
+        if (af.length && (emptyItem(p) >= 0 || (nonAssetItems(p).length && p.power !== 'shadow'))) { ask(s, p.id, 'choose', { q: 'fixer', opts: ['none'].concat(af) }, { k: 'visitStep', t }); return; }
       }
       return;
     }
     case 'gang': {
       if (t.step === 0) {
-        const g = s.gangs[t.loc]; if (p.money < 5 || p.ctrlFree < 1 || !g || g.members < 2) { ev(s, { t: 'cantVisit', p: p.id, loc: t.loc, why: 'gang' }); return; }
-        pay(s, p, 5, 'gang');
+        const g = s.gangs[t.loc]; if (p.money < cst(p, gangCost(p)) || p.ctrlFree < 1 || !g || g.members < 2) { ev(s, { t: 'cantVisit', p: p.id, loc: t.loc, why: 'gang' }); return; }
+        pay(s, p, gangCost(p), 'gang');
         for (let i = 0; i < g.members; i++) p.gangMembers.push(t.loc);
         g.members = 0; g.ctrl = p.id; p.ctrlFree--;
         ev(s, { t: 'gangHire', p: p.id, gang: t.loc });
@@ -1135,8 +1182,8 @@ function visit(s, p, t) {
       if (t.step === 0) { if (others) gain(s, p, others, 'crowd'); if (p.gas < 2 && s.gasSupply > 0) { ask(s, p.id, 'yesno', { q: 'gas' }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
       if (t.step === 1 || t.step === 2) { // buy equipment (up to 2 different)
         const bought = t.bought || [];
-        const opts = Object.keys(s.equip).filter(id => s.equip[id] > 0 && !bought.includes(id) && EQUIP[id].cost <= p.money);
-        if (opts.length && (emptyItem(p) >= 0 || nonAssetItems(p).length)) { ask(s, p.id, 'choose', { q: 'equip', opts: ['none'].concat(opts), n: bought.length }, { k: 'visitStep', t }); return; }
+        const opts = Object.keys(s.equip).filter(id => s.equip[id] > 0 && !bought.includes(id) && cst(p, EQUIP[id].cost) <= p.money);
+        if (opts.length && (emptyItem(p) >= 0 || (nonAssetItems(p).length && p.power !== 'shadow'))) { ask(s, p.id, 'choose', { q: 'equip', opts: ['none'].concat(opts), n: bought.length }, { k: 'visitStep', t }); return; }
         push(s, nextT({ step: 3 })); return;
       }
       if (t.step === 3) {
@@ -1162,7 +1209,7 @@ function visit(s, p, t) {
       return;
     }
     case 'church': {
-      if (t.step === 0) { if (others) gain(s, p, others, 'crowd'); if (p.money >= 1) { ask(s, p.id, 'yesno', { q: 'church' }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
+      if (t.step === 0) { if (others) gain(s, p, others, 'crowd'); if (p.money >= cst(p, 1)) { ask(s, p.id, 'yesno', { q: 'church' }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
       if (t.step === 1) { if (lockedAssets(p).length) { ask(s, p.id, 'yesno', { q: 'unlock' }, { k: 'visitStep', t }); return; } push(s, nextT()); return; }
       if (t.step === 2) push(s, { k: 'takeContact', pid: p.id });
       return;
@@ -1174,7 +1221,7 @@ function takeKey(s, p, sh, color) { const keys = s.shKeys[sh]; const i = keys.in
 function useKeyAny(s, p) {
   const k = Object.entries(p.keys).find(([, v]) => !v.used);
   if (k) { k[1].used = true; ev(s, { t: 'keyUse', p: p.id, sh: k[0], color: k[1].color }); return true; }
-  const u = p.unlocked.findIndex((x, i) => x && x.id === 'master_key' && !x.used && p.money >= UNLOCK_COSTS[i]);
+  const u = p.unlocked.findIndex((x, i) => x && x.id === 'master_key' && !x.used && p.money >= cst(p, UNLOCK_COSTS[i]));
   if (u >= 0) { p.unlocked[u].used = true; pay(s, p, UNLOCK_COSTS[u], 'asset'); ev(s, { t: 'useAsset', p: p.id, id: 'master_key', slot: u }); return true; }
   return false;
 }
@@ -1186,7 +1233,7 @@ function lockerOptions(s, p) {
     const draw = col === 'green' ? cc + 1 : col === 'black' ? cc : cc - 1; if (draw < 1) continue;
     const key = Object.entries(p.keys).find(([, v]) => !v.used && v.color === col);
     const mk = p.unlocked.findIndex(x => x && x.id === 'master_key' && !x.used);
-    if (!key && !(mk >= 0 && p.money >= UNLOCK_COSTS[mk])) continue;
+    if (!key && !(mk >= 0 && p.money >= cst(p, UNLOCK_COSTS[mk])) && p.power !== 'vinnie') continue;
     if (emptyItem(p) < 0 && !nonAssetItems(p).length) continue;
     o.push(col);
   }
@@ -1194,6 +1241,12 @@ function lockerOptions(s, p) {
 }
 E.lockerOptions = lockerOptions;
 function placeItem(s, p, item, slot) {
+  if (p.power === 'shadow') {
+    let i = emptyItem(p);
+    if (i < 0 && (item.kind === 'locker' || item.kind === 'exit')) { i = p.items.findIndex(x => x && (x.kind === 'locker' || x.kind === 'exit') && !x.val2 && x.val2 !== 0); if (i >= 0) { p.items[i].val2 = item.val; ev(s, { t: 'item', p: p.id, item, slot: i, stacked: true }); return true; } }
+    if (i < 0) { ev(s, { t: 'itemLost', p: p.id, item, slot: -1 }); return false; }
+    p.items[i] = item; ev(s, { t: 'item', p: p.id, item, slot: i }); return true;
+  }
   let i = slot != null ? slot : emptyItem(p);
   if (i < 0 || (p.items[i] && p.items[i].kind === 'asset')) { const na = nonAssetItems(p); i = na.length ? na[0] : -1; }
   if (i < 0) return false;
@@ -1215,25 +1268,36 @@ function visitResolve(s, p, pd, a, c) {
     }
     case 'locker': {
       if (!a || a === 'none') return;
+      if (p.power === 'claws' && t.extra == null) { const cc0 = contactCount(p); const d0 = a === 'green' ? cc0 + 1 : a === 'black' ? cc0 : cc0 - 1; const mx = Math.min(2, Math.floor(p.money / 2), s.lockers[a].length - d0); if (mx > 0) { ask(s, p.id, 'choose', { q: 'clawsExtra', opts: Array.from({ length: mx + 1 }, (_, i) => i) }, { k: 'visitStep', t: Object.assign({}, t, { pendingLocker: a }) }); return; } }
       const col = a; const cc = contactCount(p); const draw = col === 'green' ? cc + 1 : col === 'black' ? cc : cc - 1;
       const key = Object.entries(p.keys).find(([, v]) => !v.used && v.color === col);
-      if (key) { key[1].used = true; ev(s, { t: 'keyUse', p: p.id, sh: key[0], color: col }); }
+      if (p.power === 'vinnie') { }
+      else if (key) { key[1].used = true; ev(s, { t: 'keyUse', p: p.id, sh: key[0], color: col }); }
       else { const mk = p.unlocked.findIndex(x => x && x.id === 'master_key' && !x.used); p.unlocked[mk].used = true; pay(s, p, UNLOCK_COSTS[mk], 'asset'); ev(s, { t: 'useAsset', p: p.id, id: 'master_key', slot: mk }); }
-      const drawn = s.lockers[col].splice(0, Math.min(draw, s.lockers[col].length));
+      const extraN = t.extra || 0;
+      const drawn = s.lockers[col].splice(0, Math.min(draw + extraN, s.lockers[col].length));
       ask(s, p.id, 'pickTile', { q: 'lockerPick', color: col, tiles: drawn }, { k: 'visitStep', t: Object.assign({}, t, { drawn, col }) });
+      return;
+    }
+    case 'clawsExtra': {
+      const n = a | 0; if (n) pay(s, p, 2 * n, 'power');
+      if (t.pendingLocker) { visitResolve(s, p, { q: 'locker' }, t.pendingLocker, { t: Object.assign({}, t, { extra: n, pendingLocker: null }) }); return; }
+      if (t.pendingExit) { visitResolve(s, p, { q: 'exit', closed: true }, 'tile', { t: Object.assign({}, t, { extra: n, pendingExit: null }) }); return; }
       return;
     }
     case 'lockerPick': {
       const i = Math.max(0, Math.min(t.drawn.length - 1, a | 0)); const val = t.drawn[i];
       const rest = t.drawn.filter((_, j) => j !== i); s.lockers[t.col].push(...rest); shuffle(s, s.lockers[t.col]);
       placeItem(s, p, { kind: 'locker', color: t.col, val });
+      if (p.power === 'vinnie') gain(s, p, 1, 'power');
       ev(s, { t: 'locker', p: p.id, color: t.col, n: t.drawn.length }); return;
     }
     case 'exit': {
       if (a === 'income') income(s, p, 'exit');
       else if (a === 'tile') {
         const si = s.exitOn[pd.closed ? +t.loc.slice(4) : 0]; const st = s.exitStacks[si];
-        const drawn = st.splice(0, Math.min(contactCount(p), st.length));
+        if (p.power === 'claws' && t.extra == null) { const mx = Math.min(2, Math.floor(p.money / 2), st.length - contactCount(p)); if (mx > 0) { ask(s, p.id, 'choose', { q: 'clawsExtra', opts: Array.from({ length: mx + 1 }, (_, i) => i) }, { k: 'visitStep', t: Object.assign({}, t, { pendingExit: true }) }); return; } }
+        const drawn = st.splice(0, Math.min(contactCount(p) + (t.extra || 0), st.length));
         ask(s, p.id, 'pickTile', { q: 'exitPick', stack: si, tiles: drawn }, { k: 'visitStep', t: Object.assign({}, t, { drawn, si }) });
         return;
       }
@@ -1247,7 +1311,29 @@ function visitResolve(s, p, pd, a, c) {
     }
     case 'unlock': if (a) push(s, { k: 'unlock', pid: p.id }, nextT()); else push(s, nextT()); return;
     case 'church': if (a) { pay(s, p, 1, 'church'); lose(s, p, 1, 'church'); } push(s, nextT()); return;
+    case 'mrv': if (a === 'lose') lose(s, p, 1, 'safehouse'); else { if (a === 'gain') gain(s, p, 1, 'power'); wound(s, p, 'power'); } push(s, Object.assign({}, t, { step: 0.5, resumeSH: false })); return;
   }
+}
+
+// ---------- missions ----------
+function missionMet(s, p) {
+  const m = p.mission; if (!m || m.done) return false;
+  const cards = p.contacts.filter(c => c && c.kind === 'contact').map(c => CONTACT[c.card]);
+  const g = {
+    1: () => (2 - p.ctrlFree) >= 2 || (cards.length >= 3 && !cards.some(C => C.name === 'Bribe' || C.name === 'Snitch')),
+    2: () => Object.values(s.bizCubes).flat().filter(c => c.pid === p.id && c.income).length >= 2 || (p.items.some(x => x && x.kind === 'locker') && p.items.some(x => x && x.kind === 'exit')),
+    3: () => GROUPS.purple.every(b => p.visited[b]) || GROUPS.blue.every(b => p.visited[b]) || cards.filter(C => !C.notoriety).length >= 3,
+    4: () => Object.values(p.discDay).some(n => n >= 2) || cards.filter(C => C.notoriety).length >= 3,
+    5: () => ['sh1', 'sh2', 'sh3'].filter(x => p.visited[x]).length >= 2 || p.notor >= Math.min(7, s.cfg.max),
+    6: () => p.unlocked.filter(Boolean).length >= 5 || p.items.filter(x => x && x.kind === 'equip' && !x.used).length >= 3
+  }[m.id];
+  return g ? g() : false;
+}
+E.missionMet = missionMet;
+function missionCheck(s, p) {
+  if (!p.mission || p.mission.done || !missionMet(s, p)) return;
+  p.mission.done = true; ev(s, { t: 'missionDone', p: p.id, id: p.mission.id });
+  ask(s, p.id, 'choose', { q: 'mission', opts: ['a', 'b', 'c'], mission: p.mission.id }, { k: 'mission', pid: p.id });
 }
 
 // ---------- notoriety ----------
@@ -1411,7 +1497,7 @@ E.score = function (s) {
     const assets = p.unlocked.filter(u => u && u.used).length * 10;
     const cc = Math.max(0, p.contacts.filter(c => c && c.kind === 'contact').length - p.cuffs);
     const contacts = CONTACT_SCORE[Math.min(5, cc)];
-    const bags = p.items.filter(x => x && (x.kind === 'locker' || x.kind === 'exit')).reduce((a, x) => a + x.val, 0);
+    const bags = p.items.filter(x => x && (x.kind === 'locker' || x.kind === 'exit')).reduce((a, x) => a + x.val + (x.val2 || 0), 0);
     const notor = -s.cfg.pen[p.notor];
     const wounds = -20 * p.wounds;
     const total = g1 + g2 + sh + p.money + assets + contacts + bags + notor + wounds;
@@ -1589,6 +1675,8 @@ AI.decide = function (E, s) {
         case 'gas': return true;
         case 'unlock': return true;
         case 'church': return p.notor + p.red - p.blue > 1 && spendable(E, s, p) >= 1;
+        case 'ladyRefresh': return spendable(E, s, p) >= pd.price;
+        case 'swapOrder': return true;
       }
       return true;
     }
@@ -1614,6 +1702,9 @@ AI.decide = function (E, s) {
         }
         case 'locker': { const pr = ['brown', 'black', 'green']; const c = o.filter(x => x !== 'none').sort((a, b) => pr.indexOf(a) - pr.indexOf(b))[0]; return c || 'none'; }
         case 'exit': return o.includes('tile') && p.money >= reserve(E, s, p) ? 'tile' : 'income';
+        case 'clawsExtra': return spendable(E, s, p) >= 4 ? Math.min(1, o[o.length - 1]) : 0;
+        case 'mrv': return 'lose';
+        case 'mission': return { 1: 'c', 2: 'a', 3: 'a', 4: 'c', 5: 'b', 6: 'b' }[pd.mission] || 'a';
       }
       return o[0];
     }
@@ -1671,8 +1762,12 @@ en: {
   q: {
     incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
-    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep'
+    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep',
+    clawsExtra: 'Claws: draw extra tiles ($2k each)?', mrv: 'Mr. V at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Lady T.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
   },
+  mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
+  power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  modeBoth: 'Both', extraN: n => n ? `Draw ${n} extra ($${2 * n}k)` : 'No extra tiles', choosePower: 'Power for each player', randomPower: 'Random',
   opt: { disc: 'Extra Action disc', unlock: 'Unlock an asset', unlockBiz: 'Unlock an asset & lose 1 notoriety', unlockSh: 'Unlock an asset & gain income', income: 'Receive income', tile: 'Take an Exit tile', heal: n => n ? `Heal ${n} ($${[0, 1, 3, 6][n]}k)` : 'No healing' },
   cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
   market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Escape plan', patrols: 'Exits',
@@ -1711,8 +1806,12 @@ pt: {
   q: {
     incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
-    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar'
+    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar',
+    clawsExtra: 'Claws: tirar peças extra ($2k cada)?', mrv: 'Mr. V na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Lady T.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
   },
+  mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
+  power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  modeBoth: 'Ambos', extraN: n => n ? `Tirar ${n} extra ($${2 * n}k)` : 'Sem peças extra', choosePower: 'Poder de cada jogador', randomPower: 'Aleatório',
   opt: { disc: 'Disco de Ação Extra', unlock: 'Desbloquear ativo', unlockBiz: 'Desbloquear ativo e perder 1 de notoriedade', unlockSh: 'Desbloquear ativo e receber rendimento', income: 'Receber rendimento', tile: 'Tirar peça de saída', heal: n => n ? `Curar ${n} ($${[0, 1, 3, 6][n]}k)` : 'Não curar' },
   cards: 'Contactos', items: 'Itens', assets: 'Ativos desbloqueados', locked: 'bloqueado', keys: 'Chaves', gang: 'Gang', discs: 'Ações extra', gas: 'Gasolina',
   market: 'Cidade', log: 'Histórico', me: 'Eu', opponents: 'Rivais', hidden: 'escondido', plan: 'Plano de fuga', patrols: 'Saídas',
@@ -1749,7 +1848,29 @@ const EFFECT = {
   pt: { sewer: 'Ir pelos esgotos para uma peça a 2 de distância, ignorando a polícia pelo meio', jetski: 'Atravessar água livremente neste turno', lose_notoriety: 'Perder 1 de notoriedade', heal: 'Curar 1 ferimento', move_police: t => `Mover um polícia ${t} para outra peça sem nenhum`, refresh: 'Virar de volta todas as cartas e equipamento usados', chopper: 'Voar de uma peça com heliporto para um sítio a 1–2 peças (1 mov.)', gang_ability: 'Usar uma habilidade de gang (perder 1 notoriedade / voar de heliporto / ignorar a polícia de uma peça)', avoid_types: t => `Evitar todos os polícias ${t} de uma peça`, take_contact: 'Tirar uma carta de Contacto', unlock_asset: 'Desbloquear um ativo', extra_action: 'Ganhar um disco de Ação Extra', remove_police: t => `Retirar um polícia ${t} do jogo`, avoid_one_any: 'Evitar 1 polícia de qualquer tipo', medevac: 'Voar direto para o Hospital (termina o movimento)', gain_income: 'Receber rendimento', avoid_all_tile: 'Evitar toda a polícia de uma peça', plus_mp: '+1 ponto de movimento', master_key: 'Visitar um Business fechado ou abrir qualquer cacifo' }
 };
 
+const POWER_PT = {
+  bones: 'Começas com 1 lata de gasolina. Todas as peças contam como tendo helipad. Só tens 2 pontos de movimento por turno.',
+  ruby: 'Podes entrar num Business fechado sem chave. Ganhas 2 de notoriedade de cada vez.',
+  vinnie: 'Podes abrir cacifos sem chave. Ganhas 1 de notoriedade sempre que tiras uma peça de cacifo.',
+  claws: 'Quando tiras peças de saída ou de cacifo, podes tirar 1 ou 2 extra para escolher, pagando $2k por cada.',
+  scar: 'No passo de evitar, podes pagar $2k e descartar uma lata de gasolina para evitar 1 polícia de qualquer tipo.',
+  shadow: 'Podes empilhar até 2 peças de cacifo ou de saída no mesmo espaço de item. Não podes substituir peças.',
+  dasilva: 'Sempre que recebes rendimento, ganhas mais $3k. Todos os custos aumentam $1k.',
+  ladyt: 'Podes recuperar Fixers como se fossem equipamento. De cada vez pagas $1k mais o custo do Fixer.',
+  mrv: 'Numa Casa Segura, em vez de perder 1 de notoriedade, podes ganhar 1 ou não perder nenhuma. Se o fizeres, levas um ferimento.',
+  kitty: 'Começas a controlar o gang da peça inicial e com menos $3k. Não podes contratar gangs.'
+};
+const MISSION_PT = {
+  1: { goals: ['Controlar 2 gangs', 'Ter 3 cartas sem nenhum Bribe nem Snitch'], abilities: ['Podes atravessar água.', '1 vez por dia, podes usar um helipad como se tivesses um helicóptero.', '1 vez por dia, evita 1 polícia Federal.'] },
+  2: { goals: ['Receber rendimento de 2 Businesses', 'Ter 1 peça de cacifo e 1 peça de saída'], abilities: ['Recebes mais $5k na fase de rendimento.', '1 vez por dia, no teu turno, podes tirar 1 carta de Contacto.', '1 vez por dia, evita 1 polícia SWAT.'] },
+  3: { goals: ['Visitar todos os Business do mesmo grupo', 'Ter 3 cartas sem estrela de notoriedade'], abilities: ['1 vez por dia, usa uma carta de Contacto sem pagar (automático na primeira).', 'Ao usar uma carta de Contacto, paga mais $2k para não a virar.', '1 vez por dia, move 1 polícia SWAT.'] },
+  4: { goals: ['Gastar 2 Ações Extra no mesmo dia', 'Ter 3 cartas com estrela de notoriedade'], abilities: ['Ignora a presença de outros jogadores nas Casas Seguras.', 'Troca a tua posição na ordem de turno com o jogador à tua frente (1 vez por dia).', '1 vez por dia, evita 1 polícia County.'] },
+  5: { goals: ['Visitar 2 Casas Seguras', 'Ter notoriedade 7'], abilities: ['Todas as peças contam como tendo helipad.', 'Controlas gangs de graça.', '1 vez por dia, move 1 polícia Federal.'] },
+  6: { goals: ['Ter 5 ativos desbloqueados', 'Ter 3 equipamentos virados para cima'], abilities: ['Os ativos desbloqueados com escudo podem evitar 1 polícia de qualquer tipo.', '1 vez por dia, ignora um ganho de 1 de notoriedade (automático).', '1 vez por dia, move 1 polícia County.'] }
+};
 const I = { lang: 'en' };
+I.powerText = (pw) => I.lang === 'pt' ? POWER_PT[pw.id] : pw.text;
+I.missionText = (m) => I.lang === 'pt' ? MISSION_PT[m.id] : m;
 I.set = (l) => { I.lang = l === 'pt' ? 'pt' : 'en'; };
 I.t = (k, ...a) => { let v = k.split('.').reduce((o, x) => o && o[x], L[I.lang]); if (v == null) v = k.split('.').reduce((o, x) => o && o[x], L.en); return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
 I.name = (k) => NAMES[I.lang][k] || NAMES.en[k] || k;
@@ -1826,6 +1947,11 @@ I.narrate = function (e, ctx) {
     case 'lockerDiscard': return pt ? `${N(e.p)} esvazia um cacifo ${I.name(e.color)}` : `${N(e.p)} empties a ${I.name(e.color)} locker`;
     case 'exitDiscard': return pt ? `${N(e.p)} descarta uma peça de saída` : `${N(e.p)} discards an exit tile`;
     case 'gameOver': return pt ? '🏁 Fim do jogo' : '🏁 Game over';
+    case 'missionDone': return pt ? `🎯 ${N(e.p)} cumpre a missão!` : `🎯 ${N(e.p)} completes their mission!`;
+    case 'missionAbility': return pt ? `${N(e.p)} escolhe uma habilidade da missão` : `${N(e.p)} picks a mission ability`;
+    case 'token': return pt ? `${N(e.p)} usa a habilidade diária` : `${N(e.p)} uses their daily ability`;
+    case 'notorIgnored': return pt ? `${N(e.p)} ignora 1 de notoriedade` : `${N(e.p)} ignores 1 notoriety`;
+    case 'refreshFixer': return pt ? `${N(e.p)} recupera o Fixer ${I.name(e.id)}` : `${N(e.p)} refreshes the ${I.name(e.id)} Fixer`;
     default: return null;
   }
 };
@@ -1833,7 +1959,7 @@ I.whyText = function (why) {
   const pt = I.lang === 'pt';
   const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income',
     crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
-    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
+    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
   if (!why) return '';
   if (why.startsWith('police:')) return ' (' + I.t('types.' + why.slice(7)) + ')';
   const w = m[why]; return w ? ` (${w})` : '';
@@ -2277,6 +2403,14 @@ function playerCard(S, p, full, viewer) {
   h += `<div class="rowlbl">${t('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
   const keyC = { green: '#3eae50', black: '#555', brown: '#9b5a2a' };
   h += `<div class="rowlbl">${t('keys')} · ${t('gas')} · ${t('gang')} · ${t('discs')}</div><div class="chips">${['sh1', 'sh2', 'sh3'].map(k => p.keys[k] ? `<span class="chip" data-h="key:${p.keys[k].color}" style="${p.keys[k].used ? 'opacity:.4' : ''}">${ic('key', '', keyC[p.keys[k].color])} ${k.slice(2)}</span>` : `<span class="chip" style="opacity:.35">${ic('key')} ${k.slice(2)}</span>`).join('')}<span class="chip" data-h="stat:gas">${ic('gas', '', '#7fc3ff')} ${p.gas}/2</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc', '', '#e8b546')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon', '', p.rest ? '#f2c629' : '#9fb3d9')}</span><span class="chip" data-h="stat:firstaid" style="${p.firstAid ? '' : 'opacity:.4'}">${ic('bandage', '', '#ff8f7a')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div>`;
+  if (p.power) { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === p.power); h += `<div class="rowlbl">${t('power')}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px" data-h="power:${p.power}"><b>${PW.name}</b> — ${PW.title}<br><span style="font-size:12.5px;color:#cfd3db">${T.powerText(PW)}</span></div>`; }
+  if (p.mission && (viewer === p.id || p.mission.done)) {
+    const M = window.HEIST_DATA.missions.missions.find(m => m.id === p.mission.id); const MT = T.missionText(M);
+    h += `<div class="rowlbl">${t('mission')} ${p.mission.done ? '✔' : ''}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px;background:#3a3020">`;
+    if (!p.mission.done) h += MT.goals.map(g => '• ' + g).join('<br>');
+    else if (p.mission.ability) { const ai = 'abc'.indexOf(p.mission.ability); h += `<b>${MT.abilities[ai]}</b>`; if (/1 vez|Once per day|1x/i.test(M.abilities[ai] + MT.abilities[ai])) h += `<br><small>${p.mission.token ? '● ' + t('tokenOn') : '○ ' + t('tokenOff')}</small>`; if (p.mission.id === 3 && p.mission.ability === 'b' && viewer === p.id) h += `<br><label class="chk"><input type="checkbox" id="kfu" ${p.keepFaceUp ? 'checked' : ''}> ${t('keepFaceUp')}</label>`; }
+    h += `</div>`;
+  } else if (p.mission) h += `<div class="rowlbl">${t('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
   if (viewer === p.id) {
     const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
     h += `<div class="rowlbl">${t('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
@@ -2294,6 +2428,7 @@ function renderSide() {
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${body}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
+  const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
 }
 function contactCardHTML(card, cls = '', extra = '') {
@@ -2376,8 +2511,8 @@ function placeBar(el, pd, head) {
 function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
-  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src;
-  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : 'bandage';
+  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Scar ⛽' : x.src === 'mission' ? t('mission') : x.src;
+  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : 'bandage';
   return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
 }
 function abilitiesSheet(ex, when) {
@@ -2389,7 +2524,7 @@ function abilitiesSheet(ex, when) {
 function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
-    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3><div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
+    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
     case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${ic(IC.ASSET[a.id])}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;
@@ -2432,6 +2567,9 @@ function chooseSheet(pd, p) {
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.FIX[o])}<span><b>${nm(o)} $${E.FIXER[o].cost}k</b><br>${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.EQUIP[o])}<span><b>${nm(o)} $${E.EQUIP[o].cost}k</b><br>${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
   if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic('lock', '', keyC[o])}<b>${nm(o)}</b>` });
+  if (q === 'clawsExtra') opts = pd.opts.map(o => ({ v: o, html: `${ic('bag', '', '#2d7a2a')}<b>${t('extraN', o)}</b>` }));
+  if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
+  if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
   sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
 }
@@ -2514,6 +2652,7 @@ function helpHTML(key) {
     case 'track': return `<b>${t('notoriety')} ${id}</b>${topic('notoriety')}`;
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
+    case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'ui': return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
@@ -2722,24 +2861,38 @@ function showMenu() {
 const SEATS = ['orange', 'purple', 'pink', 'yellow', 'green'];
 function showSetup() {
   G.screen = 'setup';
-  if (!G.setup) G.setup = { seats: { orange: 'human', purple: 'ai', pink: 'ai', yellow: 'ai', green: 'off' }, gas: true, fix: true, easy: false, speed: G.prefs.speed };
+  if (!G.setup) G.setup = { seats: { orange: 'human', purple: 'ai', pink: 'ai', yellow: 'ai', green: 'off' }, gas: true, fix: true, easy: false, speed: G.prefs.speed, mode: 'base', assign: 'random', powers: {} };
   const st = G.setup; const app = $('#app');
   const n = SEATS.filter(c => st.seats[c] !== 'off').length; const nh = SEATS.filter(c => st.seats[c] === 'human').length;
-  const seat = (c) => `<div class="seat"><span class="sw" style="background:${COLOR[c]}"></span><span class="nm">${t('colors.' + c)}</span><div class="seg" data-c="${c}">${['human', 'ai', 'off'].map(v => `<button class="${st.seats[c] === v ? 'on' : ''}" data-v="${v}">${t(v === 'ai' ? 'computer' : v)}</button>`).join('')}</div></div>`;
+  const POW = window.HEIST_DATA.powers.powers;
+  const usePow = st.mode === 'powers' || st.mode === 'both';
+  const powSel = (c) => usePow && st.assign === 'free' && st.seats[c] !== 'off' ? `<select data-pw="${c}" style="max-width:150px"><option value="">${t('randomPower')}</option>${POW.map(x => `<option value="${x.id}" ${st.powers[c] === x.id ? 'selected' : ''}>${x.name} (${x.title})</option>`).join('')}</select>` : '';
+  const seat = (c) => `<div class="seat"><span class="sw" style="background:${COLOR[c]}"></span><span class="nm">${t('colors.' + c)}</span>${powSel(c)}<div class="seg" data-c="${c}">${['human', 'ai', 'off'].map(v => `<button class="${st.seats[c] === v ? 'on' : ''}" data-v="${v}">${t(v === 'ai' ? 'computer' : v)}</button>`).join('')}</div></div>`;
   const modeNote = n === 1 ? `🕵️ ${t('npcSandra')} + 👮 ${t('npcCosta')}` : n === 2 ? `🕵️ ${t('npcSandra')}` : '';
   app.innerHTML = `<div class="screen"><div class="setup paper"><h2>${t('setupTitle')}</h2><div class="hint">${t('seatHint')}</div>${SEATS.map(seat).join('')}
    <div class="hint" style="margin-top:8px">${t('players')}: <b>${n}</b> ${modeNote ? ' · ' + modeNote : ''}</div>
-   <div class="opts"><div class="opt"><label>Upgrade Pack</label><div class="chk"><input type="checkbox" id="oGas" ${st.gas ? 'checked' : ''}><span>${t('upgradeGas')}</span></div><div class="chk"><input type="checkbox" id="oFix" ${st.fix ? 'checked' : ''}><span>${t('upgradeFix')}</span></div></div>
+   <div class="opts"><div class="opt"><label>${t('mode')}</label><div class="seg" id="oMode">${[['base', 'modeBase'], ['powers', 'modePowers'], ['missions', 'modeMissions'], ['both', 'modeBoth']].map(([v, k]) => `<button class="${st.mode === v ? 'on' : ''}" data-v="${v}">${t(k)}</button>`).join('')}</div>${st.mode === 'both' ? `<div class="hint" style="margin:4px 0 0">⚠ ${t('both')}</div>` : ''}</div>
+   <div class="opt">${usePow ? `<label>${t('powerPick')}</label><div class="seg" id="oAssign">${[['free', 'pickFree'], ['random', 'pickRandom'], ['color', 'pickColor']].map(([v, k]) => `<button class="${st.assign === v ? 'on' : ''}" data-v="${v}">${t(k)}</button>`).join('')}</div>` : ''}</div>
+   <div class="opt"><label>Upgrade Pack</label><div class="chk"><input type="checkbox" id="oGas" ${st.gas ? 'checked' : ''}><span>${t('upgradeGas')}</span></div><div class="chk"><input type="checkbox" id="oFix" ${st.fix ? 'checked' : ''}><span>${t('upgradeFix')}</span></div></div>
    <div class="opt">${n === 1 ? `<label>Solo</label><div class="chk"><input type="checkbox" id="oEasy" ${st.easy ? 'checked' : ''}><span>${t('easyCosta')}</span></div>` : ''}<label>${t('speed')}</label><div class="seg" id="oSpeed">${['slow', 'normal', 'fast'].map(v => `<button class="${G.prefs.speed === v ? 'on' : ''}" data-v="${v}">${t(v)}</button>`).join('')}</div></div></div>
    <div class="row" style="display:flex;gap:10px;justify-content:space-between"><button class="ghost" id="sBack" style="color:var(--ink);border-color:#0003">←</button><button class="pri" id="sGo" ${n < 1 || nh < 1 && n < 1 ? 'disabled' : ''}>${t('start')}</button></div></div></div>`;
   $$('.seg[data-c]').forEach(sg => $$('button', sg).forEach(b => b.onclick = () => { st.seats[sg.dataset.c] = b.dataset.v; showSetup(); }));
   $('#oGas').onchange = (e) => st.gas = e.target.checked; $('#oFix').onchange = (e) => st.fix = e.target.checked; $('#oEasy') && ($('#oEasy').onchange = (e) => st.easy = e.target.checked);
   $$('#oSpeed button').forEach(b => b.onclick = () => { G.prefs.speed = b.dataset.v; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); showSetup(); });
   $('#sBack').onclick = showMenu;
+  $$('#oMode button').forEach(b => b.onclick = () => { st.mode = b.dataset.v; showSetup(); });
+  $$('#oAssign button').forEach(b => b.onclick = () => { st.assign = b.dataset.v; showSetup(); });
+  $$('select[data-pw]').forEach(sl => sl.onchange = () => { st.powers[sl.dataset.pw] = sl.value; });
   $('#sGo').onclick = () => {
     const players = SEATS.filter(c => st.seats[c] !== 'off').map(c => ({ color: c, name: t('colors.' + c) + (st.seats[c] === 'ai' ? ' 🤖' : ''), ai: st.seats[c] === 'ai' }));
     if (!players.length) return;
-    G.S = E.newGame({ seed: (Math.random() * 2 ** 31) | 0, players, gasCan: st.gas, upgradeFixers: st.fix, easyCosta: st.easy });
+    if (usePow) {
+      const COLORPOW = { purple: 'bones', orange: 'ruby', pink: 'vinnie', yellow: 'claws', green: 'scar' };
+      const pool = POW.map(x => x.id).sort(() => Math.random() - .5);
+      if (st.assign === 'color') players.forEach(p => p.power = COLORPOW[p.color]);
+      else { if (st.assign === 'free') players.forEach(p => { const w = st.powers[p.color]; if (w && pool.includes(w)) { p.power = w; pool.splice(pool.indexOf(w), 1); } }); players.forEach(p => { if (!p.power) p.power = pool.shift(); }); }
+    }
+    G.S = E.newGame({ seed: (Math.random() * 2 ** 31) | 0, players, gasCan: st.gas, upgradeFixers: st.fix, easyCosta: st.easy, missions: st.mode === 'missions' || st.mode === 'both' });
     G.logLines = []; startScreen(true);
   };
 }

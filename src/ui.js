@@ -263,6 +263,14 @@ function playerCard(S, p, full, viewer) {
   h += `<div class="rowlbl">${t('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
   const keyC = { green: '#3eae50', black: '#555', brown: '#9b5a2a' };
   h += `<div class="rowlbl">${t('keys')} · ${t('gas')} · ${t('gang')} · ${t('discs')}</div><div class="chips">${['sh1', 'sh2', 'sh3'].map(k => p.keys[k] ? `<span class="chip" data-h="key:${p.keys[k].color}" style="${p.keys[k].used ? 'opacity:.4' : ''}">${ic('key', '', keyC[p.keys[k].color])} ${k.slice(2)}</span>` : `<span class="chip" style="opacity:.35">${ic('key')} ${k.slice(2)}</span>`).join('')}<span class="chip" data-h="stat:gas">${ic('gas', '', '#7fc3ff')} ${p.gas}/2</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc', '', '#e8b546')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon', '', p.rest ? '#f2c629' : '#9fb3d9')}</span><span class="chip" data-h="stat:firstaid" style="${p.firstAid ? '' : 'opacity:.4'}">${ic('bandage', '', '#ff8f7a')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div>`;
+  if (p.power) { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === p.power); h += `<div class="rowlbl">${t('power')}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px" data-h="power:${p.power}"><b>${PW.name}</b> — ${PW.title}<br><span style="font-size:12.5px;color:#cfd3db">${T.powerText(PW)}</span></div>`; }
+  if (p.mission && (viewer === p.id || p.mission.done)) {
+    const M = window.HEIST_DATA.missions.missions.find(m => m.id === p.mission.id); const MT = T.missionText(M);
+    h += `<div class="rowlbl">${t('mission')} ${p.mission.done ? '✔' : ''}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px;background:#3a3020">`;
+    if (!p.mission.done) h += MT.goals.map(g => '• ' + g).join('<br>');
+    else if (p.mission.ability) { const ai = 'abc'.indexOf(p.mission.ability); h += `<b>${MT.abilities[ai]}</b>`; if (/1 vez|Once per day|1x/i.test(M.abilities[ai] + MT.abilities[ai])) h += `<br><small>${p.mission.token ? '● ' + t('tokenOn') : '○ ' + t('tokenOff')}</small>`; if (p.mission.id === 3 && p.mission.ability === 'b' && viewer === p.id) h += `<br><label class="chk"><input type="checkbox" id="kfu" ${p.keepFaceUp ? 'checked' : ''}> ${t('keepFaceUp')}</label>`; }
+    h += `</div>`;
+  } else if (p.mission) h += `<div class="rowlbl">${t('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
   if (viewer === p.id) {
     const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
     h += `<div class="rowlbl">${t('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
@@ -280,6 +288,7 @@ function renderSide() {
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${body}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
+  const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
 }
 function contactCardHTML(card, cls = '', extra = '') {
@@ -362,8 +371,8 @@ function placeBar(el, pd, head) {
 function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
-  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src;
-  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : 'bandage';
+  const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Scar ⛽' : x.src === 'mission' ? t('mission') : x.src;
+  const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : 'bandage';
   return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
 }
 function abilitiesSheet(ex, when) {
@@ -375,7 +384,7 @@ function abilitiesSheet(ex, when) {
 function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
-    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3><div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
+    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
     case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${ic(IC.ASSET[a.id])}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;
@@ -418,6 +427,9 @@ function chooseSheet(pd, p) {
   if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.FIX[o])}<span><b>${nm(o)} $${E.FIXER[o].cost}k</b><br>${T.effect(E.FIXER[o].effect)}</span>` });
   if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.EQUIP[o])}<span><b>${nm(o)} $${E.EQUIP[o].cost}k</b><br>${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
   if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic('lock', '', keyC[o])}<b>${nm(o)}</b>` });
+  if (q === 'clawsExtra') opts = pd.opts.map(o => ({ v: o, html: `${ic('bag', '', '#2d7a2a')}<b>${t('extraN', o)}</b>` }));
+  if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
+  if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
   if (q === 'exit') opts = pd.opts.map(o => ({ v: o, html: o === 'income' ? `${ic('money', '', '#2d7a2a')}<b>${t('opt.income')} (+$${p.income}k)</b>` : o === 'tile' ? `${ic('bag', '', '#2d7a2a')}<b>${t('opt.tile')}</b>` : `<b>${t('none')}</b>` }));
   sheet(`<h3>${t('q.' + q)}</h3><div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}">${o.html}</button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => human(opts[+b.dataset.i].v)));
 }
@@ -500,6 +512,7 @@ function helpHTML(key) {
     case 'track': return `<b>${t('notoriety')} ${id}</b>${topic('notoriety')}`;
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
+    case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'ui': return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
@@ -708,24 +721,38 @@ function showMenu() {
 const SEATS = ['orange', 'purple', 'pink', 'yellow', 'green'];
 function showSetup() {
   G.screen = 'setup';
-  if (!G.setup) G.setup = { seats: { orange: 'human', purple: 'ai', pink: 'ai', yellow: 'ai', green: 'off' }, gas: true, fix: true, easy: false, speed: G.prefs.speed };
+  if (!G.setup) G.setup = { seats: { orange: 'human', purple: 'ai', pink: 'ai', yellow: 'ai', green: 'off' }, gas: true, fix: true, easy: false, speed: G.prefs.speed, mode: 'base', assign: 'random', powers: {} };
   const st = G.setup; const app = $('#app');
   const n = SEATS.filter(c => st.seats[c] !== 'off').length; const nh = SEATS.filter(c => st.seats[c] === 'human').length;
-  const seat = (c) => `<div class="seat"><span class="sw" style="background:${COLOR[c]}"></span><span class="nm">${t('colors.' + c)}</span><div class="seg" data-c="${c}">${['human', 'ai', 'off'].map(v => `<button class="${st.seats[c] === v ? 'on' : ''}" data-v="${v}">${t(v === 'ai' ? 'computer' : v)}</button>`).join('')}</div></div>`;
+  const POW = window.HEIST_DATA.powers.powers;
+  const usePow = st.mode === 'powers' || st.mode === 'both';
+  const powSel = (c) => usePow && st.assign === 'free' && st.seats[c] !== 'off' ? `<select data-pw="${c}" style="max-width:150px"><option value="">${t('randomPower')}</option>${POW.map(x => `<option value="${x.id}" ${st.powers[c] === x.id ? 'selected' : ''}>${x.name} (${x.title})</option>`).join('')}</select>` : '';
+  const seat = (c) => `<div class="seat"><span class="sw" style="background:${COLOR[c]}"></span><span class="nm">${t('colors.' + c)}</span>${powSel(c)}<div class="seg" data-c="${c}">${['human', 'ai', 'off'].map(v => `<button class="${st.seats[c] === v ? 'on' : ''}" data-v="${v}">${t(v === 'ai' ? 'computer' : v)}</button>`).join('')}</div></div>`;
   const modeNote = n === 1 ? `🕵️ ${t('npcSandra')} + 👮 ${t('npcCosta')}` : n === 2 ? `🕵️ ${t('npcSandra')}` : '';
   app.innerHTML = `<div class="screen"><div class="setup paper"><h2>${t('setupTitle')}</h2><div class="hint">${t('seatHint')}</div>${SEATS.map(seat).join('')}
    <div class="hint" style="margin-top:8px">${t('players')}: <b>${n}</b> ${modeNote ? ' · ' + modeNote : ''}</div>
-   <div class="opts"><div class="opt"><label>Upgrade Pack</label><div class="chk"><input type="checkbox" id="oGas" ${st.gas ? 'checked' : ''}><span>${t('upgradeGas')}</span></div><div class="chk"><input type="checkbox" id="oFix" ${st.fix ? 'checked' : ''}><span>${t('upgradeFix')}</span></div></div>
+   <div class="opts"><div class="opt"><label>${t('mode')}</label><div class="seg" id="oMode">${[['base', 'modeBase'], ['powers', 'modePowers'], ['missions', 'modeMissions'], ['both', 'modeBoth']].map(([v, k]) => `<button class="${st.mode === v ? 'on' : ''}" data-v="${v}">${t(k)}</button>`).join('')}</div>${st.mode === 'both' ? `<div class="hint" style="margin:4px 0 0">⚠ ${t('both')}</div>` : ''}</div>
+   <div class="opt">${usePow ? `<label>${t('powerPick')}</label><div class="seg" id="oAssign">${[['free', 'pickFree'], ['random', 'pickRandom'], ['color', 'pickColor']].map(([v, k]) => `<button class="${st.assign === v ? 'on' : ''}" data-v="${v}">${t(k)}</button>`).join('')}</div>` : ''}</div>
+   <div class="opt"><label>Upgrade Pack</label><div class="chk"><input type="checkbox" id="oGas" ${st.gas ? 'checked' : ''}><span>${t('upgradeGas')}</span></div><div class="chk"><input type="checkbox" id="oFix" ${st.fix ? 'checked' : ''}><span>${t('upgradeFix')}</span></div></div>
    <div class="opt">${n === 1 ? `<label>Solo</label><div class="chk"><input type="checkbox" id="oEasy" ${st.easy ? 'checked' : ''}><span>${t('easyCosta')}</span></div>` : ''}<label>${t('speed')}</label><div class="seg" id="oSpeed">${['slow', 'normal', 'fast'].map(v => `<button class="${G.prefs.speed === v ? 'on' : ''}" data-v="${v}">${t(v)}</button>`).join('')}</div></div></div>
    <div class="row" style="display:flex;gap:10px;justify-content:space-between"><button class="ghost" id="sBack" style="color:var(--ink);border-color:#0003">←</button><button class="pri" id="sGo" ${n < 1 || nh < 1 && n < 1 ? 'disabled' : ''}>${t('start')}</button></div></div></div>`;
   $$('.seg[data-c]').forEach(sg => $$('button', sg).forEach(b => b.onclick = () => { st.seats[sg.dataset.c] = b.dataset.v; showSetup(); }));
   $('#oGas').onchange = (e) => st.gas = e.target.checked; $('#oFix').onchange = (e) => st.fix = e.target.checked; $('#oEasy') && ($('#oEasy').onchange = (e) => st.easy = e.target.checked);
   $$('#oSpeed button').forEach(b => b.onclick = () => { G.prefs.speed = b.dataset.v; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); showSetup(); });
   $('#sBack').onclick = showMenu;
+  $$('#oMode button').forEach(b => b.onclick = () => { st.mode = b.dataset.v; showSetup(); });
+  $$('#oAssign button').forEach(b => b.onclick = () => { st.assign = b.dataset.v; showSetup(); });
+  $$('select[data-pw]').forEach(sl => sl.onchange = () => { st.powers[sl.dataset.pw] = sl.value; });
   $('#sGo').onclick = () => {
     const players = SEATS.filter(c => st.seats[c] !== 'off').map(c => ({ color: c, name: t('colors.' + c) + (st.seats[c] === 'ai' ? ' 🤖' : ''), ai: st.seats[c] === 'ai' }));
     if (!players.length) return;
-    G.S = E.newGame({ seed: (Math.random() * 2 ** 31) | 0, players, gasCan: st.gas, upgradeFixers: st.fix, easyCosta: st.easy });
+    if (usePow) {
+      const COLORPOW = { purple: 'bones', orange: 'ruby', pink: 'vinnie', yellow: 'claws', green: 'scar' };
+      const pool = POW.map(x => x.id).sort(() => Math.random() - .5);
+      if (st.assign === 'color') players.forEach(p => p.power = COLORPOW[p.color]);
+      else { if (st.assign === 'free') players.forEach(p => { const w = st.powers[p.color]; if (w && pool.includes(w)) { p.power = w; pool.splice(pool.indexOf(w), 1); } }); players.forEach(p => { if (!p.power) p.power = pool.shift(); }); }
+    }
+    G.S = E.newGame({ seed: (Math.random() * 2 ** 31) | 0, players, gasCan: st.gas, upgradeFixers: st.fix, easyCosta: st.easy, missions: st.mode === 'missions' || st.mode === 'both' });
     G.logLines = []; startScreen(true);
   };
 }
