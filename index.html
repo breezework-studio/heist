@@ -194,6 +194,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .track{display:flex;flex-direction:column-reverse;gap:2px}
 .trow{display:flex;align-items:center;gap:6px;height:26px;padding:0 6px;border-radius:4px;background:#0002;position:relative}
 .trow.th{border-bottom:3px solid var(--red)}
+.nbox{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:2px 0 4px}.nb{display:flex;align-items:center;gap:4px;min-height:30px;border-radius:7px;padding:3px 6px;border:1px solid #444b58;background:#20242c}.nb .ic{width:15px;height:15px;flex:none}.nb.red{border-color:#c0443a;background:#3a1a18}.nb.blue{border-color:#3a6fc0;background:#16243a;flex-direction:row-reverse}.nb.pool{justify-content:center;border-style:dashed}.nc{display:flex;gap:3px;flex-wrap:wrap}.ncube{width:12px;height:12px;border-radius:2px;background:#cfd3db;box-shadow:inset 0 -2px 0 #0004}.ncube.r{background:#ff6b5e}.ncube.b{background:#6fb0ff}.nproj{grid-column:1/-1;font-size:13px;color:#cfd3db;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}.nproj .ic{width:13px;height:13px;vertical-align:-2px}.nproj b.up{color:#ff8a7a}.nproj b.dn{color:#8fc7ff}.nproj small{color:var(--muted);font-size:11.5px}.nbox.pulse{animation:nbp .7s}@keyframes nbp{0%{box-shadow:0 0 0 0 #ffd36a}40%{box-shadow:0 0 0 4px #ffd36a88}100%{box-shadow:0 0 0 0 #ffd36a00}}.nbox{border-radius:8px}
 .thb{position:absolute;right:64px;bottom:-11px;z-index:2;display:flex;align-items:center;gap:2px;background:#2a1414;border:1px solid var(--red);border-radius:10px;padding:1px 6px;color:#ffd0c8;font-size:11px}.thb .ic{width:13px;height:13px}.thb .sep{width:1px;height:10px;background:#ff8a7a66;margin:0 3px}
 .track{gap:4px}
 .thlbl{font-size:11.5px;color:#ff9a8a;padding:1px 6px 4px 28px;line-height:1.2}
@@ -448,11 +449,11 @@ function othersAt(s, pid, loc) { return everyone(s).filter(q => q.id !== pid && 
 function gain(s, p, k, why) { // notoriety cubes
   if (k > 0 && tokenOK(p, 'm6b')) { useToken(s, p); k--; ev(s, { t: 'notorIgnored', p: p.id }); }
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.red++; else if (p.blue > 0) p.blue--; }
-  if (k) ev(s, { t: 'notor', p: p.id, d: +k, why });
+  if (k) ev(s, { t: 'notor', p: p.id, d: +k, why, red: p.red, blue: p.blue });
 }
 function lose(s, p, k, why) {
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.blue++; else if (p.red > 0) p.red--; }
-  if (k) ev(s, { t: 'notor', p: p.id, d: -k, why });
+  if (k) ev(s, { t: 'notor', p: p.id, d: -k, why, red: p.red, blue: p.blue });
 }
 function cst(p, base) { return base > 0 && p.power === 'dasilva' ? base + 1 : base; }
 function gangCost(p) { return hasAb(p, 'm5b') ? 0 : 5; }
@@ -1808,6 +1809,8 @@ en: {
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  nbTitle: 'Notoriety this round', nbCancel: 'gains and losses cancel out', nbLine: n => n > 1 ? `crosses ${n} lines` : 'crosses a line', nbWound: n => `+${n} wound${n > 1 ? 's' : ''} (top of track)`, nbFloor: 'cannot go below 1', nbFull: 'all 4 cubes used',
+  nbHelp: 'You have 4 notoriety cubes. Each gain moves a cube from the middle to the red box (▲), each loss to the blue box (▼). Your marker only moves after everyone has acted: up 1 per red cube, down 1 per blue cube. If all 4 cubes are already placed, a gain takes a cube back from the blue box and a loss takes one back from the red box — so you never go beyond +4 or −4 in one round. Example: +2 then −2 leaves 2 red and 2 blue (no change); one more gain then returns a blue cube, for a net +1.',
   showBoard: 'Show full player board', left: n => `${n} left in the pile`, leftT: 'Tiles left', leftHelp: 'How many tiles are still in the supply / pile.', thTitle: n => `Notoriety line ${n}`, chip: { cards: 'Contact cards', equip: 'Equipment & Fixers', bags: 'Money bags (lockers & exits)', keys: 'Keys', cuffs: 'Handcuffs' },
   chipHelp: { cards: 'How many Contact cards they hold (count for lockers, exit tiles and the end score).', equip: 'Equipment and Fixer tiles in their item spaces.', bags: 'Locker and Exit tiles — their values are secret.', keys: 'Keys taken from Safe Houses, by colour. Open lockers of that colour or a closed Business.', cuffs: 'Handcuffs block Contact spaces and cost a card at the end.' },
   stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
@@ -1862,6 +1865,8 @@ pt: {
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  nbTitle: 'Notoriedade desta ronda', nbCancel: 'ganhos e perdas anulam-se', nbLine: n => n > 1 ? `passa ${n} linhas` : 'passa uma linha', nbWound: n => `+${n} ferimento${n > 1 ? 's' : ''} (topo da escala)`, nbFloor: 'não desce abaixo de 1', nbFull: 'os 4 cubos estão em uso',
+  nbHelp: 'Tens 4 cubos de notoriedade. Cada ganho passa um cubo do meio para a caixa vermelha (▲), cada perda para a caixa azul (▼). O marcador só se mexe depois de todos jogarem: sobe 1 por cada cubo vermelho e desce 1 por cada azul. Se os 4 cubos já estiverem colocados, um ganho devolve um cubo da caixa azul e uma perda devolve um da vermelha — por isso nunca passas de +4 ou −4 numa ronda. Exemplo: +2 e depois −2 deixa 2 vermelhos e 2 azuis (fica igual); mais um ganho devolve um azul, ficando +1.',
   showBoard: 'Ver o tabuleiro completo', left: n => `restam ${n} na pilha`, leftT: 'Peças restantes', leftHelp: 'Quantas peças ainda restam na reserva / pilha.', thTitle: n => `Linha de notoriedade ${n}`, chip: { cards: 'Cartas de Contacto', equip: 'Equipamento e Fixers', bags: 'Sacos de dinheiro (cacifos e saídas)', keys: 'Chaves', cuffs: 'Algemas' },
   chipHelp: { cards: 'Quantas cartas de Contacto tem (contam para os cacifos, peças de saída e pontuação final).', equip: 'Equipamento e Fixers nos espaços de item.', bags: 'Peças de cacifo e de saída — os valores são secretos.', keys: 'Chaves tiradas das Casas Seguras, por cor. Abrem cacifos dessa cor ou um Business fechado.', cuffs: 'As algemas bloqueiam espaços de Contacto e custam uma carta no fim.' },
   stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
@@ -2457,6 +2462,21 @@ function slotHTML(p, x, i, kind, viewer) {
   if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}<span class="sart">${effArt(C.effect, C.type, C.types)}</span><span class="lbl">${C.name}</span><span class="sstep">${C.step.includes('travel') ? ic('pawn', '', '#2d7a2a') : ''}${C.step.includes('avoid') ? ic('shield', '', '#a33') : ''}</span></div>`; }
   return `<div class="slot"></div>`;
 }
+function notorBoxHTML(S, p) {
+  const cube = c => `<span class="ncube ${c}"></span>`;
+  const free = 4 - p.red - p.blue;
+  const net = p.red - p.blue; const max = S.cfg.max;
+  let after = Math.max(1, p.notor + net); const excess = Math.max(0, after - max); after = Math.min(after, max);
+  const crossed = net > 0 ? S.cfg.th.filter(x => x > p.notor && x <= after).length : 0;
+  let proj = `${ic('star')} ${p.notor} <span class="arr">→</span> <b class="${net > 0 ? 'up' : net < 0 ? 'dn' : ''}">${after}</b>`;
+  const notes = [];
+  if (!net && (p.red || p.blue)) notes.push(t('nbCancel'));
+  if (crossed) notes.push(t('nbLine', crossed));
+  if (excess) notes.push(t('nbWound', excess));
+  if (p.notor + net < 1) notes.push(t('nbFloor'));
+  if (!free) notes.push(t('nbFull'));
+  return `<div class="nbox" id="nb-${p.id}" data-h="ui:nbox"><div class="nb red">${ic('starPlus', '', '#ff6b5e')}<div class="nc">${Array.from({ length: p.red }, () => cube('r')).join('')}</div></div><div class="nb pool"><div class="nc">${Array.from({ length: free }, () => cube('k')).join('')}</div></div><div class="nb blue">${ic('starMinus', '', '#6fb0ff')}<div class="nc">${Array.from({ length: p.blue }, () => cube('b')).join('')}</div></div><div class="nproj">${proj}${notes.length ? `<small>${notes.join(' · ')}</small>` : ''}</div></div>`;
+}
 function playerCard(S, p, full, viewer) {
   const col = pcolor(p.id); const cur = S.pending && S.pending.pid === p.id;
   const showMoney = viewer === p.id || !humanIds().length;
@@ -2464,7 +2484,7 @@ function playerCard(S, p, full, viewer) {
   const cubes = (n, cls) => Array.from({ length: n }, () => `<span class="cube ${cls}"></span>`).join('');
   let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3 ${exp ? `data-exp="${p.id}" style="cursor:pointer"` : ''}>${exp ? `<span class="expi">${full ? '▾' : '▸'}</span>` : ''}<span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
   if (p.npc) {
-    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div></div>`;
+    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div>${p.escaped || p.arrested ? '' : `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p)}</div>`;
     return h;
   }
   h += `<div class="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">↻ ${p.income}</span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
@@ -2475,6 +2495,7 @@ function playerCard(S, p, full, viewer) {
     h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-exp="${p.id}">${t('showBoard')}</div></div>`;
     return h;
   }
+  if (!p.escaped && !p.arrested) h += `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p);
   h += `<div class="rowlbl">${t('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
   h += `<div class="rowlbl">${t('cards')}</div><div class="slots">${p.contacts.map((x, i) => slotHTML(p, x, i, 'contacts', viewer)).join('')}</div>`;
   h += `<div class="rowlbl">${t('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
@@ -2781,7 +2802,7 @@ function helpHTML(key) {
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -2876,7 +2897,7 @@ function patchVS(VS, S, e) {
     case 'move': if (q) q.loc = e.to; break;
     case 'npcMoved': { const n = E.P(VS, e.npc); if (n) n.loc = e.to; break; }
     case 'money': if (q) { if (q.npc) q.debt = (q.debt || 0) - e.d; else q.money += e.d; } break;
-    case 'notor': if (q) { if (e.d > 0) q.red += e.d; else q.blue -= e.d; } break;
+    case 'notor': if (q) { if (e.red != null) { q.red = e.red; q.blue = e.blue; } else if (e.d > 0) q.red += e.d; else q.blue -= e.d; } break;
     case 'level': if (q) { q.notor = e.to; q.red = 0; q.blue = 0; } break;
     case 'wound': if (q && !q.npc) q.wounds = Math.min(3, q.wounds + 1); break;
     case 'heal': if (q) q.wounds = Math.max(0, q.wounds - e.n); break;
@@ -2922,7 +2943,7 @@ async function playEvent(e) {
     case 'police': { redraw(); await animCop(e.from, e.to, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'policeRemove': { redraw(); await animCop(e.from, -1, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'money': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, `${e.d > 0 ? '+' : '−'}$${Math.abs(e.d)}k`, e.d > 0 ? '#7fe08a' : '#ff8a7a'); await wait(380); return; }
-    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); await wait(320); return; }
+    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); const nb = document.getElementById('nb-' + e.p); if (nb) { nb.classList.remove('pulse'); void nb.offsetWidth; nb.classList.add('pulse'); } await wait(320); return; }
     case 'level': { patchVS(VS, S, e); redraw(); flashPanel(e.p, 'flash'); await wait(280); return; }
     case 'threshold': { redraw(); banner(`⚠ ${pname(e.p)}`, G.prefs.lang === 'pt' ? `linha ${e.n} de notoriedade` : `notoriety line ${e.n}`); await wait(1000); return; }
     case 'wound': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '🩸', '#ff4a3a'); flashPanel(e.p, 'flashred'); await wait(450); return; }

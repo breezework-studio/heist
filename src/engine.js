@@ -168,11 +168,11 @@ function othersAt(s, pid, loc) { return everyone(s).filter(q => q.id !== pid && 
 function gain(s, p, k, why) { // notoriety cubes
   if (k > 0 && tokenOK(p, 'm6b')) { useToken(s, p); k--; ev(s, { t: 'notorIgnored', p: p.id }); }
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.red++; else if (p.blue > 0) p.blue--; }
-  if (k) ev(s, { t: 'notor', p: p.id, d: +k, why });
+  if (k) ev(s, { t: 'notor', p: p.id, d: +k, why, red: p.red, blue: p.blue });
 }
 function lose(s, p, k, why) {
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.blue++; else if (p.red > 0) p.red--; }
-  if (k) ev(s, { t: 'notor', p: p.id, d: -k, why });
+  if (k) ev(s, { t: 'notor', p: p.id, d: -k, why, red: p.red, blue: p.blue });
 }
 function cst(p, base) { return base > 0 && p.power === 'dasilva' ? base + 1 : base; }
 function gangCost(p) { return hasAb(p, 'm5b') ? 0 : 5; }

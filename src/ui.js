@@ -251,6 +251,21 @@ function slotHTML(p, x, i, kind, viewer) {
   if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}<span class="sart">${effArt(C.effect, C.type, C.types)}</span><span class="lbl">${C.name}</span><span class="sstep">${C.step.includes('travel') ? ic('pawn', '', '#2d7a2a') : ''}${C.step.includes('avoid') ? ic('shield', '', '#a33') : ''}</span></div>`; }
   return `<div class="slot"></div>`;
 }
+function notorBoxHTML(S, p) {
+  const cube = c => `<span class="ncube ${c}"></span>`;
+  const free = 4 - p.red - p.blue;
+  const net = p.red - p.blue; const max = S.cfg.max;
+  let after = Math.max(1, p.notor + net); const excess = Math.max(0, after - max); after = Math.min(after, max);
+  const crossed = net > 0 ? S.cfg.th.filter(x => x > p.notor && x <= after).length : 0;
+  let proj = `${ic('star')} ${p.notor} <span class="arr">→</span> <b class="${net > 0 ? 'up' : net < 0 ? 'dn' : ''}">${after}</b>`;
+  const notes = [];
+  if (!net && (p.red || p.blue)) notes.push(t('nbCancel'));
+  if (crossed) notes.push(t('nbLine', crossed));
+  if (excess) notes.push(t('nbWound', excess));
+  if (p.notor + net < 1) notes.push(t('nbFloor'));
+  if (!free) notes.push(t('nbFull'));
+  return `<div class="nbox" id="nb-${p.id}" data-h="ui:nbox"><div class="nb red">${ic('starPlus', '', '#ff6b5e')}<div class="nc">${Array.from({ length: p.red }, () => cube('r')).join('')}</div></div><div class="nb pool"><div class="nc">${Array.from({ length: free }, () => cube('k')).join('')}</div></div><div class="nb blue">${ic('starMinus', '', '#6fb0ff')}<div class="nc">${Array.from({ length: p.blue }, () => cube('b')).join('')}</div></div><div class="nproj">${proj}${notes.length ? `<small>${notes.join(' · ')}</small>` : ''}</div></div>`;
+}
 function playerCard(S, p, full, viewer) {
   const col = pcolor(p.id); const cur = S.pending && S.pending.pid === p.id;
   const showMoney = viewer === p.id || !humanIds().length;
@@ -258,7 +273,7 @@ function playerCard(S, p, full, viewer) {
   const cubes = (n, cls) => Array.from({ length: n }, () => `<span class="cube ${cls}"></span>`).join('');
   let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3 ${exp ? `data-exp="${p.id}" style="cursor:pointer"` : ''}>${exp ? `<span class="expi">${full ? '▾' : '▸'}</span>` : ''}<span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
   if (p.npc) {
-    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div></div>`;
+    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div>${p.escaped || p.arrested ? '' : `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p)}</div>`;
     return h;
   }
   h += `<div class="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">↻ ${p.income}</span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
@@ -269,6 +284,7 @@ function playerCard(S, p, full, viewer) {
     h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-exp="${p.id}">${t('showBoard')}</div></div>`;
     return h;
   }
+  if (!p.escaped && !p.arrested) h += `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p);
   h += `<div class="rowlbl">${t('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
   h += `<div class="rowlbl">${t('cards')}</div><div class="slots">${p.contacts.map((x, i) => slotHTML(p, x, i, 'contacts', viewer)).join('')}</div>`;
   h += `<div class="rowlbl">${t('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
@@ -575,7 +591,7 @@ function helpHTML(key) {
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -670,7 +686,7 @@ function patchVS(VS, S, e) {
     case 'move': if (q) q.loc = e.to; break;
     case 'npcMoved': { const n = E.P(VS, e.npc); if (n) n.loc = e.to; break; }
     case 'money': if (q) { if (q.npc) q.debt = (q.debt || 0) - e.d; else q.money += e.d; } break;
-    case 'notor': if (q) { if (e.d > 0) q.red += e.d; else q.blue -= e.d; } break;
+    case 'notor': if (q) { if (e.red != null) { q.red = e.red; q.blue = e.blue; } else if (e.d > 0) q.red += e.d; else q.blue -= e.d; } break;
     case 'level': if (q) { q.notor = e.to; q.red = 0; q.blue = 0; } break;
     case 'wound': if (q && !q.npc) q.wounds = Math.min(3, q.wounds + 1); break;
     case 'heal': if (q) q.wounds = Math.max(0, q.wounds - e.n); break;
@@ -716,7 +732,7 @@ async function playEvent(e) {
     case 'police': { redraw(); await animCop(e.from, e.to, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'policeRemove': { redraw(); await animCop(e.from, -1, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'money': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, `${e.d > 0 ? '+' : '−'}$${Math.abs(e.d)}k`, e.d > 0 ? '#7fe08a' : '#ff8a7a'); await wait(380); return; }
-    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); await wait(320); return; }
+    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); const nb = document.getElementById('nb-' + e.p); if (nb) { nb.classList.remove('pulse'); void nb.offsetWidth; nb.classList.add('pulse'); } await wait(320); return; }
     case 'level': { patchVS(VS, S, e); redraw(); flashPanel(e.p, 'flash'); await wait(280); return; }
     case 'threshold': { redraw(); banner(`⚠ ${pname(e.p)}`, G.prefs.lang === 'pt' ? `linha ${e.n} de notoriedade` : `notoriety line ${e.n}`); await wait(1000); return; }
     case 'wound': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '🩸', '#ff4a3a'); flashPanel(e.p, 'flashred'); await wait(450); return; }
