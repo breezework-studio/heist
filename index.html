@@ -232,6 +232,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .paper button.ghost{color:var(--ink);border:1px solid #0003}
 .pop button.pri{background:var(--red);color:#fff}
 .tip{position:fixed;z-index:50;max-width:280px;background:#0b0d12f2;color:#eee;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;pointer-events:none;box-shadow:0 8px 20px #000a}
+.tip ol.tl{margin:4px 0 2px;padding-left:18px}.tip ol.tl li{margin:1px 0}.tip small{display:block;color:#aab;font-size:11.5px;margin-top:3px}
 .tip b{color:var(--mustard);font-family:var(--ff-ui);font-size:15px;display:block;margin-bottom:2px}
 /* ---------- effects ---------- */
 #fx{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
@@ -2779,11 +2780,53 @@ function helpHTML(key) {
     case 'loc': {
       const k = E.locKind(S, id); if (!k) return '';
       const c = E.locCell(S, id); const cl = S.cells[c]; const cops = E.PTYPES.filter(x => cl.police[x]).map(x => t('types.' + x));
-      const tmap = { business: 'business', safehouse: 'safehouse', store: 'store', exit: 'exits', hospital: 'others', clinic: 'others', church: 'others', gang: 'others', subway: 'movement', heliport: 'movement' };
-      let extra = '';
-      if (k.type === 'business') extra = S.closed[k.id] ? (pt ? '🔒 Fechado — precisas de uma chave.' : '🔒 Closed — you need a key.') : '';
-      if (k.type === 'exit') extra = S.patrolSpaces[k.n] >= 2 ? (pt ? 'Saída fechada.' : 'Exit closed.') : (pt ? 'Saída aberta.' : 'Exit open.');
-      return `<b>${locName(id)}</b>${extra ? extra + '<br>' : ''}${cops.length ? '👮 ' + cops.join(', ') + '<br>' : ''}${topic(tmap[k.type] || 'movement')}`;
+      const others = pt ? '+1 de notoriedade por cada outro jogador lá' : '+1 notoriety per other player there';
+      const contact = pt ? 'tiras uma carta de Contacto' : 'take a Contact card';
+      const li = a => '<ol class="tl">' + a.map(x => `<li>${x}</li>`).join('') + '</ol>';
+      let st = '', body = '';
+      switch (k.type) {
+        case 'business': {
+          const cubes = S.bizCubes[k.id] || []; const N = S.cfg.closeAt; const grp = window.HEIST_DATA.locations.businesses.find(b => b.id === k.id).group;
+          const mates = window.HEIST_DATA.locations.businesses.filter(b => b.group === grp).map(b => nm(b.id)).join(', ');
+          st = S.closed[k.id] ? (pt ? '🔒 Fechado — precisas de uma chave (qualquer cor) ou da Chave Mestra.' : '🔒 Closed — you need a key (any colour) or the Master Key.') : (pt ? `Visitas: ${cubes.length}/${N} (fecha às ${N}).` : `Visits: ${cubes.length}/${N} (closes at ${N}).`);
+          body = li([others, pt ? 'tiras o cubo de cima do rendimento; no Plano de Fuga: valor = dinheiro no fim, <b>$</b> = recebes rendimento já' : 'take your top income cube; on your Escape Plan: a value = money at the end, <b>$</b> = receive income now', contact]) + (pt ? `<small>Só 1 visita tua. Grupo: ${mates} — visitar os 3 dá uma Ação Extra, ou desbloquear um ativo e −1 de notoriedade.</small>` : `<small>You may visit it once. Group: ${mates} — visiting all 3 gives an Extra Action, or unlock an asset and −1 notoriety.</small>`);
+          break; }
+        case 'safehouse': {
+          const keys = S.shKeys[k.id] || []; const kn = { green: pt ? 'verde' : 'green', black: pt ? 'preta' : 'black', brown: pt ? 'castanha' : 'brown' };
+          st = keys.length ? (pt ? 'Chaves aqui: ' : 'Keys here: ') + keys.map(x => kn[x]).join(', ') + '.' : (pt ? 'Já não há chaves.' : 'No keys left.');
+          body = li([others, pt ? 'tiras o cubo de cima do rendimento (Plano de Fuga: dinheiro no fim ou rendimento já)' : 'take your top income cube (Escape Plan: money at the end or income now)', pt ? '−1 de notoriedade' : '−1 notoriety', pt ? 'levas uma das chaves' : 'take one of the keys', pt ? 'podes comprar um Fixer (ajudante de uso único)' : 'you may buy a Fixer (one-use helper)']) + (pt ? '<small>Só 1 visita tua. Visitar as 3 dá uma Ação Extra, ou desbloquear um ativo e receber rendimento.</small>' : '<small>You may visit it once. Visiting all 3 gives an Extra Action, or unlock an asset and receive income.</small>');
+          break; }
+        case 'store':
+          body = li([others, pt ? 'levas uma lata de gasolina (máx. 2)' : 'take a Gas Can (max 2)', pt ? 'compras até 2 equipamentos diferentes' : 'buy up to 2 different pieces of equipment', pt ? 'abres 1 cacifo se tiveres a chave da cor e notoriedade + cartas ≥ verde 1 / preto 5 / castanho 8' : 'open 1 locker if you have that colour key and notoriety + cards ≥ green 1 / black 5 / brown 8']);
+          break;
+        case 'exit': {
+          const open = S.patrolSpaces[k.n] < 2;
+          st = open ? (pt ? '🟢 Saída aberta.' : '🟢 Exit open.') : (pt ? '🔴 Saída fechada (2 cartas de patrulha).' : '🔴 Exit closed (2 patrol cards).');
+          body = li([others, open ? (pt ? 'podes receber rendimento' : 'you may receive income') : (pt ? 'recebes rendimento <i>ou</i> tiras peças de saída (1 por carta de Contacto) e guardas uma' : 'receive income <i>or</i> draw Exit tiles (1 per Contact card) and keep one'), contact]) + (open && S.day === 3 ? (pt ? '<small>No Dia 3 podes fugir por aqui: evitas a polícia (incluindo a desta peça) e pagas o custo de saída.</small>' : '<small>On Day 3 you can escape here: avoid the police (including this tile\'s) and pay the exit cost.</small>') : '');
+          break; }
+        case 'hospital':
+          body = li([pt ? 'podes pagar $1k / $3k / $6k para curar 1 / 2 / 3 ferimentos' : 'you may pay $1k / $3k / $6k to heal 1 / 2 / 3 wounds', pt ? 'depois +1 de notoriedade (os médicos reportam ferimentos de bala)' : 'then +1 notoriety (doctors report bullet wounds)']) + (pt ? '<small>Não ganhas notoriedade pelos outros jogadores aqui. Esta peça nunca tem polícia.</small>' : '<small>No notoriety for other players here. This tile never has police.</small>');
+          break;
+        case 'clinic':
+          body = li([others, pt ? 'podes desbloquear um ativo' : 'you may unlock an asset', pt ? 'podes curar 1 ferimento' : 'you may heal 1 wound', contact]);
+          break;
+        case 'church':
+          body = li([others, pt ? 'podes pagar $1k para perder 1 de notoriedade' : 'you may pay $1k to lose 1 notoriety', pt ? 'podes desbloquear um ativo' : 'you may unlock an asset', contact]);
+          break;
+        case 'gang': {
+          const g = S.gangs[id];
+          st = g && g.ctrl != null ? (pt ? `Controlado por ${pname(g.ctrl)}.` : `Controlled by ${pname(g.ctrl)}.`) : g && g.members >= 2 ? (pt ? 'Livre — os 2 motards estão cá.' : 'Free — both bikers are here.') : (pt ? 'Ainda não está livre.' : 'Not free yet.');
+          body = li([pt ? 'só se não estiver cá ninguém e ninguém o controlar' : 'only if nobody is here and nobody controls it', pt ? 'pagas $5k, levas os 2 motards e pões cá o teu marcador' : 'pay $5k, take both bikers and place your control marker']) + (pt ? '<small>Cada motard, ao ser devolvido: −1 de notoriedade, voar de uma peça com helipad até 2 peças, ou ignorar toda a polícia de uma peça.</small>' : '<small>Each biker, when returned: −1 notoriety, fly from a helipad tile up to 2 tiles, or ignore all police on one tile.</small>');
+          break; }
+        case 'subway':
+          body = pt ? 'Ao entrar, saltas para qualquer outro metro de graça e ganhas +1 de movimento. Não é um destino: continuas a viagem. As peças pelo meio não contam para evitar polícia.' : 'When you enter, jump to any other subway for free and gain +1 MP. Not a destination: you keep travelling. Tiles in between don\'t count for avoiding police.';
+          break;
+        case 'heliport':
+          body = pt ? 'Gasta 1 de movimento para voar para qualquer sítio numa peça a 1–2 de distância. As peças pelo meio não contam para evitar polícia.' : 'Spend 1 MP to fly anywhere on a tile 1–2 tiles away. Tiles in between don\'t count for avoiding police.';
+          break;
+        default: body = topic('movement');
+      }
+      return `<b>${locName(id)}</b>${st ? st + '<br>' : ''}${cops.length ? '👮 ' + cops.join(', ') + '<br>' : ''}${body}`;
     }
     case 'cop': return `<b>${t('types.' + id)}</b>${pt ? 'Ao sair desta peça tens de o evitar ou levas um ferimento.' : 'When you leave this tile you must avoid it or take a wound.'}`;
     case 'contact': { const C = E.CONTACT[id]; return `<b>${C.name} — $${C.cost}k ${C.notoriety ? '★' : ''}</b>${T.effect(C.effect, C.types || (C.type ? [C.type] : null))}${C.notoriety ? (pt ? '<br>★ Usar dá +1 de notoriedade.' : '<br>★ Using it gives +1 notoriety.') : ''}<br>${C.step === 'avoid' ? (pt ? 'Usa-se ao evitar a polícia.' : 'Used while avoiding police.') : (pt ? 'Usa-se a viajar / no teu turno.' : 'Used while travelling / on your turn.')}`; }
@@ -2799,7 +2842,7 @@ function helpHTML(key) {
     case 'locker': { const L = window.HEIST_DATA.lockers.lockers[id]; return `<b>${t('lockers')}: ${nm(id)}</b>${t('lockerHelp', L.min, L.draw)}`; }
     case 'th': return `<b>${t('thTitle', +id + 1)}</b>${t('thGain')[+id]}`;
     case 'track': return `<b>${t('notoriety')} ${id}</b>${topic('notoriety')}`;
-    case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
+    case 'biz': { const L = Object.keys(S.bizSlots || {}).find(x => S.bizSlots[x] === id); return L ? helpHTML('loc:' + L) : `<b>${nm(id)}</b>${topic('business')}`; }
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'ui': if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
@@ -3076,7 +3119,7 @@ function showEnd() {
 
 // ---------------- boot ----------------
 bindTips();
-window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI };
+window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML };
 showMenu();
 })();
 
