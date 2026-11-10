@@ -306,9 +306,16 @@ function marketHTML(S) {
     h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
   }
   h += `</div><div class="rowlbl">${t('businesses')}</div>`;
-  window.HEIST_DATA.locations.businesses.forEach(b => { const cubes = S.bizCubes[b.id]; h += `<div class="biz" data-h="biz:${b.id}">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)} ${S.closed[b.id] ? ic('lock', '', '#f2c629') : ''}<span class="mini-cubes">${cubes.map(c => `<i style="background:${pcolor(c.pid)}"></i>`).join('')}</span></div>`; });
+  const cubeRow = (cubes) => { const inc = cubes.filter(c => c.income), end = cubes.filter(c => !c.income); const sq = (arr) => arr.map(c => `<i style="background:${pcolor(c.pid)}" title="${pname(c.pid)}"></i>`).join('') || '<em>—</em>'; return `<div class="bc"><span class="hx inc" data-h="ui:incHex">$ ${t('incomeNow')}</span>${sq(inc)}<span class="hx end" data-h="ui:endHex">${ic('bag')} ${t('endMoney')}</span>${sq(end)}</div>`; };
+  h += `<div class="legend">${t('bizLegend', S.cfg.closeAt)}</div>`;
+  window.HEIST_DATA.locations.businesses.forEach(b => {
+    const cubes = S.bizCubes[b.id]; const N = S.cfg.closeAt; const closed = S.closed[b.id];
+    const slots = Array.from({ length: Math.max(N, cubes.length) }, (_, i) => `<b class="${i < cubes.length ? 'f' : ''} ${i >= N ? 'x' : ''}" style="${i < cubes.length ? 'background:' + pcolor(cubes[i].pid) : ''}"></b>`).join('');
+    h += `<div class="bizrow ${closed ? 'cl' : ''}" data-h="biz:${b.id}"><div class="bh">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)}<span class="cap">${slots}${closed ? ' ' + ic('lock', '', '#f2c629') + ' ' + t('closed') : ''}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`;
+  });
   h += `<div class="rowlbl">${t('safehouses')}</div>`;
-  ['sh1', 'sh2', 'sh3'].forEach(k => { h += `<div class="biz">${ic('house', '', '#ff7a6e')} ${nm(k)} <span class="mini-cubes">${(S.shKeys[k] || []).map(c => `<i style="background:${{ green: '#3eae50', black: '#444', brown: '#9b5a2a' }[c]};border-radius:50%"></i>`).join('')} | ${(S.shCubes[k] || []).map(c => `<i style="background:${pcolor(c.pid)}"></i>`).join('')}</span></div>`; });
+  h += `<div class="legend">${t('shLegend')}</div>`;
+  ['sh1', 'sh2', 'sh3'].forEach(k => { const cubes = S.shCubes[k] || []; h += `<div class="bizrow"><div class="bh">${ic('house', '', '#ff7a6e')} ${nm(k)}<span class="cap">${(S.shKeys[k] || []).map(c => ic('key', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])).join('') || '<em>' + t('noKeys') + '</em>'}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`; });
   h += `<div class="rowlbl">${t('fixers')}</div><div class="chips">${S.fixers.map(f => `<span class="chip" data-h="fixer:${f}">${ic(IC.FIX[f])} ${nm(f)} $${E.FIXER[f].cost}</span>`).join('')}</div>`;
   h += `<div class="rowlbl">${t('equipment')}</div><div class="chips">${Object.keys(S.equip).map(k => `<span class="chip" data-h="equip:${k}">${ic(IC.EQUIP[k])} ${nm(k)} $${E.EQUIP[k].cost} ×${S.equip[k]}</span>`).join('')}<span class="chip">${ic('gas')} ×${S.gasSupply}</span></div>`;
   h += `<div class="rowlbl">${t('lockers')}</div><div class="chips">${['green', 'black', 'brown'].map(c => `<span class="chip" data-h="locker:${c}">${ic('lock', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])} ${nm(c)} ${window.HEIST_DATA.lockers.lockers[c].min}+ · ×${S.lockers[c].length}</span>`).join('')}</div>`;
@@ -520,7 +527,7 @@ function helpHTML(key) {
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -622,7 +629,7 @@ function patchVS(VS, S, e) {
     case 'cuffs': if (q) { q.cuffs++; q.wounds = 2; copyBoard(); } break;
     case 'police': if (VS.cells[e.from]) VS.cells[e.from].police[e.type] = false; if (e.to >= 0 && VS.cells[e.to]) VS.cells[e.to].police[e.type] = true; break;
     case 'policeRemove': if (VS.cells[e.from]) VS.cells[e.from].police[e.type] = false; break;
-    case 'cube': (VS.bizCubes[e.at] || VS.shCubes[e.at] || []).push({ pid: e.p }); if (q && !q.npc) q.income = Math.max(0, q.income - 1); if (q) q.visited[e.at] = true; break;
+    case 'cube': (VS.bizCubes[e.at] || VS.shCubes[e.at] || []).push({ pid: e.p, income: !!e.income }); if (q && !q.npc) q.income = Math.max(0, q.income - 1); if (q) q.visited[e.at] = true; break;
     case 'closed': VS.closed[e.biz] = true; break;
     case 'contact': case 'contactDiscard': case 'npcContact': VS.cdisplay = VS.cdisplay.filter(c => c !== e.card); if (e.t === 'contact') copyBoard(); if (e.t === 'npcContact' && q) q.contacts.push(e.card); break;
     case 'cdraw': if (!VS.cdisplay.includes(e.card)) { if ((VS.npcs || []).length) VS.cdisplay.unshift(e.card); else VS.cdisplay.push(e.card); } break;
