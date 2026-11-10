@@ -1,0 +1,8 @@
+{
+  "_comment": "15 Locker tiles, 5 per colour. Back shows contents and requirement: Notoriety + Contact cards >= min. Draw count: green = contacts+1, black = contacts, brown = contacts-1. Key of same colour (or master key asset) needed. Front: money bag value ($k) or X (0).",
+  "lockers": {
+    "green": {"min": 1, "draw": "+1", "tiles": [0, 60, 60, 60, 90]},
+    "black": {"min": 5, "draw": "0", "tiles": [0, 70, 70, 100, 100]},
+    "brown": {"min": 8, "draw": "-1", "tiles": [0, 80, 110, 110, 110]}
+  }
+}
