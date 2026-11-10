@@ -83,6 +83,34 @@ function tileGeo(tile, rot) {
   return (geoCache[key] = { w, zones, locs });
 }
 function locXY(S, locId) { const ci = E.locCell(S, locId); if (ci < 0) return null; const c = S.cells[ci]; const g = tileGeo(c.tile, c.rot); const o = cellXY(ci); const p = g.locs[locId]; return { x: o.x + p.x, y: o.y + p.y }; }
+// Drawn route: locations, tile-edge crossings (on the half-edge where the land type continues) and zone centres only where the land type changes inside a tile
+function routePts(S, path) {
+  const isZ = n => n.indexOf(':') >= 0 && !/^[~^%]/.test(n);
+  const cellOf = n => +n.split(':')[0];
+  const cross = (a, b) => {
+    const i = cellOf(a), j = cellOf(b), A = a.split(':')[1], B = b.split(':')[1]; const c = S.cells[i], o = S.cells[j]; if (!c || !o) return null;
+    for (let e = 0; e < 6; e++) {
+      if (E.nb(i, e) !== j) continue; const oe = (e + 3) % 6; const hs = [0, 1].filter(h => E.land(c.tile, c.rot, e, h) === A && E.land(o.tile, o.rot, oe, 1 - h) === B);
+      if (!hs.length) return null; const O = cellXY(i);
+      const pts = hs.map(h => { const [p0, p1] = halfEdge(e, h); return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }; });
+      const x = pts.reduce((t, p) => t + p.x, 0) / pts.length, y = pts.reduce((t, p) => t + p.y, 0) / pts.length; return { x: O.x + x, y: O.y + y };
+    }
+    return null;
+  };
+  const out = [];
+  path.forEach((n, k) => {
+    const prev = path[k - 1], next = path[k + 1];
+    if (prev && isZ(prev) && isZ(n) && cellOf(prev) !== cellOf(n)) { const c = cross(prev, n); if (c) out.push(c); }
+    if (!isZ(n)) { const p = nodeXY(S, n); if (p) out.push(Object.assign({ node: n, jump: /^[~^%]/.test(n) }, p)); return; }
+    const inCell = x => x && isZ(x) && cellOf(x) === cellOf(n);
+    const viaEdge = x => x && isZ(x) && cellOf(x) !== cellOf(n);
+    const keep = inCell(prev) || inCell(next) || !(viaEdge(prev) || viaEdge(next));
+    if (keep) { const p = nodeXY(S, n); if (p) out.push(Object.assign({ node: n }, p)); }
+  });
+  return out;
+}
+function routeLen(pts) { let d = 0; for (let i = 1; i < pts.length; i++) d += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); return d; }
+function bestPath(S, path, alts) { if (!alts || !alts.length) return path; let best = path, bl = routeLen(routePts(S, path)); alts.forEach(a => { const l = routeLen(routePts(S, a)); if (l < bl - 1) { bl = l; best = a; } }); return best; }
 function nodeXY(S, node) {
   if (!node) return null; const n = node.replace(/^[~^%]/, '');
   if (n.indexOf(':') >= 0) { const [ci, Tt] = n.split(':'); const c = S.cells[+ci]; if (!c) return null; const g = tileGeo(c.tile, c.rot); const o = cellXY(+ci); const z = g.zones[Tt] || { x: 0, y: 0 }; return { x: o.x + z.x, y: o.y + z.y }; }
@@ -191,14 +219,31 @@ function renderMap(view) {
   // dest cells (police move)
   if (view.cellDests) view.cellDests.forEach(i => { const o = cellXY(i); s += `<polygon class="cell-dest" data-celldest="${i}" points="${hexPts(o.x, o.y, 0.92)}"/>`; });
   // path preview
-  if (view.path) { const pts = view.path.map(n => nodeXY(S, n)).filter(Boolean); if (pts.length > 1) s += `<polyline class="path-prev" points="${pts.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')}"/>`; }
+  let badges = '';
+  if (view.path) {
+    const pts = routePts(S, view.path); if (pts.length > 1) s += `<polyline class="path-prev" points="${pts.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')}"/>`;
+    // MP badges: one numbered marker on every step that costs a movement point
+    const isZ = n => n.indexOf(':') >= 0 && !/^[~^%]/.test(n); let mp = 0; badges = '';
+    for (let i = 1; i < view.path.length; i++) {
+      const a = view.path[i - 1], b = view.path[i]; let cost = 0;
+      if (/^\^/.test(b)) cost = 1; else if (/^[~%]/.test(b)) cost = 0;
+      else if (isZ(a) && isZ(b)) cost = a.split(':')[1] !== b.split(':')[1] ? 1 : 0;
+      else cost = 1;
+      if (!cost) continue; mp += cost;
+      // place the badge on the drawn route: between the route point of a and the next drawn point
+      const seg = routePts(S, view.path.slice(0, i + 1)); const tail = seg.slice(-2); if (tail.length < 2) continue;
+      const P0 = tail[0], P1 = tail[1]; const L = Math.hypot(P1.x - P0.x, P1.y - P0.y) || 1; const ux = (P1.x - P0.x) / L, uy = (P1.y - P0.y) / L; const off = Math.min(42, L / 2);
+      let x, y; if (!isZ(a) && isZ(b)) { x = P0.x + ux * off; y = P0.y + uy * off; } else if (isZ(a) && !isZ(b)) { x = P1.x - ux * off; y = P1.y - uy * off; } else { x = (P0.x + P1.x) / 2; y = (P0.y + P1.y) / 2; }
+      badges += `<g class="mpb" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><circle r="11"/><text y="4.5">${mp}</text></g>`;
+    }
+  }
   // locations
   S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
   // police
   S.cells.forEach((c, i) => { if (!c) return; E.PTYPES.forEach(ty => { if (c.police[ty]) s += copSVG(i, ty, '', view.pickCops && view.pickCops.has(i + ':' + ty)); }); });
   // pawns
   const spots = pawnSpots(S); S.players.concat(S.npcs || []).forEach(q => { const p = spots[q.id]; if (p) s += pawnSVG(S, q, p.x, p.y); });
-  s += '</g>';
+  s += badges + '</g>';
   svg.innerHTML = s;
   fitMap();
 }
@@ -215,7 +260,7 @@ function fitMap() {
 function mapView() {
   const S = G.S, pd = S.pending, v = {};
   if (!pd || G.busy || !isHuman(pd.pid)) return v;
-  if (pd.type === 'action') { v.dests = pd.moves; if (G.sel.dest && pd.moves[G.sel.dest]) v.path = pd.moves[G.sel.dest][G.sel.plan || 0].path; }
+  if (pd.type === 'action') { v.dests = pd.moves; if (G.sel.dest && pd.moves[G.sel.dest]) { const pl = pd.moves[G.sel.dest][G.sel.plan || 0]; v.path = bestPath(G.S, pl.path, pl.alts); } }
   if (pd.type === 'place' && G.sel.tile) { v.legalCells = new Set(E.legalPlacements(S, G.sel.tile).map(x => x.cell)); if (G.sel.cell != null) v.ghost = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot }; }
   if (pd.type === 'policeMove') { if (G.sel.from == null) v.pickCops = new Set(pd.opts.map(o => o.from + ':' + o.type)); else v.cellDests = [...new Set(pd.opts.filter(o => o.from === G.sel.from && o.type === G.sel.ptype).map(o => o.to))]; }
   if (G.sel.execCop) { const x = G.sel.execCop; if (G.sel.from == null) { v.pickCops = new Set(); S.cells.forEach((c, i) => { if (c && c.police[x.type]) v.pickCops.add(i + ':' + x.type); }); } else if (x.eff === 'move_police') { const h = E.locCell(S, 'hospital'); v.cellDests = S.cells.map((c, i) => (c && !c.police[x.type] && i !== h && i !== G.sel.from) ? i : -1).filter(i => i >= 0); } }
@@ -570,7 +615,7 @@ function helpHTML(key) {
       const c = E.locCell(S, id); const cl = S.cells[c]; const cops = E.PTYPES.filter(x => cl.police[x]).map(x => t('types.' + x));
       const others = pt ? '+1 de notoriedade por cada outro jogador lá' : '+1 notoriety per other player there';
       const contact = pt ? 'tiras uma carta de Contacto' : 'take a Contact card';
-      const li = a => '<ol class="tl">' + a.map(x => `<li>${x}</li>`).join('') + '</ol>';
+      const li = a => '<ol class="tsteps">' + a.map(x => `<li>${x}</li>`).join('') + '</ol>';
       let st = '', body = '';
       switch (k.type) {
         case 'business': {
@@ -766,9 +811,9 @@ async function playEvent(e) {
     case 'turn': redraw(); if (isHuman(e.p)) { banner(t('yourTurn'), pname(e.p)); await wait(900); } else await wait(350); return;
     case 'move': {
       const q = E.P(VS, e.p); const spots = pawnSpots(VS); const start = spots[e.p];
-      const pts = [start || nodeXY(VS, e.from)];
-      e.path.slice(1).forEach((n, i) => { const p = nodeXY(VS, n); if (!p) return; if (i === e.path.length - 2) return; pts.push(Object.assign({ jump: /^[~^%]/.test(n) }, p)); });
-      const last = nodeXY(VS, e.to); const lastNode = e.path[e.path.length - 1]; if (last) pts.push(Object.assign({ jump: /^[~^%]/.test(lastNode) }, { x: last.x, y: last.y + 34 }));
+      const pts = [start || nodeXY(VS, e.from)]; const path = bestPath(VS, e.path, e.alts);
+      const rp = routePts(VS, path); rp.slice(1, -1).forEach(p => pts.push(p));
+      const last = nodeXY(VS, e.to); const lastNode = path[path.length - 1]; if (last) pts.push(Object.assign({ jump: /^[~^%]/.test(lastNode) }, { x: last.x, y: last.y + 34 }));
       redraw(); await animPawn(e.p, pts.filter(Boolean)); patchVS(VS, S, e); redraw(); await wait(150); return;
     }
     case 'police': { redraw(); await animCop(e.from, e.to, e.type); patchVS(VS, S, e); redraw(); return; }

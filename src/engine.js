@@ -309,7 +309,10 @@ E.planMoves = function (s, pid) {
   const addPlan = (dest, plan) => {
     const arr = out[dest] = out[dest] || [];
     const same = arr.find(x => x.police <= plan.police && x.uses.length <= plan.uses.length && x.mp <= plan.mp);
-    if (same) return;
+    if (same) { // equivalent route (same cost, same tiles to avoid): keep it as a drawing alternative
+      if (same.police === plan.police && same.mp === plan.mp && same.variant === plan.variant && same.avoidCells.slice().sort().join() === plan.avoidCells.slice().sort().join() && same.path.join() !== plan.path.join()) { same.alts = same.alts || []; if (same.alts.length < 6 && !same.alts.some(a => a.join() === plan.path.join())) same.alts.push(plan.path); }
+      return;
+    }
     for (let k = arr.length - 1; k >= 0; k--) { const x = arr[k]; if (plan.police <= x.police && plan.uses.length <= x.uses.length && plan.mp <= x.mp) arr.splice(k, 1); }
     arr.push(plan);
   };
@@ -325,7 +328,6 @@ E.planMoves = function (s, pid) {
       const x = st.pop();
       const key = x.node + '|' + x.mp + '|' + x.sub + x.heli + x.sewer;
       const pc = policeOnCells(s, x.cells.filter(c => c !== G.cellOf[x.node])) * 10 + x.cells.length;
-      if (seen.has(key) && seen.get(key) <= pc) continue; seen.set(key, pc);
       // record destination
       if (G.isLoc[x.node] && x.node !== p.loc && x.path.length > 1) {
         if (canEnd(s, p, x.node, p.money - v.cost) || (s.day === 3 && isOpenExit(s, x.node))) {
@@ -336,6 +338,7 @@ E.planMoves = function (s, pid) {
           }
         }
       }
+      if (seen.has(key) && seen.get(key) <= pc) continue; seen.set(key, pc);
       const cap = budget + x.bonus;
       // normal edges
       for (const e of (G.adj[x.node] || [])) {
@@ -677,7 +680,7 @@ function doAction(s, p, a) {
     while (extra > 0 && p.gas > 0) { p.gas--; s.gasSupply++; extra--; ev(s, { t: 'gasUse', p: p.id }); }
     pl.uses.forEach(u => useTravelRes(s, p, u));
     const from = p.loc; p.loc = a.dest;
-    ev(s, { t: 'move', p: p.id, from, to: a.dest, path: pl.path, mp: pl.mp });
+    ev(s, { t: 'move', p: p.id, from, to: a.dest, path: pl.path, alts: pl.alts, mp: pl.mp });
     if (s.cur) s.cur.moved = true;
     const k = locKind(s, a.dest);
     if (a.escape && pl.escape) { doEscape(s, p, pl.avoidCells.concat([locCell(s, a.dest)])); return; }

@@ -1,7 +1,7 @@
 {
  "_comment": "City tiles, flat-top hex. edges = 12 half-edge land types clockwise: top(L,R), upper-right(top,bottom), lower-right(top,bottom), bottom(R,L), lower-left(bottom,top), upper-left(bottom,top). Land: I industrial (black), C commercial (grey/beige), R residential (green), W water (blue). borders = land pairs touching inside the tile. locs = locations with adjacent land types. Transcribed from photos; approximate at half-edge precision.",
  "tiles": [
-  {"id":"S1","stack":"start","edges":["R","W","W","W","W","C","C","I","I","I","I","R"],"borders":["RW","RI","RC","IC","WC"],"locs":[{"type":"store","id":"storeD","adj":"RC"},{"type":"gang","id":"gang1","adj":"CW"}]},
+  {"id":"S1","stack":"start","edges":["R","W","W","W","W","C","C","I","I","I","I","R"],"borders":["RW","RI","RC","IC","WC"],"locs":[{"type":"store","id":"storeD","adj":"RCI"},{"type":"gang","id":"gang1","adj":"CW"}]},
   {"id":"S2","stack":"start","helipad":true,"edges":["I","C","C","W","W","W","W","R","R","R","I","I"],"borders":["IC","CW","WR","RI"],"locs":[{"type":"hospital","id":"hospital","adj":"ICWR"}]},
   {"id":"A1","stack":"A","edges":["R","R","R","W","W","W","W","R","R","R","R","R"],"borders":["RW"],"locs":[{"type":"subway","id":"subway1","adj":"R"},{"type":"exit","id":"exit2","adj":"RW"}]},
   {"id":"A2","stack":"A","ferry":true,"edges":["I","I","I","W","W","C","C","C","C","W","W","I"],"borders":["IW","WC"],"locs":[{"type":"exit","id":"exit3","adj":"IW"},{"type":"church","id":"church","adj":"WC"}]},
