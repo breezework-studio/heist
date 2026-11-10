@@ -126,7 +126,7 @@ AI.decide = function (E, s) {
       pd.display.forEach(tile => {
         E.legalPlacements(s, tile).forEach(pl => {
           let v = ((pl.cell * 7 + pl.rot * 13 + tile.charCodeAt(1) + s.day) % 10) / 20;
-          for (let e = 0; e < 6; e++) { const j = E.nb(pl.cell, e); if (j < 0 || !s.cells[j]) continue; const o = s.cells[j]; for (let h = 0; h < 2; h++) if (E.land(tile, pl.rot, e, h) === E.land(o.tile, o.rot, (e + 3) % 6, 1 - h)) v += 1; }
+          for (let e = 0; e < 6; e++) { const j = E.nb(pl.cell, e); if (j < 0 || !s.cells[j]) continue; const o = s.cells[j]; E.contacts(tile, pl.rot, e, o.tile, o.rot).forEach(k => { if (k.a[0] !== '@' && k.b[0] !== '@' && E.landOf(k.a) === E.landOf(k.b)) v += k.len * 2; }); }
           const me = E.locCell(s, p.loc); if (me >= 0) v -= E.hexDist(me, pl.cell) * 0.3;
           if (v > bv) { bv = v; best = { tile, cell: pl.cell, rot: pl.rot }; }
         });

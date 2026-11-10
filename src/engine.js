@@ -43,9 +43,21 @@ function prep() {
   ASSET = {}; D.assets.assets.forEach(a => ASSET[a.id] = a);
   E.TILE = TILE; E.CONTACT = CONTACT; E.FIXER = FIXER; E.EQUIP = EQUIP; E.ASSET = ASSET;
 }
-// half-edge land of placed tile at absolute edge e, half h (0 = first clockwise)
-function land(tileId, rot, e, h) { const t = TILE[tileId]; const oe = ((e - rot) % 6 + 6) % 6; return t.edges[oe * 2 + h]; }
-E.land = land;
+// Each tile side is a list of segments [area, fraction] clockwise (area 'I','C','R','W','C2'… or '@locId' when a location reaches the edge).
+// segs(): segments of the placed tile's absolute side e, with their start/end along the side (0..1, clockwise)
+function segs(tileId, rot, e) { const t = TILE[tileId]; const oe = ((e - rot) % 6 + 6) % 6; let f = 0; return t.sides[oe].map(([a, len]) => { const g = { a, s0: f, s1: f + len }; f += len; return g; }); }
+E.segs = segs;
+const TOUCH = 0.015; // minimum shared length (fraction of a side) for two things to be "touching"
+// what touches what across the shared side: side e of tile A against side e+3 of tile B (which runs the other way)
+function contacts(tA, rA, e, tB, rB) {
+  const A = segs(tA, rA, e), B = segs(tB, rB, (e + 3) % 6).map(g => ({ a: g.a, s0: 1 - g.s1, s1: 1 - g.s0 })); const out = [];
+  A.forEach(x => B.forEach(y => { const ov = Math.min(x.s1, y.s1) - Math.max(x.s0, y.s0); if (ov > TOUCH) out.push({ a: x.a, b: y.a, len: ov, s0: Math.max(x.s0, y.s0), s1: Math.min(x.s1, y.s1) }); }));
+  return out;
+}
+E.contacts = contacts;
+const isArea = a => a[0] !== '@';
+const landOf = a => a[0];
+E.landOf = landOf;
 
 // ---------- config by player count ----------
 function trackCfg(n) {
@@ -219,7 +231,7 @@ E.legalPlacements = function (s, tileId) {
       let ok = false;
       for (let e = 0; e < 6 && !ok; e++) {
         const j = nb(i, e); if (j < 0 || !s.cells[j]) continue; const o = s.cells[j]; const oe = (e + 3) % 6;
-        for (let h = 0; h < 2; h++) if (land(tileId, rot, e, h) === land(o.tile, o.rot, oe, 1 - h)) ok = true;
+        if (contacts(tileId, rot, e, o.tile, o.rot).some(k => isArea(k.a) && isArea(k.b) && landOf(k.a) === landOf(k.b))) ok = true;
       }
       if (ok) res.push({ cell: i, rot });
     }
@@ -235,21 +247,21 @@ function buildGraph(s, opt) {
   const zones = [];
   s.cells.forEach((c, i) => {
     if (!c) return; const t = TILE[c.tile];
-    const types = new Set(t.edges); t.locs.forEach(l => l.adj.split('').forEach(x => types.add(x)));
-    types.forEach(T => { const z = i + ':' + T; G.cellOf[z] = i; G.type[z] = T; zones.push(z); G.adj[z] = G.adj[z] || []; });
+    t.areas.forEach(T => { const z = i + ':' + T; G.cellOf[z] = i; G.type[z] = landOf(T); zones.push(z); G.adj[z] = G.adj[z] || []; });
     t.borders.forEach(b => { const A = i + ':' + b[0], B = i + ':' + b[1]; add(A, B, 1); add(B, A, 1); });
-    t.locs.forEach(l => { G.cellOf[l.id] = i; G.isLoc[l.id] = l.type; G.adj[l.id] = G.adj[l.id] || []; l.adj.split('').forEach(T => { add(l.id, i + ':' + T, 1); add(i + ':' + T, l.id, 1); }); });
+    t.locs.forEach(l => { G.cellOf[l.id] = i; G.isLoc[l.id] = l.type; G.adj[l.id] = G.adj[l.id] || []; l.adj.forEach(T => { add(l.id, i + ':' + T, 1); add(i + ':' + T, l.id, 1); }); });
   });
   // cross-tile
   s.cells.forEach((c, i) => {
     if (!c) return;
     for (let e = 0; e < 3; e++) {
       const j = nb(i, e); if (j < 0 || !s.cells[j]) continue; const o = s.cells[j]; const oe = (e + 3) % 6;
-      for (let h = 0; h < 2; h++) {
-        const A = land(c.tile, c.rot, e, h), B = land(o.tile, o.rot, oe, 1 - h);
-        const za = i + ':' + A, zb = j + ':' + B; const w = A === B ? 0 : 1;
-        if (!(G.adj[za] || []).some(x => x.to === zb && x.w === w)) { add(za, zb, w); add(zb, za, w); }
-      }
+      contacts(c.tile, c.rot, e, o.tile, o.rot).forEach(k => {
+        // land meets land: free if same type, 1 MP otherwise; a location on the edge touches whatever is across (1 MP)
+        const za = isArea(k.a) ? i + ':' + k.a : k.a.slice(1), zb = isArea(k.b) ? j + ':' + k.b : k.b.slice(1);
+        const w = isArea(k.a) && isArea(k.b) && landOf(k.a) === landOf(k.b) ? 0 : 1;
+        if (!(G.adj[za] || []).some(x => x.to === zb)) { add(za, zb, w); add(zb, za, w); }
+      });
     }
   });
   // water bodies & ferries
@@ -864,7 +876,7 @@ function applyAvoid(s, p, a, done) {
   else if (o.scope === 'tile') { PTYPES.forEach(t => { if (cl.police[t]) mark(o.cell, t); }); npcHere.forEach(n => mark(o.cell, n.npc)); }
   else if (o.scope === 'move' && (o.type === 'sandra' || o.type === 'costa')) {
     const n = npcHere.find(x => x.npc === o.type); const to = bestPoliceDump(s, p, null, o.cell, a.exclude);
-    if (n && to >= 0) { const T = TILE[s.cells[to].tile]; const z = to + ':' + T.edges[0]; const from = n.loc; n.loc = z; ev(s, { t: 'npcMoved', p: p.id, npc: n.id, from, to: z }); mark(o.cell, o.type); }
+    if (n && to >= 0) { const T = TILE[s.cells[to].tile]; const z = to + ':' + T.areas[0]; const from = n.loc; n.loc = z; ev(s, { t: 'npcMoved', p: p.id, npc: n.id, from, to: z }); mark(o.cell, o.type); }
   }
   else if (o.scope === 'move' || o.scope === 'remove') {
     cl.police[o.type] = false;

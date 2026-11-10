@@ -50,39 +50,29 @@ function cellXY(i) { const { c, r } = E.CELLS[i]; return { x: 140 + c * 1.5 * R0
 function vtx(k, s = 1) { const a = rad(VANG[k % 6]); return { x: Math.cos(a) * R0 * s, y: Math.sin(a) * R0 * s }; }
 function hexPts(cx, cy, s = 1) { return VANG.map((a, k) => { const v = vtx(k, s); return (cx + v.x).toFixed(1) + ',' + (cy + v.y).toFixed(1); }).join(' '); }
 function halfEdge(e, h) { const a = vtx(e), b = vtx(e + 1); const p0 = { x: a.x + (b.x - a.x) * h * 0.5, y: a.y + (b.y - a.y) * h * 0.5 }; const p1 = { x: a.x + (b.x - a.x) * (h + 1) * 0.5, y: a.y + (b.y - a.y) * (h + 1) * 0.5 }; return [p0, p1]; }
-function wedgeInfo(tile, rot) {
-  const w = []; for (let e = 0; e < 6; e++) for (let h = 0; h < 2; h++) { const [p0, p1] = halfEdge(e, h); const mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2; w.push({ T: E.land(tile, rot, e, h), p0, p1, ang: Math.atan2(my, mx) }); }
-  return w;
-}
+// Tile geometry comes from the traced photos: land shapes, location positions and side segments (data/tiles.json)
+function rotP(p, rot) { const a = rad(rot * 60), c = Math.cos(a), s = Math.sin(a); return { x: p[0] * c - p[1] * s, y: p[0] * s + p[1] * c }; }
+function sidePt(e, f) { const a = vtx(e), b = vtx(e + 1); return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; }
+function polyCentroid(P) { let A = 0, x = 0, y = 0; for (let i = 0; i < P.length; i++) { const [x0, y0] = P[i], [x1, y1] = P[(i + 1) % P.length]; const k = x0 * y1 - x1 * y0; A += k; x += (x0 + x1) * k; y += (y0 + y1) * k; } if (Math.abs(A) < 1e-6) return [P[0][0], P[0][1]]; return [x / (3 * A), y / (3 * A)]; }
 const geoCache = {};
 function tileGeo(tile, rot) {
   const key = tile + rot; if (geoCache[key]) return geoCache[key];
-  const w = wedgeInfo(tile, rot); const TL = E.TILE[tile];
-  const cmean = (angs) => { let x = 0, y = 0; angs.forEach(a => { x += Math.cos(a); y += Math.sin(a); }); return Math.hypot(x, y) < 1e-6 ? null : Math.atan2(y, x); };
-  const zones = {};
-  ['I', 'C', 'R', 'W'].forEach(Tt => { const angs = w.filter(x => x.T === Tt).map(x => x.ang); if (!angs.length) return; const a = cmean(angs); zones[Tt] = a == null ? { x: 0, y: 0 } : { x: Math.cos(a) * R0 * 0.55, y: Math.sin(a) * R0 * 0.55 }; });
-  const locs = {};
-  TL.locs.forEach((l, li) => {
-    const A = new Set(l.adj.split('')); let p;
-    if (l.type === 'hospital' || A.size >= 4) p = { x: 0, y: 0 };
-    else if (A.size === 1) { const angs = w.filter(x => A.has(x.T)).map(x => x.ang); let a = cmean(angs); if (a == null || angs.length === 12) a = rad(li ? 90 : 250); p = { x: Math.cos(a) * R0 * 0.42, y: Math.sin(a) * R0 * 0.42 }; }
-    else {
-      const bs = []; for (let k = 0; k < 12; k++) { const a = w[k], b = w[(k + 1) % 12]; if (A.has(a.T) && A.has(b.T) && a.T !== b.T) bs.push(Math.atan2(a.p1.y, a.p1.x)); }
-      let a = cmean(bs); if (a == null) { const angs = w.filter(x => A.has(x.T)).map(x => x.ang); a = cmean(angs) || 0; }
-      const r = A.size >= 3 ? 0.18 : 0.46; p = { x: Math.cos(a) * R0 * r, y: Math.sin(a) * R0 * r };
-    }
-    locs[l.id] = p;
-  });
-  // separate overlapping locations, keep them inside the tile and away from the police row at the top
-  const ids = Object.keys(locs); const copPts = Object.values(COPPOS).map(x => ({ x, y: -R0 * 0.70 }));
-  for (let it = 0; it < 60; it++) {
-    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
-      const a = locs[ids[i]], b = locs[ids[j]]; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 0.01;
-      if (d < 72) { const push = (72 - d) / 2; const ux = dx / d || 1, uy = dy / d; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
-    }
-    ids.forEach(id => { const p = locs[id]; copPts.forEach(c => { const dx = p.x - c.x, dy = p.y - c.y, d = Math.hypot(dx, dy) || 0.01; if (d < 46) { p.x += dx / d * (46 - d) * 0.5; p.y += dy / d * (46 - d) * 0.5; } }); const d = Math.hypot(p.x, p.y); if (d > R0 * 0.52) { p.x *= R0 * 0.52 / d; p.y *= R0 * 0.52 / d; } });
+  const TL = E.TILE[tile]; const zones = {}, locs = {};
+  Object.entries(TL.shapes).forEach(([a, P]) => { zones[a] = rotP(polyCentroid(P), rot); });
+  TL.areas.forEach(a => { if (!zones[a]) zones[a] = { x: 0, y: 0 }; });
+  TL.locs.forEach(l => { locs[l.id] = rotP(l.pos, rot); });
+  // police: a row of 3 in the free part of the tile, away from the locations
+  let best = null, bs = -1;
+  for (let k = 0; k < 24; k++) for (const r of [0.6, 0.45]) {
+    const ang = rad(k * 15), cx = Math.cos(ang) * R0 * r, cy = Math.sin(ang) * R0 * r; const tx = -Math.sin(ang), ty = Math.cos(ang);
+    const pts = [-1, 0, 1].map(d => ({ x: cx + tx * d * 27, y: cy + ty * d * 27 }));
+    const inside = pts.every(p => Math.hypot(p.x, p.y) < R0 * 0.74);
+    if (!inside) continue;
+    const sc = Math.min(...pts.map(p => Math.min(...Object.values(locs).map(q => Math.hypot(p.x - q.x, p.y - q.y)), 999))) + (k === 18 ? 4 : 0);
+    if (sc > bs) { bs = sc; best = pts; }
   }
-  return (geoCache[key] = { w, zones, locs });
+  const cops = { county: best[0], federal: best[1], swat: best[2] };
+  return (geoCache[key] = { zones, locs, cops });
 }
 function locXY(S, locId) { const ci = E.locCell(S, locId); if (ci < 0) return null; const c = S.cells[ci]; const g = tileGeo(c.tile, c.rot); const o = cellXY(ci); const p = g.locs[locId]; return { x: o.x + p.x, y: o.y + p.y }; }
 // Drawn route: locations, tile-edge crossings (on the half-edge where the land type continues) and zone centres only where the land type changes inside a tile
@@ -92,10 +82,9 @@ function routePts(S, path) {
   const cross = (a, b) => {
     const i = cellOf(a), j = cellOf(b), A = a.split(':')[1], B = b.split(':')[1]; const c = S.cells[i], o = S.cells[j]; if (!c || !o) return null;
     for (let e = 0; e < 6; e++) {
-      if (E.nb(i, e) !== j) continue; const oe = (e + 3) % 6; const hs = [0, 1].filter(h => E.land(c.tile, c.rot, e, h) === A && E.land(o.tile, o.rot, oe, 1 - h) === B);
-      if (!hs.length) return null; const O = cellXY(i);
-      const pts = hs.map(h => { const [p0, p1] = halfEdge(e, h); return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }; });
-      const x = pts.reduce((t, p) => t + p.x, 0) / pts.length, y = pts.reduce((t, p) => t + p.y, 0) / pts.length; return { x: O.x + x, y: O.y + y };
+      if (E.nb(i, e) !== j) continue;
+      const ks = E.contacts(c.tile, c.rot, e, o.tile, o.rot).filter(k => k.a === A && k.b === B); if (!ks.length) return null;
+      const k = ks.reduce((m, x) => x.len > m.len ? x : m); const p = sidePt(e, (k.s0 + k.s1) / 2); const O = cellXY(i); return { x: O.x + p.x, y: O.y + p.y };
     }
     return null;
   };
@@ -120,7 +109,7 @@ function nodeXY(S, node) {
 }
 function posXY(S, pos) { return nodeXY(S, pos); }
 const COPPOS = { county: -30, federal: 0, swat: 30 };
-function copXY(ci, type) { const o = cellXY(ci); return { x: o.x + COPPOS[type], y: o.y - R0 * 0.70 }; }
+function copXY(ci, type) { const o = cellXY(ci); const S = G.VS || G.S; const c = S && S.cells[ci]; const p = c ? tileGeo(c.tile, c.rot).cops[type] : { x: COPPOS[type], y: -R0 * 0.7 }; return { x: o.x + p.x, y: o.y + p.y }; }
 
 // ---------------- map rendering ----------------
 function svgDefs() {
@@ -137,19 +126,19 @@ function tileSVG(tile, rot, cx, cy, opts = {}) {
   const g = tileGeo(tile, rot); const TL = E.TILE[tile];
   let s = `<g ${opts.id ? `id="${opts.id}"` : ''} class="${opts.cls || ''}" transform="translate(${cx},${cy})">`;
   s += `<clipPath id="clip-${opts.id || tile + rot}"><polygon points="${hexPts(0, 0, 0.985)}"/></clipPath><g clip-path="url(#clip-${opts.id || tile + rot})">`;
-  g.w.forEach(x => { s += `<polygon points="0,0 ${x.p0.x.toFixed(1)},${x.p0.y.toFixed(1)} ${x.p1.x.toFixed(1)},${x.p1.y.toFixed(1)}" fill="url(#p${x.T})" stroke="url(#p${x.T})" stroke-width="1.5"/>`; });
+  s += `<g transform="rotate(${rot * 60})">`;
+  Object.entries(TL.shapes).forEach(([a, P]) => { const T = E.landOf(a); s += `<polygon points="${P.map(q => q.join(',')).join(' ')}" fill="url(#p${T})" stroke="${LAND[T]}" stroke-width="1.2" stroke-linejoin="round"/>`; });
+  s += `</g>`;
   // soften center
   s += `<circle r="${R0 * 0.16}" fill="url(#vig)" opacity=".0"/>`;
   s += `</g><polygon points="${hexPts(0, 0)}" class="tile-edge"/>`;
   if (TL.helipad) VANG.forEach((a, k) => { const v = vtx(k, 0.8); s += `<g transform="translate(${v.x},${v.y})"><circle r="8" fill="#fff" stroke="${'#d23b33'}" stroke-width="2"/><text y="3.5" text-anchor="middle" font-size="10" font-weight="700" fill="#d23b33" font-family="Arial">H</text></g>`; });
   if (TL.ferry) {
-    // one F marker where each run of water meets the tile border, joined by a dashed ferry route
-    const runs = []; let start = g.w.findIndex((x, k) => x.T === 'W' && g.w[(k + 11) % 12].T !== 'W');
-    if (start >= 0) { for (let k = 0; k < 12; k++) { const i = (start + k) % 12; if (g.w[i].T !== 'W') continue; if (!runs.length || g.w[(i + 11) % 12].T !== 'W') runs.push([]); runs[runs.length - 1].push(g.w[i]); } }
-    const mid = (w) => ({ x: (w.p0.x + w.p1.x) / 2 * 0.86, y: (w.p0.y + w.p1.y) / 2 * 0.86 });
-    const pts = runs.length === 1 ? (runs[0].length >= 2 ? [mid(runs[0][0]), mid(runs[0][runs[0].length - 1])] : [mid(runs[0][0])]) : runs.map(r => { const a = r[Math.floor((r.length - 1) / 2)], b = r[Math.ceil((r.length - 1) / 2)]; const x = (a.p0.x + a.p1.x + b.p0.x + b.p1.x) / 4, y = (a.p0.y + a.p1.y + b.p0.y + b.p1.y) / 4; return { x: x * 0.86, y: y * 0.86 }; });
-    if (pts.length >= 2) s += `<path d="M${pts[0].x},${pts[0].y} Q0,0 ${pts[1].x},${pts[1].y}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" opacity=".7"/>`;
-    pts.forEach(p => { s += `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})"><circle r="10" fill="#fff" stroke="#2f72c6" stroke-width="2.5"/><text y="4.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2f72c6" font-family="Arial">F</text></g>`; });
+    // F markers on the water stretches of the border, joined by a dashed ferry route
+    const pts = []; for (let e = 0; e < 6; e++) E.segs(tile, rot, e).forEach(g => { if (g.a[0] === 'W' && g.s1 - g.s0 > 0.25) { const p = sidePt(e, (g.s0 + g.s1) / 2); pts.push({ x: p.x * 0.86, y: p.y * 0.86 }); } });
+    const use = pts.slice(0, 3);
+    for (let k = 1; k < use.length; k++) s += `<path d="M${use[k - 1].x.toFixed(1)},${use[k - 1].y.toFixed(1)} Q0,0 ${use[k].x.toFixed(1)},${use[k].y.toFixed(1)}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" opacity=".6"/>`;
+    use.forEach(p => { s += `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})"><circle r="10" fill="#fff" stroke="#2f72c6" stroke-width="2.5"/><text y="4.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2f72c6" font-family="Arial">F</text></g>`; });
   }
   s += '</g>';
   return s;
@@ -179,12 +168,12 @@ function locSVG(S, l, x, y, view) {
   const icn = (name, col, size = 26) => `<g transform="translate(${-size / 2},${-size / 2}) scale(${size / 24})" fill="${col}" color="${col}">${IC.raw(name)}</g>`;
   if (k.type === 'business') {
     const b = k.id; const grp = ['casino', 'bar', 'restaurant'].includes(b) ? '#9050c8' : '#2f62c0'; const closed = S.closed[b];
-    body = `<polygon class="ring" points="${hexPts(0, 0, 0.29)}" fill="${closed ? '#555' : '#fbf6ea'}" stroke="${grp}" stroke-width="4"/>` + icn(IC.BIZ[b] || 'info', closed ? '#ccc' : '#d23b33', 26);
+    body = `<polygon class="ring" points="${hexPts(0, 0, 0.33)}" fill="${closed ? '#555' : '#fbf6ea'}" stroke="${grp}" stroke-width="4"/>` + icn(IC.BIZ[b] || 'info', closed ? '#ccc' : '#d23b33', 26);
     if (closed) body += `<g transform="translate(12,-20)">${icn('lock', '#f2c629', 16)}</g>`;
     const cubes = S.bizCubes[b] || []; cubes.forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'safehouse') {
     const sh = k.id; const keys = S.shKeys[sh] || [];
-    body = `<polygon class="ring" points="${hexPts(0, 0, 0.29)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/><g transform="translate(0,${keys.length ? 5 : 0})">${icn('house', '#fff', keys.length ? 18 : 22)}</g><text x="${keys.length ? 11 : 13}" y="${keys.length ? 0 : -9}" font-family="Barlow Condensed,Arial" font-weight="700" font-size="16" fill="#fff">${sh.slice(2)}</text>`;
+    body = `<polygon class="ring" points="${hexPts(0, 0, 0.33)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/><g transform="translate(0,${keys.length ? 5 : 0})">${icn('house', '#fff', keys.length ? 18 : 22)}</g><text x="${keys.length ? 11 : 13}" y="${keys.length ? 0 : -9}" font-family="Barlow Condensed,Arial" font-weight="700" font-size="16" fill="#fff">${sh.slice(2)}</text>`;
     keys.forEach((c, i) => body += `<g transform="translate(${(i - (keys.length - 1) / 2) * 15},-14)"><circle r="7" fill="#fff"/><g transform="translate(-6,-6) scale(.5)" fill="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}" color="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}">${IC.raw('key')}</g></g>`);
     (S.shCubes[sh] || []).forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'exit') {
@@ -201,7 +190,7 @@ function locSVG(S, l, x, y, view) {
   else if (k.type === 'heliport') body = `<circle class="ring" r="${r}" fill="#cfe7f5" stroke="#2f72c6" stroke-width="4"/>` + icn('heli', '#1d3f6e', 26);
   else if (k.type === 'gang') {
     const gg = S.gangs[id]; const ctrl = gg && gg.ctrl != null;
-    body = `<path class="ring" d="M-28,-14 L-10,-28 L22,-26 L30,4 L18,28 L-18,26 L-30,8Z" fill="#d9c08a" stroke="${ctrl ? pcolor(gg.ctrl) : '#7a6230'}" stroke-width="${ctrl ? 6 : 3}"/>` + icn('skull', '#3a2a12', 24);
+    body = `<path class="ring" d="M-33,-16 L-12,-31 L25,-29 L34,5 L21,31 L-21,29 L-34,9Z" fill="#d9c08a" stroke="${ctrl ? pcolor(gg.ctrl) : '#7a6230'}" stroke-width="${ctrl ? 6 : 3}"/>` + icn('skull', '#3a2a12', 24);
     if (gg) for (let i = 0; i < gg.members; i++) body += `<g transform="translate(${-12 + i * 24},22)">${icn('biker', '#2a2a2a', 14)}</g>`;
   }
   let label = '';
@@ -249,7 +238,7 @@ function renderMap(view) {
     for (let i = 1; i < view.path.length; i++) {
       const a = view.path[i - 1], b = view.path[i]; let cost = 0;
       if (/^\^/.test(b)) cost = 1; else if (/^[~%]/.test(b)) cost = 0;
-      else if (isZ(a) && isZ(b)) cost = a.split(':')[1] !== b.split(':')[1] ? 1 : 0;
+      else if (isZ(a) && isZ(b)) cost = a.split(':')[1][0] !== b.split(':')[1][0] ? 1 : 0;
       else cost = 1;
       if (!cost) continue; mp += cost;
       // place the badge on the drawn route: between the route point of a and the next drawn point
@@ -496,7 +485,7 @@ function renderBar() {
 }
 function displayCops(tl) {
   const d = (G.S.display || []).find(x => x.tile === tl); if (!d) return '';
-  return E.PTYPES.filter(ty => d.police[ty]).map(ty => `<g transform="translate(${COPPOS[ty]},${-R0 * 0.7})"><circle r="19" fill="#000a"/><g transform="translate(-17,-18) scale(1.42)" fill="${COP[ty]}" stroke="#fff" stroke-width="1.2">${IC.raw('shield')}</g></g>`).join('');
+  return E.PTYPES.filter(ty => d.police[ty]).map(ty => { const q = tileGeo(tl, 0).cops[ty]; return `<g transform="translate(${q.x},${q.y})"><circle r="19" fill="#000a"/><g transform="translate(-17,-18) scale(1.42)" fill="${COP[ty]}" stroke="#fff" stroke-width="1.2">${IC.raw('shield')}</g></g>`; }).join('');
 }
 function placeBar(el, pd, head) {
   const S = G.S;
@@ -608,12 +597,13 @@ function routeSteps(S, path, pl) {
   const out = []; let mp = 0; let water = false;
   for (let i = 1; i < path.length; i++) {
     const a = path[i - 1], b = path[i];
-    if (isZ(b) && b.split(':')[1] === 'W') water = true;
+    if (isZ(b) && b.split(':')[1][0] === 'W') water = true;
     if (/^~/.test(b)) { out.push(`🚇 ${pt ? 'metro (+1)' : 'subway (+1)'}`); continue; }
     if (/^\^/.test(b)) { mp++; out.push(`<b>${mp}</b> ${ic('heli')} ${pt ? 'voo' : 'flight'}`); continue; }
     if (/^%/.test(b)) { out.push(`${ic('sewer')} ${pt ? 'esgotos' : 'sewer'}`); continue; }
-    if (!isZ(a) && isZ(b)) { mp++; out.push(`<b>${mp}</b> ${pt ? 'sair para' : 'leave to'} <span class="lt ${b.split(':')[1]}">${LN[b.split(':')[1]]}</span>`); }
-    else if (isZ(a) && isZ(b)) { const A = a.split(':')[1], B = b.split(':')[1]; if (A !== B) { mp++; out.push(`<b>${mp}</b> <span class="lt ${A}">${LN[A]}</span> → <span class="lt ${B}">${LN[B]}</span>`); } }
+    if (!isZ(a) && isZ(b)) { const B = b.split(':')[1][0]; mp++; out.push(`<b>${mp}</b> ${pt ? 'sair para' : 'leave to'} <span class="lt ${B}">${LN[B]}</span>`); }
+    else if (!isZ(a) && !isZ(b)) { mp++; out.push(`<b>${mp}</b> ${pt ? 'direto para o local ao lado' : 'straight to the touching location'}`); }
+    else if (isZ(a) && isZ(b)) { const A = a.split(':')[1][0], B = b.split(':')[1][0]; if (A !== B) { mp++; out.push(`<b>${mp}</b> <span class="lt ${A}">${LN[A]}</span> → <span class="lt ${B}">${LN[B]}</span>`); } }
     else if (isZ(a) && !isZ(b)) { mp++; out.push(`<b>${mp}</b> ${pt ? 'entrar' : 'enter'}`); }
   }
   if (water && pl.variant !== 'jetski') out.push(`⛴ ${pt ? 'ferry: há um F nesta massa de água' : 'ferry: this body of water has an F'}`);
@@ -722,6 +712,10 @@ function helpHTML(key) {
           break;
         default: body = topic('movement');
       }
+      const TLc = E.TILE[S.cells[c].tile]; const LNm = { I: 'Industrial', C: pt ? 'Comercial' : 'Commercial', R: pt ? 'Residencial' : 'Residential', W: pt ? 'Água' : 'Water' };
+      const lands = [...new Set(TLc.locs.find(l => l.id === id).adj.map(a => a[0]))].map(T => `<span class="lt ${T}">${LNm[T]}</span>`).join(' ');
+      const onEdge = TLc.sides.some(sd => sd.some(([a]) => a === '@' + id));
+      st = (st ? st + '<br>' : '') + (pt ? 'Liga a: ' : 'Touches: ') + lands + (onEdge ? (pt ? '<br>📐 Toca na margem da peça: liga diretamente ao terreno (ou local) da peça vizinha desse lado.' : '<br>📐 Reaches the tile edge: connects straight to the land (or location) of the neighbouring tile on that side.') : '');
       return `<b>${locName(id)}</b>${st ? st + '<br>' : ''}${cops.length ? '👮 ' + cops.join(', ') + '<br>' : ''}${body}`;
     }
     case 'cop': return `<b>${t('types.' + id)}</b>${pt ? 'Ao sair desta peça tens de o evitar ou levas um ferimento.' : 'When you leave this tile you must avoid it or take a wound.'}`;
