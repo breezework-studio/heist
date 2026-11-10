@@ -121,6 +121,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .pcard{background:var(--bg3);border-radius:10px;padding:10px;margin-bottom:10px;position:relative;border-left:5px solid var(--c,#888)}
 .pcard.cur{box-shadow:0 0 0 2px var(--c,#888)}
 .pcard h3{margin:0;font-family:var(--ff-ui);font-size:19px;display:flex;align-items:center;gap:8px}
+.expi{color:var(--muted);font-size:14px;width:12px}
+.exphint{font-size:12px;color:var(--muted);margin-top:6px;cursor:pointer;text-decoration:underline dotted}
 .pcard h3 .tagx{margin-left:auto;font-size:12px;color:var(--muted);font-weight:400}
 .stats{display:flex;gap:10px;margin:8px 0;flex-wrap:wrap}
 .stat{display:flex;align-items:center;gap:4px;background:#0003;border-radius:6px;padding:4px 8px;font-family:var(--ff-ui);font-size:17px}
@@ -1800,6 +1802,8 @@ en: {
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  showBoard: 'Show full player board', chip: { cards: 'Contact cards', equip: 'Equipment & Fixers', bags: 'Money bags (lockers & exits)', keys: 'Keys', cuffs: 'Handcuffs' },
+  chipHelp: { cards: 'How many Contact cards they hold (count for lockers, exit tiles and the end score).', equip: 'Equipment and Fixer tiles in their item spaces.', bags: 'Locker and Exit tiles — their values are secret.', keys: 'Keys taken from Safe Houses, by colour. Open lockers of that colour or a closed Business.', cuffs: 'Handcuffs block Contact spaces and cost a card at the end.' },
   stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
   lockerLegend: 'Back of each locker: open it if notoriety + Contact cards ≥ the number; you draw tiles = your cards ± the value shown. You need a key of that colour.',
   lockerHelp: (min, draw) => `Needs notoriety + Contact cards ≥ ${min} and a key of this colour. Draw ${draw === '+1' ? 'cards + 1' : draw === '-1' ? 'cards − 1' : 'as many as your cards'} tiles and keep one.`,
@@ -1852,6 +1856,8 @@ pt: {
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  showBoard: 'Ver o tabuleiro completo', chip: { cards: 'Cartas de Contacto', equip: 'Equipamento e Fixers', bags: 'Sacos de dinheiro (cacifos e saídas)', keys: 'Chaves', cuffs: 'Algemas' },
+  chipHelp: { cards: 'Quantas cartas de Contacto tem (contam para os cacifos, peças de saída e pontuação final).', equip: 'Equipamento e Fixers nos espaços de item.', bags: 'Peças de cacifo e de saída — os valores são secretos.', keys: 'Chaves tiradas das Casas Seguras, por cor. Abrem cacifos dessa cor ou um Business fechado.', cuffs: 'As algemas bloqueiam espaços de Contacto e custam uma carta no fim.' },
   stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
   lockerLegend: 'Verso de cada cacifo: abre-se se notoriedade + cartas de Contacto ≥ número; tiras peças = as tuas cartas ± o valor indicado. Precisas de uma chave dessa cor.',
   lockerHelp: (min, draw) => `Precisa de notoriedade + cartas de Contacto ≥ ${min} e de uma chave desta cor. Tiras ${draw === '+1' ? 'cartas + 1' : draw === '-1' ? 'cartas − 1' : 'tantas peças como cartas'} peças e guardas uma.`,
@@ -2439,9 +2445,10 @@ function slotHTML(p, x, i, kind, viewer) {
 }
 function playerCard(S, p, full, viewer) {
   const col = pcolor(p.id); const cur = S.pending && S.pending.pid === p.id;
-  const showMoney = full || !humanIds().length;
+  const showMoney = viewer === p.id || !humanIds().length;
+  const exp = viewer !== p.id && !p.npc;
   const cubes = (n, cls) => Array.from({ length: n }, () => `<span class="cube ${cls}"></span>`).join('');
-  let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3><span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
+  let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3 ${exp ? `data-exp="${p.id}" style="cursor:pointer"` : ''}>${exp ? `<span class="expi">${full ? '▾' : '▸'}</span>` : ''}<span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
   if (p.npc) {
     h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div></div>`;
     return h;
@@ -2449,7 +2456,9 @@ function playerCard(S, p, full, viewer) {
   h += `<div class="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">↻ ${p.income}</span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
   if (!full) {
     const cc = p.contacts.filter(c => c && c.kind === 'contact').length; const eq = p.items.filter(x => x && (x.kind === 'equip' || x.kind === 'fixer')).length; const bags = p.items.filter(x => x && (x.kind === 'locker' || x.kind === 'exit')).length;
-    h += `<div class="chips"><span class="chip">${ic('card')} ${cc}</span><span class="chip">${ic('helmet')} ${eq}</span><span class="chip">${ic('bag')} ${bags}</span><span class="chip">${ic('key')} ${Object.values(p.keys).filter(k => !k.used).length}</span><span class="chip">${ic('gas')} ${p.gas}</span><span class="chip">${ic('biker')} ${p.gangMembers.length}</span><span class="chip">${ic('disc')} ${p.discs}</span><span class="chip">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div></div>`;
+    const keyC = { green: '#3eae50', black: '#aaa', brown: '#c07a3a' };
+    const keys = ['sh1', 'sh2', 'sh3'].filter(k => p.keys[k]).map(k => ic('key', '', keyC[p.keys[k].color])).join('') || '0';
+    h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-exp="${p.id}">${t('showBoard')}</div></div>`;
     return h;
   }
   h += `<div class="rowlbl">${t('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
@@ -2477,11 +2486,12 @@ function renderSide() {
   const tabs = ['me', 'opponents', 'market', 'log'].map(k => `<button class="${G.tab === k ? 'on' : ''}" data-tab="${k}">${t(k)}</button>`).join('');
   let body = '';
   if (G.tab === 'me') { const p = S.players[viewer]; body = playerCard(S, p, true, viewer) + `<div style="font-size:12px;color:var(--muted);margin-top:4px">${t('tapHelp')}</div>`; }
-  else if (G.tab === 'opponents') body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, false, viewer)).join('');
+  else if (G.tab === 'opponents') { G.expanded = G.expanded || {}; body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, !!G.expanded[p.id], viewer)).join(''); }
   else if (G.tab === 'market') body = marketHTML(S);
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${body}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
+  $$('[data-exp]', el).forEach(b => b.onclick = () => { const id = +b.dataset.exp; G.expanded[id] = !G.expanded[id]; const sc = $('#sidepanel').scrollTop; renderSide(); $('#sidepanel').scrollTop = sc; });
   const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
 }
@@ -2746,7 +2756,7 @@ function helpHTML(key) {
     case 'bag': return `<b>${pt ? 'Saco de dinheiro' : 'Money bag'}</b>${pt ? 'Valor secreto, soma-se no fim.' : 'Secret value, added at the end.'}`;
     case 'part': return `<b>${t('parts')[+id]}</b>${+id >= 3 ? (pt ? 'Só joga quem gastar uma Ação Extra.' : 'Only players spending an Extra Action play.') : (pt ? 'Todos fazem uma ação.' : 'Everyone takes one action.')}`;
     case 'exit': { const c = S.patrolSpaces[+id]; return `<b>${nm('exit' + id)}</b>${c >= 2 ? (pt ? 'Fechada (2 patrulhas).' : 'Closed (2 patrols).') : (pt ? `Aberta — ${c} patrulha(s).` : `Open — ${c} patrol card(s).`)}`; }
-    case 'stat': { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
+    case 'stat': if (['cards', 'equip', 'bags', 'keys', 'cuffs'].includes(id)) return `<b>${t('chip.' + id)}</b>${t('chipHelp.' + id)}`; { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
     case 'plan': return `<b>${t('plan')}: ${nm(id)}</b>${pt ? 'Valor no fim do jogo, ou $ = rendimento imediato quando visitas.' : 'Value at the end of the game, or $ = instant income when you visit.'}`;
     case 'key': return `<b>${t('keys')}</b>${pt ? 'Abre um cacifo desta cor ou um Business fechado.' : 'Opens a locker of this colour or a closed Business.'}`;
     case 'locker': { const L = window.HEIST_DATA.lockers.lockers[id]; return `<b>${t('lockers')}: ${nm(id)}</b>${t('lockerHelp', L.min, L.draw)}`; }

@@ -245,9 +245,10 @@ function slotHTML(p, x, i, kind, viewer) {
 }
 function playerCard(S, p, full, viewer) {
   const col = pcolor(p.id); const cur = S.pending && S.pending.pid === p.id;
-  const showMoney = full || !humanIds().length;
+  const showMoney = viewer === p.id || !humanIds().length;
+  const exp = viewer !== p.id && !p.npc;
   const cubes = (n, cls) => Array.from({ length: n }, () => `<span class="cube ${cls}"></span>`).join('');
-  let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3><span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
+  let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3 ${exp ? `data-exp="${p.id}" style="cursor:pointer"` : ''}>${exp ? `<span class="expi">${full ? '▾' : '▸'}</span>` : ''}<span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
   if (p.npc) {
     h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div></div>`;
     return h;
@@ -255,7 +256,9 @@ function playerCard(S, p, full, viewer) {
   h += `<div class="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">↻ ${p.income}</span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
   if (!full) {
     const cc = p.contacts.filter(c => c && c.kind === 'contact').length; const eq = p.items.filter(x => x && (x.kind === 'equip' || x.kind === 'fixer')).length; const bags = p.items.filter(x => x && (x.kind === 'locker' || x.kind === 'exit')).length;
-    h += `<div class="chips"><span class="chip">${ic('card')} ${cc}</span><span class="chip">${ic('helmet')} ${eq}</span><span class="chip">${ic('bag')} ${bags}</span><span class="chip">${ic('key')} ${Object.values(p.keys).filter(k => !k.used).length}</span><span class="chip">${ic('gas')} ${p.gas}</span><span class="chip">${ic('biker')} ${p.gangMembers.length}</span><span class="chip">${ic('disc')} ${p.discs}</span><span class="chip">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div></div>`;
+    const keyC = { green: '#3eae50', black: '#aaa', brown: '#c07a3a' };
+    const keys = ['sh1', 'sh2', 'sh3'].filter(k => p.keys[k]).map(k => ic('key', '', keyC[p.keys[k].color])).join('') || '0';
+    h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-exp="${p.id}">${t('showBoard')}</div></div>`;
     return h;
   }
   h += `<div class="rowlbl">${t('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
@@ -283,11 +286,12 @@ function renderSide() {
   const tabs = ['me', 'opponents', 'market', 'log'].map(k => `<button class="${G.tab === k ? 'on' : ''}" data-tab="${k}">${t(k)}</button>`).join('');
   let body = '';
   if (G.tab === 'me') { const p = S.players[viewer]; body = playerCard(S, p, true, viewer) + `<div style="font-size:12px;color:var(--muted);margin-top:4px">${t('tapHelp')}</div>`; }
-  else if (G.tab === 'opponents') body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, false, viewer)).join('');
+  else if (G.tab === 'opponents') { G.expanded = G.expanded || {}; body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, !!G.expanded[p.id], viewer)).join(''); }
   else if (G.tab === 'market') body = marketHTML(S);
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${body}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
+  $$('[data-exp]', el).forEach(b => b.onclick = () => { const id = +b.dataset.exp; G.expanded[id] = !G.expanded[id]; const sc = $('#sidepanel').scrollTop; renderSide(); $('#sidepanel').scrollTop = sc; });
   const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
 }
@@ -552,7 +556,7 @@ function helpHTML(key) {
     case 'bag': return `<b>${pt ? 'Saco de dinheiro' : 'Money bag'}</b>${pt ? 'Valor secreto, soma-se no fim.' : 'Secret value, added at the end.'}`;
     case 'part': return `<b>${t('parts')[+id]}</b>${+id >= 3 ? (pt ? 'Só joga quem gastar uma Ação Extra.' : 'Only players spending an Extra Action play.') : (pt ? 'Todos fazem uma ação.' : 'Everyone takes one action.')}`;
     case 'exit': { const c = S.patrolSpaces[+id]; return `<b>${nm('exit' + id)}</b>${c >= 2 ? (pt ? 'Fechada (2 patrulhas).' : 'Closed (2 patrols).') : (pt ? `Aberta — ${c} patrulha(s).` : `Open — ${c} patrol card(s).`)}`; }
-    case 'stat': { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
+    case 'stat': if (['cards', 'equip', 'bags', 'keys', 'cuffs'].includes(id)) return `<b>${t('chip.' + id)}</b>${t('chipHelp.' + id)}`; { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
     case 'plan': return `<b>${t('plan')}: ${nm(id)}</b>${pt ? 'Valor no fim do jogo, ou $ = rendimento imediato quando visitas.' : 'Value at the end of the game, or $ = instant income when you visit.'}`;
     case 'key': return `<b>${t('keys')}</b>${pt ? 'Abre um cacifo desta cor ou um Business fechado.' : 'Opens a locker of this colour or a closed Business.'}`;
     case 'locker': { const L = window.HEIST_DATA.lockers.lockers[id]; return `<b>${t('lockers')}: ${nm(id)}</b>${t('lockerHelp', L.min, L.draw)}`; }
