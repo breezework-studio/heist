@@ -104,6 +104,13 @@ E.newGame = function (opts) {
     gas: 0, gangMembers: [], ctrlFree: 2, firstAid: true, rest: true, wounds: 0, discs: 0,
     keys: {}, visited: {}, bonus: {}, escaped: false, arrested: false, escapeOrder: 0, stash: []
   }));
+  s.npcs = [];
+  const used = new Set(s.players.map(p => p.color)); const freeCol = () => { const c = COLORS.find(x => !used.has(x)); used.add(c); return c; };
+  const mkNpc = (id, kind, name) => ({ id, npc: kind, name, color: freeCol(), loc: 'hospital', notor: 1, red: 0, blue: 0, discs: 0, visited: {}, bonus: {}, escaped: false, arrested: false, wounds: 0, contacts: [], stacks: [], debt: 0, escapeOrder: 0 });
+  if (n <= 2) { const sd = mkNpc(100, 'sandra', 'Sandra'); sd.deck = shuffle(s, D.inspector.cards.map((c, i) => i)); s.npcs.push(sd); }
+  if (n === 1) { const co = mkNpc(101, 'costa', 'Lt. Costa'); co.deck = shuffle(s, D.lieutenant.cards.map((c, i) => i)); co.plan = plans[1]; co.easy = !!opts.easyCosta; s.npcs.push(co); }
+  if (n === 2) order.push(100);
+  if (n === 1) order.push(101, 100);
   s.order = order; // turn order (pids)
   s.day = 1; s.part = 0; s.escapes = 0;
   s.queue = [{ k: 'dayStart' }];
@@ -115,7 +122,11 @@ E.newGame = function (opts) {
 
 // ---------- helpers ----------
 function ev(s, e) { s.events.push(e); s.log.push(e); if (s.log.length > 4000) s.log.splice(0, 500); }
-function P(s, i) { return s.players[i]; }
+function P(s, i) { return i >= 100 ? s.npcs.find(x => x.id === i) : s.players[i]; }
+E.P = P;
+function everyone(s) { return s.players.concat(s.npcs); }
+function posCell(s, pos) { if (pos == null) return -1; return pos.indexOf(':') >= 0 ? +pos.split(':')[0] : locCell(s, pos); }
+E.posCell = posCell;
 function active(s) { return s.players.filter(p => !p.escaped && !p.arrested); }
 function drawPolice(s, pol, k) {
   for (let i = 0; i < k; i++) {
@@ -147,7 +158,7 @@ function locKind(s, locId) {
 E.locKind = locKind;
 function contactCount(p) { let n = 0; p.contacts.forEach((c, i) => { if (c && c.kind === 'contact' && i < 5 - p.cuffs) n++; }); return n; }
 E.contactCount = contactCount;
-function othersAt(s, pid, loc) { return s.players.filter(q => q.id !== pid && !q.escaped && !q.arrested && q.loc === loc).length; }
+function othersAt(s, pid, loc) { return everyone(s).filter(q => q.id !== pid && !q.escaped && !q.arrested && q.loc === loc).length; }
 function gain(s, p, k, why) { // notoriety cubes
   for (let i = 0; i < k; i++) { if (p.red + p.blue < 4) p.red++; else if (p.blue > 0) p.blue--; }
   if (k) ev(s, { t: 'notor', p: p.id, d: +k, why });
@@ -419,7 +430,7 @@ function task(s, t) {
     case 'city': {
       if (t.placed === 0) ev(s, { t: 'phase', ph: 'city' });
       if (!s.display.length) { if (s.day < 3 || true) refillDisplay(s); break; }
-      const alive = s.order.filter(pid => !P(s, pid).escaped && !P(s, pid).arrested);
+      const alive = s.order.filter(pid => pid < 100 && !P(s, pid).escaped && !P(s, pid).arrested);
       const pid = alive[t.idx % alive.length];
       if (s.n === 5 && t.idx % alive.length === 4 && false) { }
       ask(s, pid, 'place', { display: s.display.map(d => d.tile) }, { k: 'city', placed: t.placed, idx: t.idx });
@@ -441,6 +452,7 @@ function task(s, t) {
     }
     case 'turn': {
       const p = P(s, t.pid); if (p.escaped || p.arrested) break;
+      if (p.npc) { npcTurn(s, p, t.part); break; }
       if (s.day === 3 && s.part === 4 && false) { }
       if (t.part >= 3) { // night / dawn: optional with disc
         if (p.discs < 1) break;
@@ -471,6 +483,7 @@ function task(s, t) {
       const p = P(s, t.pid);
       const list = [];
       t.cells.forEach(c => { const cl = s.cells[c]; if (cl) PTYPES.forEach(ty => { if (cl.police[ty] && !t.done.some(d => d.cell === c && d.type === ty)) list.push({ cell: c, type: ty }); }); });
+      s.npcs.forEach(n => { if (n.escaped) return; const c = posCell(s, n.loc); if (t.cells.includes(c) && !t.done.some(d => d.cell === c && d.type === n.npc)) list.push({ cell: c, type: n.npc }); });
       if (!list.length) { ev(s, { t: 'avoidDone', p: p.id, wounds: 0 }); if (t.after) push(s, t.after); break; }
       const opts = avoidOptions(s, p, list, t);
       ask(s, p.id, 'avoid', { officers: list, options: opts }, { k: 'avoid', pid: p.id, cells: t.cells, done: t.done, after: t.after });
@@ -515,7 +528,7 @@ function task(s, t) {
       const mover = P(s, t.mover); const target = P(s, t.target);
       const opts = policeMoveOptions(s, target);
       if (!opts.length) break;
-      ask(s, mover.id, 'policeMove', { target: target.id, opts }, { k: 'policeMove', mover: mover.id, target: target.id });
+      ask(s, mover.id, 'policeMove', { target: target.id, opts, onBehalf: t.onBehalf }, { k: 'policeMove', mover: mover.id, target: target.id });
       break;
     }
     case 'dayEnd': {
@@ -566,8 +579,13 @@ function resolve(s, pd, a, c) {
     case 'avoid': {
       if (a.done) {
         const left = []; c.cells.forEach(ci => { const cl = s.cells[ci]; if (cl) PTYPES.forEach(ty => { if (cl.police[ty] && !c.done.some(d => d.cell === ci && d.type === ty)) left.push({ cell: ci, type: ty }); }); });
-        left.forEach(o => wound(s, p, 'police:' + o.type));
-        ev(s, { t: 'avoidDone', p: p.id, wounds: left.length });
+        s.npcs.forEach(n => { if (n.escaped) return; const ci = posCell(s, n.loc); if (c.cells.includes(ci) && !c.done.some(d => d.cell === ci && d.type === n.npc)) left.push({ cell: ci, type: n.npc }); });
+        let wn = 0;
+        left.forEach(o => {
+          if (o.type === 'costa') { if (p.money >= 3) { pay(s, p, 3, 'bribe'); ev(s, { t: 'bribe', p: p.id }); } else { wound(s, p, 'costa'); wound(s, p, 'costa'); wn += 2; } }
+          else { wound(s, p, 'police:' + o.type); wn++; }
+        });
+        ev(s, { t: 'avoidDone', p: p.id, wounds: wn });
         if (c.after) push(s, c.after);
         break;
       }
@@ -582,7 +600,7 @@ function resolve(s, pd, a, c) {
       if (a.opt === 'B') { const e = emptyContact(p); if (e < 0) throw new Error('no space'); p.contacts[e] = { kind: 'contact', card, used: false }; ev(s, { t: 'contact', p: p.id, card, slot: e }); }
       else if (a.opt === 'C') { const old = p.contacts[a.replace]; if (!old || old.kind !== 'contact') throw new Error('bad replace'); p.contacts[a.replace] = { kind: 'contact', card, used: false }; ev(s, { t: 'contact', p: p.id, card, slot: a.replace, replaced: old.card }); gain(s, p, 1, 'replace'); }
       else ev(s, { t: 'contactDiscard', p: p.id, card });
-      if (s.deck.length) { const nc = s.deck.shift(); s.cdisplay.push(nc); ev(s, { t: 'cdraw', card: nc }); }
+      if (s.deck.length) { const nc = s.deck.shift(); if (s.npcs.length) s.cdisplay.unshift(nc); else s.cdisplay.push(nc); ev(s, { t: 'cdraw', card: nc }); }
       break;
     }
     case 'unlock': doUnlock(s, p, a); break;
@@ -747,7 +765,7 @@ function bestPoliceDump(s, p, type, from, exclude) {
   // put officer on a tile far from me, near the leader among others
   const me = locCell(s, p.loc); let best = -1, bv = -1e9;
   s.cells.forEach((cl, i) => {
-    if (!cl || cl.police[type] || i === hospitalCell(s) || i === from || (exclude && exclude.includes(i))) return;
+    if (!cl || (type && cl.police[type]) || i === hospitalCell(s) || i === from || (exclude && exclude.includes(i))) return;
     let v = hexDist(i, me) * 2;
     s.players.forEach(q => { if (q.id !== p.id && !q.escaped && !q.arrested) { const d = hexDist(i, locCell(s, q.loc)); if (d <= 1) v += 1.5; } });
     if (v > bv) { bv = v; best = i; }
@@ -759,31 +777,34 @@ E.bestPoliceDump = bestPoliceDump;
 // ---------- avoid ----------
 function avoidOptions(s, p, list, t) {
   const o = [];
-  const cellsWith = (types) => [...new Set(list.filter(x => types.includes(x.type)).map(x => x.cell))];
+  const cellsWith = (types) => [...new Set(list.filter(x => types.includes(x.type) || (x.type === 'sandra')).map(x => x.cell))];
+  const tileCells = [...new Set(list.map(x => x.cell))];
+  const matchT = (off, types) => types.includes(off.type) || off.type === 'sandra';
   p.items.forEach((x, i) => {
     if (!x || x.kind !== 'equip' || x.used) return; const Q = EQUIP[x.id];
     const types = Q.avoids || Q.avoids_one_of;
-    list.forEach(off => { if (types.includes(off.type)) o.push({ src: 'equip', i, scope: 'one', cell: off.cell, type: off.type, cost: 0 }); });
+    list.forEach(off => { if (matchT(off, types)) o.push({ src: 'equip', i, scope: 'one', cell: off.cell, type: off.type, cost: 0 }); });
   });
   p.contacts.forEach((c, i) => {
     if (!c || c.kind !== 'contact' || c.used || i >= 5 - p.cuffs) return; const C = CONTACT[c.card]; if (p.money < C.cost) return;
     if (C.effect === 'avoid_types') cellsWith(C.types).forEach(cell => o.push({ src: 'contact', i, scope: 'types', types: C.types, cell, cost: C.cost }));
-    if (C.effect === 'avoid_all_tile') cellsWith(PTYPES).forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
-    if (C.effect === 'avoid_one_any') list.forEach(off => o.push({ src: 'contact', i, scope: 'one', cell: off.cell, type: off.type, cost: C.cost }));
-    if (C.effect === 'move_police' || C.effect === 'remove_police') list.filter(off => off.type === C.type).forEach(off => o.push({ src: 'contact', i, scope: C.effect === 'move_police' ? 'move' : 'remove', cell: off.cell, type: off.type, cost: C.cost }));
-    if (C.effect === 'gang_ability') cellsWith(PTYPES).forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
+    if (C.effect === 'avoid_all_tile') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
+    if (C.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'one', cell: off.cell, type: off.type, cost: C.cost }));
+    if (C.effect === 'move_police') list.filter(off => off.type === C.type || off.type === 'sandra' || off.type === 'costa').forEach(off => o.push({ src: 'contact', i, scope: 'move', cell: off.cell, type: off.type, cost: C.cost }));
+    if (C.effect === 'remove_police') list.filter(off => off.type === C.type).forEach(off => o.push({ src: 'contact', i, scope: 'remove', cell: off.cell, type: off.type, cost: C.cost }));
+    if (C.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'contact', i, scope: 'tile', cell, cost: C.cost }));
   });
   p.items.forEach((x, i) => {
     if (!x || x.kind !== 'fixer' || x.used) return; const F = FIXER[x.id]; if (p.money < F.cost) return;
-    if (F.effect === 'avoid_one_any') list.forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: F.cost }));
-    if (F.effect === 'gang_ability') cellsWith(PTYPES).forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: F.cost }));
+    if (F.effect === 'avoid_one_any') list.filter(off => off.type !== 'costa').forEach(off => o.push({ src: 'fixer', i, scope: 'one', cell: off.cell, type: off.type, cost: F.cost }));
+    if (F.effect === 'gang_ability') tileCells.forEach(cell => o.push({ src: 'fixer', i, scope: 'tile', cell, cost: F.cost }));
   });
   p.unlocked.forEach((u, i) => {
     if (!u || u.used) return; const A = ASSET[u.id]; const cost = UNLOCK_COSTS[i]; if (p.money < cost) return;
-    if (A.effect === 'avoid_all_tile') cellsWith(PTYPES).forEach(cell => o.push({ src: 'asset', i, scope: 'tile', cell, cost }));
-    if (A.effect === 'move_police') list.filter(off => off.type === A.type).forEach(off => o.push({ src: 'asset', i, scope: 'move', cell: off.cell, type: off.type, cost }));
+    if (A.effect === 'avoid_all_tile') tileCells.forEach(cell => o.push({ src: 'asset', i, scope: 'tile', cell, cost }));
+    if (A.effect === 'move_police') list.filter(off => off.type === A.type || off.type === 'sandra' || off.type === 'costa').forEach(off => o.push({ src: 'asset', i, scope: 'move', cell: off.cell, type: off.type, cost }));
   });
-  if (p.gangMembers.length) cellsWith(PTYPES).forEach(cell => o.push({ src: 'gang', scope: 'tile', cell, cost: 0 }));
+  if (p.gangMembers.length) tileCells.forEach(cell => o.push({ src: 'gang', scope: 'tile', cell, cost: 0 }));
   return o;
 }
 function applyAvoid(s, p, a, done) {
@@ -795,9 +816,14 @@ function applyAvoid(s, p, a, done) {
   else if (o.src === 'asset') { const u = p.unlocked[o.i]; u.used = true; pay(s, p, UNLOCK_COSTS[o.i], 'asset'); ev(s, { t: 'useAsset', p: p.id, id: u.id, slot: o.i }); }
   else if (o.src === 'gang') useGangMember(s, p);
   const cl = s.cells[o.cell];
+  const npcHere = s.npcs.filter(n => !n.escaped && posCell(s, n.loc) === o.cell);
   if (o.scope === 'one') mark(o.cell, o.type);
-  else if (o.scope === 'types') o.types.forEach(t => { if (cl.police[t]) mark(o.cell, t); });
-  else if (o.scope === 'tile') PTYPES.forEach(t => { if (cl.police[t]) mark(o.cell, t); });
+  else if (o.scope === 'types') { o.types.forEach(t => { if (cl.police[t]) mark(o.cell, t); }); npcHere.filter(n => n.npc === 'sandra').forEach(n => mark(o.cell, 'sandra')); }
+  else if (o.scope === 'tile') { PTYPES.forEach(t => { if (cl.police[t]) mark(o.cell, t); }); npcHere.forEach(n => mark(o.cell, n.npc)); }
+  else if (o.scope === 'move' && (o.type === 'sandra' || o.type === 'costa')) {
+    const n = npcHere.find(x => x.npc === o.type); const to = bestPoliceDump(s, p, null, o.cell, a.exclude);
+    if (n && to >= 0) { const T = TILE[s.cells[to].tile]; const z = to + ':' + T.edges[0]; const from = n.loc; n.loc = z; ev(s, { t: 'npcMoved', p: p.id, npc: n.id, from, to: z }); mark(o.cell, o.type); }
+  }
   else if (o.scope === 'move' || o.scope === 'remove') {
     cl.police[o.type] = false;
     if (o.scope === 'remove') ev(s, { t: 'policeRemove', p: p.id, from: o.cell, type: o.type });
@@ -992,22 +1018,30 @@ function adjustNotoriety(s, p) {
   const before = p.notor; let after = before + net; let excess = 0;
   if (after < 1) after = 1; if (after > s.cfg.max) { excess = after - s.cfg.max; after = s.cfg.max; }
   p.notor = after; ev(s, { t: 'level', p: p.id, from: before, to: after });
-  for (let i = 0; i < excess; i++) wound(s, p, 'notorietyMax');
+  if (!p.npc) for (let i = 0; i < excess; i++) wound(s, p, 'notorietyMax');
   if (after > before) {
     const crossed = s.cfg.th.filter(x => x > before && x <= after);
     const tasks = [];
+    const humans = s.players.filter(q => !q.arrested && !q.escaped);
     crossed.forEach(th => {
       const idx = s.cfg.th.indexOf(th);
       ev(s, { t: 'threshold', p: p.id, n: idx + 1 });
-      s.order.forEach(qid => { const q = P(s, qid); if (q.id !== p.id && !q.arrested && !q.escaped && q.notor < p.notor) tasks.push({ k: 'policeMove', mover: q.id, target: p.id }); });
-      const un = idx === 1 ? 2 : 1; for (let u = 0; u < un; u++) tasks.push({ k: 'unlock', pid: p.id });
-      if (idx === 2) { if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: 'threshold' }); } }
+      s.order.forEach(qid => {
+        const q = P(s, qid); if (q.id === p.id || q.arrested || q.escaped || q.notor >= p.notor) return;
+        let mover = q.id;
+        if (q.npc) { const other = humans.find(h => h.id !== p.id); mover = other ? other.id : (p.npc ? null : p.id); }
+        if (mover != null) tasks.push({ k: 'policeMove', mover, target: p.id, onBehalf: q.npc ? q.id : null });
+      });
+      if (!p.npc) {
+        const un = idx === 1 ? 2 : 1; for (let u = 0; u < un; u++) tasks.push({ k: 'unlock', pid: p.id });
+        if (idx === 2) { if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: 'threshold' }); } }
+      }
     });
     push(s, ...tasks);
   }
 }
 function policeMoveOptions(s, target) {
-  const tc = target.escaped ? target.escapeCell : locCell(s, target.loc); const hosp = hospitalCell(s); const o = [];
+  const tc = target.escaped ? target.escapeCell : posCell(s, target.loc); const hosp = hospitalCell(s); const o = [];
   s.cells.forEach((cl, i) => {
     if (!cl) return; PTYPES.forEach(ty => {
       if (!cl.police[ty]) return; const d0 = hexDist(i, tc);
@@ -1017,6 +1051,115 @@ function policeMoveOptions(s, target) {
   return o;
 }
 E.policeMoveOptions = policeMoveOptions;
+
+
+// ---------- NPCs: Inspector Sandra (2p & solo) and Lt. Costa (solo) ----------
+function cardLoc(s, key) {
+  if (/^exit\d$/.test(key) || /^store[A-D]$/.test(key)) return mapHasLoc(s, key) ? key : null;
+  for (const [slot, id] of Object.entries(s.bizSlots)) if (id === key) return mapHasLoc(s, slot) ? slot : null;
+  for (const [slot, id] of Object.entries(s.shSlots)) if (id === key) return mapHasLoc(s, slot) ? slot : null;
+  return null;
+}
+function npcLastTurn(s, n, part) { return s.day === 3 && (part === 4 || (part === 2 && n.discs < 1) || (part === 3 && n.discs < 2)); }
+function npcTurn(s, n, part) {
+  if (part >= 3) { if (n.discs < 1) return; n.discs--; ev(s, { t: 'disc', p: n.id }); }
+  ev(s, { t: 'turn', p: n.id });
+  if (n.npc === 'costa' && s.escapes > 0) { n.debt += 1; ev(s, { t: 'money', p: n.id, d: -1, why: 'lateFee' }); }
+  const cards = n.npc === 'sandra' ? D.inspector.cards : D.lieutenant.cards;
+  const human = s.players.find(q => !q.escaped && !q.arrested);
+  const hc = human ? locCell(s, human.loc) : -1;
+  const tried = []; let pick = null, locId = null;
+  while (n.deck.length) {
+    const ci = n.deck.shift(); const card = cards[ci]; const lid = cardLoc(s, card.loc);
+    const isExit = /^exit/.test(card.loc); const open = lid && isOpenExit(s, lid);
+    if (n.npc === 'costa' && /^(casino|bar|restaurant|gym|nightclub|gallery)$/.test(card.loc) && s.closed[card.loc]) { ev(s, { t: 'npcDiscard', p: n.id, loc: card.loc }); continue; }
+    let ok = !!lid;
+    if (ok && isExit && open && s.day < 3) ok = false;
+    if (ok && isExit && !open && n.npc === 'costa' && false) ok = false;
+    if (ok && n.npc === 'costa' && hc >= 0 && hexDist(locCell(s, lid), hc) > 1) ok = false;
+    if (ok && lid === n.loc) ok = false;
+    if (!ok) { tried.push(ci); continue; }
+    pick = card; locId = lid; break;
+  }
+  n.deck.push(...tried); shuffle(s, n.deck);
+  if (!pick) {
+    ev(s, { t: 'npcStay', p: n.id });
+    if (n.npc === 'costa' && npcLastTurn(s, n, part)) npcEscape(s, n);
+    return;
+  }
+  const from = n.loc; n.loc = locId;
+  ev(s, { t: 'move', p: n.id, from, to: locId, path: [from, '^' + locId], mp: 0, npc: true, card: pick.loc });
+  const isExit = /^exit/.test(pick.loc);
+  if (isExit && s.day === 3 && isOpenExit(s, locId)) { if (n.npc === 'costa') npcEscape(s, n); else ev(s, { t: 'npcWait', p: n.id }); return; }
+  // visit
+  const crowd = everyone(s).filter(q => q.id !== n.id && !q.escaped && !q.arrested && q.loc === locId).length;
+  if (crowd) gain(s, n, crowd, 'crowd');
+  if (pick.notoriety > 0) gain(s, n, 1, 'card'); else lose(s, n, 1, 'card');
+  const k = locKind(s, locId);
+  const gotDisc = (why) => { if (s.discs > 0) { s.discs--; n.discs++; ev(s, { t: 'discGain', p: n.id, why }); } };
+  const npcContacts = (cnt) => {
+    for (let i = 0; i < cnt && s.cdisplay.length; i++) {
+      const card = s.cdisplay.pop();
+      if (n.npc === 'costa') { n.contacts.push(card); ev(s, { t: 'npcContact', p: n.id, card }); }
+      else { ev(s, { t: 'contactDiscard', p: n.id, card }); if (CONTACT[card].effect === 'extra_action') gotDisc('contact'); }
+    }
+    while (s.cdisplay.length < 7 && s.deck.length) { const nc = s.deck.shift(); s.cdisplay.unshift(nc); ev(s, { t: 'cdraw', card: nc }); }
+  };
+  if (k.type === 'business') {
+    n.visited[k.id] = true; s.bizCubes[k.id].push({ pid: n.id, income: false }); ev(s, { t: 'cube', p: n.id, at: k.id });
+    if (s.bizCubes[k.id].length >= s.cfg.closeAt && !s.closed[k.id]) { s.closed[k.id] = true; ev(s, { t: 'closed', biz: k.id }); }
+    npcContacts(n.npc === 'costa' ? 1 : 2);
+    for (const g in GROUPS) if (!n.bonus[g] && GROUPS[g].every(b => n.visited[b])) { n.bonus[g] = true; gotDisc('group'); }
+  } else if (k.type === 'safehouse') {
+    n.visited[k.id] = true; s.shCubes[k.id].push({ pid: n.id, income: false }); ev(s, { t: 'cube', p: n.id, at: k.id });
+    if (s.fixers.length) { const f = s.fixers.splice(Math.floor(rnd(s) * s.fixers.length), 1)[0]; ev(s, { t: 'fixerDiscard', p: n.id, id: f }); }
+    const keys = s.shKeys[k.id]; if (keys.length) { const kc = keys.splice(Math.floor(rnd(s) * keys.length), 1)[0]; ev(s, { t: 'keyDiscard', p: n.id, sh: k.id, color: kc }); }
+    if (!n.bonus.sh && ['sh1', 'sh2', 'sh3'].every(x => n.visited[x])) { n.bonus.sh = true; gotDisc('sh'); }
+  } else if (k.type === 'store') {
+    const col = { storeA: 'brown', storeB: 'black', storeC: 'green', storeD: 'all' }[locId];
+    if (n.npc === 'sandra') {
+      npcContacts(2);
+      (col === 'all' ? ['green', 'black', 'brown'] : [col]).forEach(c => { if (s.lockers[c].length) { s.lockers[c].splice(Math.floor(rnd(s) * s.lockers[c].length), 1); ev(s, { t: 'lockerDiscard', p: n.id, color: c }); } });
+    } else {
+      const st = col === 'all' ? { d: true, tiles: ['green', 'black', 'brown'].filter(c => s.lockers[c].length).map(c => ({ kind: 'locker', color: c, val: s.lockers[c].shift() })) }
+        : { tiles: s.lockers[col].splice(0, n.easy ? 1 : 2).map(v => ({ kind: 'locker', color: col, val: v })) };
+      costaStack(s, n, st);
+    }
+  } else if (k.type === 'exit') {
+    const si = s.exitOn[k.n];
+    if (si != null) {
+      if (n.npc === 'sandra') { const stck = s.exitStacks[si]; if (stck.length) { stck.splice(Math.floor(rnd(s) * stck.length), 1); ev(s, { t: 'exitDiscard', p: n.id }); } npcContacts(2); }
+      else costaStack(s, n, { tiles: s.exitStacks[si].splice(0, n.easy ? 1 : 2).map(v => ({ kind: 'exit', val: v })) });
+    }
+  }
+  if (n.npc === 'costa' && npcLastTurn(s, n, part) && !n.escaped) npcEscape(s, n);
+}
+function costaStack(s, n, st) {
+  if (!st.tiles.length) return;
+  if (n.stacks.length >= 5) { const r = Math.floor(rnd(s) * 5); n.stacks.splice(r, 1); gain(s, n, 1, 'replace'); }
+  n.stacks.push(st); ev(s, { t: 'npcStack', p: n.id, n: st.tiles.length });
+}
+function npcEscape(s, n) {
+  const ex = E.locsOnMap(s).find(l => l.type === 'exit' && isOpenExit(s, l.id));
+  if (ex) { const from = n.loc; n.loc = ex.id; ev(s, { t: 'move', p: n.id, from, to: ex.id, path: [from, '^' + ex.id], mp: 0, npc: true }); }
+  const costs = D.exitCost['2']; const cost = costs[s.escapes] ?? 10;
+  n.debt += cost; s.escapes++; n.escaped = true; n.escapeOrder = s.escapes; n.escapeCell = ex ? ex.cell : -1;
+  ev(s, { t: 'escape', p: n.id, order: s.escapes, cost });
+}
+const TOP_LOCKER = { green: 90, black: 100, brown: 110 };
+function costaScore(s, n) {
+  const plan = D.escapePlans.cards[n.plan];
+  const val = (k) => { const v = plan[PLAN_KEYS.indexOf(k)]; return v === '$' ? 0 : v; };
+  const g1 = GROUPS.purple.filter(b => n.visited[b]).reduce((a, b) => a + val(b), 0);
+  const g2 = GROUPS.blue.filter(b => n.visited[b]).reduce((a, b) => a + val(b), 0);
+  const sh = ['sh1', 'sh2', 'sh3'].filter(b => n.visited[b]).reduce((a, b) => a + val(b), 0);
+  const tv = (t) => t.val || (t.kind === 'exit' ? 70 : TOP_LOCKER[t.color]);
+  const bags = n.stacks.reduce((a, st) => a + (st.d ? Math.max(0, ...st.tiles.map(tv)) : st.tiles.reduce((x, t) => x + tv(t), 0)), 0);
+  const contacts = CONTACT_SCORE[Math.min(5, n.contacts.length)];
+  const notor = -s.cfg.pen[n.notor];
+  const total = g1 + g2 + sh + contacts + bags + notor - n.debt;
+  return { pid: n.id, npc: 'costa', escaped: true, g1, g2, sh, cash: -n.debt, assets: 0, contacts, bags, notor, wounds: 0, total };
+}
 
 // ---------- scoring ----------
 E.score = function (s) {
@@ -1034,11 +1177,11 @@ E.score = function (s) {
     const wounds = -20 * p.wounds;
     const total = g1 + g2 + sh + p.money + assets + contacts + bags + notor + wounds;
     return { pid: p.id, escaped: p.escaped, g1, g2, sh, cash: p.money, assets, contacts, bags, notor, wounds, total: p.escaped ? total : 0 };
-  });
+  }).concat(s.npcs.filter(n => n.npc === 'costa').map(n => costaScore(s, n)));
 };
 E.winners = function (s) {
   const sc = s.score || E.score(s); const el = sc.filter(x => x.escaped); if (!el.length) return [];
-  el.sort((a, b) => b.total - a.total || b.cash - a.cash || P(s, a.pid).notor - P(s, b.pid).notor || P(s, a.pid).wounds - P(s, b.pid).wounds);
+  el.sort((a, b) => b.total - a.total || b.cash - a.cash || P(s, a.pid).notor - P(s, b.pid).notor || (P(s, a.pid).wounds || 0) - (P(s, b.pid).wounds || 0));
   const top = el[0]; return el.filter(x => x.total === top.total && x.cash === top.cash && P(s, x.pid).notor === P(s, top.pid).notor && P(s, x.pid).wounds === P(s, top.pid).wounds).map(x => x.pid);
 };
 

@@ -12,7 +12,7 @@ function check(s) {
   const h = E.locCell(s, 'hospital'); if (h >= 0 && E.PTYPES.some(t => s.cells[h].police[t])) throw new Error('police on hospital');
 }
 for (let g = 0; g < N; g++) {
-  const n = fixedN || (3 + (g % 3));
+  const n = fixedN || (1 + (g % 5));
   const s = E.newGame({ seed: 1000 + g, players: Array.from({ length: n }, (_, i) => ({ ai: true })) });
   let steps = 0;
   try {

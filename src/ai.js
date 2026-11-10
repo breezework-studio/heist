@@ -200,9 +200,10 @@ AI.decide = function (E, s) {
       return pick ? { exec: pick } : null;
     }
     case 'policeMove': {
-      const tc = E.locCell(s, s.players[pd.target].loc); const me = E.locCell(s, p.loc);
+      const T = E.P(s, pd.target); const tc = T.escaped ? T.escapeCell : E.posCell(s, T.loc); const me = E.locCell(s, p.loc);
+      const self = pd.target === p.id;
       let best = pd.opts[0], bv = -1e9;
-      pd.opts.forEach(o => { let v = -E.hexDist(o.to, tc) * 10; if (o.to === me) v -= 30; if (o.from === me) v += 8; if (v > bv) { bv = v; best = o; } });
+      pd.opts.forEach(o => { let v = self ? E.hexDist(o.to, tc) * 10 + (o.from === me ? 5 : 0) : -E.hexDist(o.to, tc) * 10; if (!self && o.to === me) v -= 30; if (!self && o.from === me) v += 8; if (v > bv) { bv = v; best = o; } });
       return best;
     }
   }
