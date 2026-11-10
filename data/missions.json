@@ -1,0 +1,17 @@
+{
+  "_comment": "Mission cards (Upgrade Pack). Secret, one per player. Complete EITHER mission -> reveal, choose 1 of 3 ongoing abilities (mark with cube). 'Once per day' abilities use a Power token (flip to X; reset each day). 'cards' = Contact cards on player board. Back: 'Mission'. Text verbatim.",
+  "missions": [
+    {"id": 1, "goals": ["Control 2 Gangs", "Have 3 cards not including any Bribes or Snitches"],
+     "abilities": ["You may cross water.", "Once per day, you may use a Helipad as if you had a helicopter.", "Once per day, avoid one Federal Police Officer."]},
+    {"id": 2, "goals": ["Receive income from 2 Businesses", "Have 1 Locker tile and 1 Exit tile."],
+     "abilities": ["Receive an additional $5k during the Income Phase.", "Once per day during your turn you may take one Contact card.", "Once per day, avoid one SWAT Police Officer."]},
+    {"id": 3, "goals": ["Visit all buildings in the same group", "Have 3 cards without a Notoriety star"],
+     "abilities": ["Once per day, use a Contact card without paying for it.", "When using a Contact card, pay $2k more to not flip it after use.", "Once per day, move one SWAT Police Officer."]},
+    {"id": 4, "goals": ["Spend 2 Extra actions in one day", "Have 3 Cards with Notoriety Stars"],
+     "abilities": ["Ignore the presence of other players in Safe Houses.", "Change your position in Turn Order with the player in front of you.", "Once per day, avoid one County Police Officer."]},
+    {"id": 5, "goals": ["Visit 2 Safe Houses", "Have a Notoriety level of 7"],
+     "abilities": ["Treat all City tiles as having Helipads.", "You can control Gangs for free.", "Once per day, move one Federal Police Officer."]},
+    {"id": 6, "goals": ["Have 5 unlocked Asset tiles", "Have 3 face-up Equipment tiles"],
+     "abilities": ["Unlocked Asset tiles with shields can avoid one Police Officer of any type.", "Once per day, you may ignore the gain of 1 Notoriety.", "Once per day, move one County Police Officer."]}
+  ]
+}
