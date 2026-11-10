@@ -1,0 +1,197 @@
+/* Heist — translations (EN / PT) and event narration */
+(function (root) {
+'use strict';
+const L = {
+en: {
+  title: 'Heist', subtitle: 'Escape the city before it locks down',
+  newGame: 'New game', continue: 'Continue', rules: 'Rules', language: 'Language', players: 'Players', human: 'Human', computer: 'Computer', off: 'Off',
+  start: 'Start the heist', setupTitle: 'Set up the game', mode: 'Mode', modeBase: 'Base game', modePowers: 'Player Powers', modeMissions: 'Missions',
+  powerPick: 'Power assignment', pickFree: 'Free choice', pickRandom: 'Random', pickColor: 'By colour', upgradeGas: 'Upgrade Pack: Gas Can card', upgradeFix: 'Upgrade Pack: 3 extra Fixers',
+  easyCosta: 'Easy Lt. Costa (takes 1 tile)', both: 'Powers + Missions (not recommended)', speed: 'Animation speed', slow: 'Slow', normal: 'Normal', fast: 'Fast',
+  seatHint: 'Choose who plays each colour. 1 human = solo game vs Lt. Costa; 2 = with Inspector Sandra.',
+  day: 'Day', parts: ['Morning', 'Afternoon', 'Evening', 'Night', 'Dawn'],
+  phases: { income: 'Income', patrol: 'Patrol', city: 'City', order: 'Turn order' },
+  yourTurn: 'Your turn', waiting: 'is thinking…', money: 'Money', income: 'Income', notoriety: 'Notoriety', wounds: 'Wounds',
+  rest: 'Rest', move: 'Move', escape: 'Escape the city!', pass: 'Pass', done: 'Done', confirm: 'Confirm', cancel: 'Cancel', yes: 'Yes', no: 'No', skip: 'Skip', none: 'None',
+  chooseDest: 'Tap a highlighted location to move there', restHint: 'Rest: refresh cards & equipment, unlock 1 asset (once per day)',
+  abilities: 'Abilities', useAbility: 'Use', avoidTitle: 'Avoid the police', avoidHint: 'Officers on the tiles you left. Use your gear or take a Wound for each one left.',
+  takeWounds: 'Take the wounds', acceptWounds: n => `Accept ${n} wound${n === 1 ? '' : 's'}`, noOfficers: 'No officers to avoid.',
+  placeTitle: 'Place a city tile', placeHint: 'Pick a tile, then a glowing space. Use ⟳ to rotate.', rotate: 'Rotate',
+  chooseBiz: 'Business placed here', chooseSh: 'Safe House placed here',
+  contactTitle: 'Take a Contact card', optB: 'Keep it', optC: 'Replace one of mine (+1 notoriety)', optA: 'Discard it', pickCard: 'Pick a card from the display',
+  unlockTitle: 'Unlock an Asset tile', unlockHint: 'Choose a locked asset to move to your unlocked row.',
+  policeTitle: 'Move a police officer', policeHint: (n) => `${n} crossed a notoriety line. Move one officer at least one tile closer to them.`,
+  policeSelf: 'You crossed a notoriety line. On behalf of the Inspector/Lieutenant move an officer one tile closer to you.',
+  pickOfficer: 'Pick an officer, then its destination', endTitle: 'End of turn', endHint: 'Use more abilities or end your turn.', endTurn: 'End turn',
+  q: {
+    incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
+    church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
+    key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', exitPick: 'Choose an exit tile to keep'
+  },
+  opt: { disc: 'Extra Action disc', unlock: 'Unlock an asset', unlockBiz: 'Unlock an asset & lose 1 notoriety', unlockSh: 'Unlock an asset & gain income', income: 'Receive income', tile: 'Take an Exit tile', heal: n => n ? `Heal ${n} ($${[0, 1, 3, 6][n]}k)` : 'No healing' },
+  cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
+  market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Escape plan', patrols: 'Exits',
+  open: 'open', closed: 'closed', business: 'Business', businesses: 'Businesses', safehouses: 'Safe Houses', fixers: 'Fixers', equipment: 'Equipment', lockers: 'Lockers', display: 'Contact display',
+  gameOver: 'Game over', winner: 'Winner', winners: 'Winners', arrested: 'Arrested', escaped: 'Escaped', playAgain: 'Play again', total: 'Total',
+  score: { g1: 'Purple businesses', g2: 'Blue businesses', sh: 'Safe Houses', cash: 'Cash', assets: 'Used assets', contacts: 'Contact cards', bags: 'Locker & exit bags', notor: 'Notoriety', wounds: 'Wounds' },
+  replay: 'Replay last turn', menu: 'Menu', help: 'Help', search: 'Search the rules…', close: 'Close', noResults: 'Nothing found. Try other words.',
+  tapHelp: 'Tip: long-press or hover anything to see what it does.', confirmQuit: 'Abandon this game and go to the menu?',
+  you: 'You', bot: 'Bot', mp: 'MP', police: 'police', cost: 'cost', free: 'free', variant: { walk: 'Walk', jetski: 'Jet Ski', sewer: 'Sewer', chopper: 'Chopper card', heliFixer: 'Helicopter', gangHeli: 'Gang biker', gangCardHeli: 'Gang card', motorcycleHeli: 'Motorcycle', medevac: 'Medevac' },
+  extraMp: n => `+${n} gas`, escapeHere: 'Leave the city from here',
+  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspector Sandra', costa: 'Lt. Costa' },
+  colors: { orange: 'Orange', purple: 'Purple', pink: 'Pink', yellow: 'Yellow', green: 'Green' },
+  costaScore: 'Lt. Costa', npcSandra: 'Inspector Sandra', npcCosta: 'Lt. Costa', beatCosta: 'You beat Lt. Costa!', lostCosta: 'Lt. Costa wins this time.',
+},
+pt: {
+  title: 'Heist', subtitle: 'Foge da cidade antes que a fechem',
+  newGame: 'Novo jogo', continue: 'Continuar', rules: 'Regras', language: 'Língua', players: 'Jogadores', human: 'Humano', computer: 'Computador', off: 'Fora',
+  start: 'Começar o golpe', setupTitle: 'Preparar o jogo', mode: 'Modo', modeBase: 'Jogo base', modePowers: 'Poderes', modeMissions: 'Missões',
+  powerPick: 'Atribuição de poderes', pickFree: 'Escolha livre', pickRandom: 'Sorteio', pickColor: 'Por cor', upgradeGas: 'Upgrade Pack: carta Gas Can', upgradeFix: 'Upgrade Pack: 3 Fixers extra',
+  easyCosta: 'Tenente Costa fácil (tira 1 peça)', both: 'Poderes + Missões (não recomendado)', speed: 'Velocidade das animações', slow: 'Lenta', normal: 'Normal', fast: 'Rápida',
+  seatHint: 'Escolhe quem joga cada cor. 1 humano = modo solo contra o Tenente Costa; 2 = com a Inspetora Sandra.',
+  day: 'Dia', parts: ['Manhã', 'Tarde', 'Fim de tarde', 'Noite', 'Madrugada'],
+  phases: { income: 'Rendimento', patrol: 'Patrulha', city: 'Cidade', order: 'Ordem de turno' },
+  yourTurn: 'A tua vez', waiting: 'está a pensar…', money: 'Dinheiro', income: 'Rendimento', notoriety: 'Notoriedade', wounds: 'Ferimentos',
+  rest: 'Descansar', move: 'Mover', escape: 'Fugir da cidade!', pass: 'Passar', done: 'Feito', confirm: 'Confirmar', cancel: 'Cancelar', yes: 'Sim', no: 'Não', skip: 'Saltar', none: 'Nenhum',
+  chooseDest: 'Toca num local destacado para ires para lá', restHint: 'Descansar: recupera cartas e equipamento, desbloqueia 1 ativo (1 vez por dia)',
+  abilities: 'Habilidades', useAbility: 'Usar', avoidTitle: 'Evitar a polícia', avoidHint: 'Polícias nas peças que deixaste. Usa o teu material ou leva um ferimento por cada um que sobrar.',
+  takeWounds: 'Levar os ferimentos', acceptWounds: n => `Aceitar ${n} ferimento${n === 1 ? '' : 's'}`, noOfficers: 'Não há polícias a evitar.',
+  placeTitle: 'Colocar uma peça de cidade', placeHint: 'Escolhe uma peça e depois um espaço a brilhar. Usa ⟳ para rodar.', rotate: 'Rodar',
+  chooseBiz: 'Business colocado aqui', chooseSh: 'Casa Segura colocada aqui',
+  contactTitle: 'Tirar uma carta de Contacto', optB: 'Ficar com ela', optC: 'Substituir uma minha (+1 notoriedade)', optA: 'Descartar', pickCard: 'Escolhe uma carta da mostra',
+  unlockTitle: 'Desbloquear um ativo', unlockHint: 'Escolhe um ativo bloqueado para passar para a fila desbloqueada.',
+  policeTitle: 'Mover um polícia', policeHint: (n) => `${n} passou uma linha de notoriedade. Move um polícia pelo menos uma peça mais perto.`,
+  policeSelf: 'Passaste uma linha de notoriedade. Em nome da Inspetora/Tenente, move um polícia uma peça mais perto de ti.',
+  pickOfficer: 'Escolhe um polícia e depois o destino', endTitle: 'Fim do turno', endHint: 'Usa mais habilidades ou termina o turno.', endTurn: 'Terminar turno',
+  q: {
+    incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
+    church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
+    key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', exitPick: 'Escolhe a peça de saída a guardar'
+  },
+  opt: { disc: 'Disco de Ação Extra', unlock: 'Desbloquear ativo', unlockBiz: 'Desbloquear ativo e perder 1 de notoriedade', unlockSh: 'Desbloquear ativo e receber rendimento', income: 'Receber rendimento', tile: 'Tirar peça de saída', heal: n => n ? `Curar ${n} ($${[0, 1, 3, 6][n]}k)` : 'Não curar' },
+  cards: 'Contactos', items: 'Itens', assets: 'Ativos desbloqueados', locked: 'bloqueado', keys: 'Chaves', gang: 'Gang', discs: 'Ações extra', gas: 'Gasolina',
+  market: 'Cidade', log: 'Histórico', me: 'Eu', opponents: 'Rivais', hidden: 'escondido', plan: 'Plano de fuga', patrols: 'Saídas',
+  open: 'aberta', closed: 'fechada', business: 'Business', businesses: 'Businesses', safehouses: 'Casas Seguras', fixers: 'Fixers', equipment: 'Equipamento', lockers: 'Cacifos', display: 'Mostra de Contactos',
+  gameOver: 'Fim do jogo', winner: 'Vencedor', winners: 'Vencedores', arrested: 'Preso', escaped: 'Fugiu', playAgain: 'Jogar outra vez', total: 'Total',
+  score: { g1: 'Business roxos', g2: 'Business azuis', sh: 'Casas Seguras', cash: 'Dinheiro', assets: 'Ativos usados', contacts: 'Cartas de Contacto', bags: 'Sacos de cacifos e saídas', notor: 'Notoriedade', wounds: 'Ferimentos' },
+  replay: 'Rever último turno', menu: 'Menu', help: 'Ajuda', search: 'Pesquisar nas regras…', close: 'Fechar', noResults: 'Não encontrei nada. Tenta outras palavras.',
+  tapHelp: 'Dica: mantém o dedo (ou o rato) sobre qualquer coisa para ver o que faz.', confirmQuit: 'Abandonar este jogo e voltar ao menu?',
+  you: 'Tu', bot: 'Bot', mp: 'mov.', police: 'polícias', cost: 'custo', free: 'grátis', variant: { walk: 'A pé', jetski: 'Jet Ski', sewer: 'Esgoto', chopper: 'Carta Chopper', heliFixer: 'Helicóptero', gangHeli: 'Motard do gang', gangCardHeli: 'Carta Gang', motorcycleHeli: 'Mota', medevac: 'Medevac' },
+  extraMp: n => `+${n} gasolina`, escapeHere: 'Sair da cidade por aqui',
+  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspetora Sandra', costa: 'Tenente Costa' },
+  colors: { orange: 'Laranja', purple: 'Roxo', pink: 'Rosa', yellow: 'Amarelo', green: 'Verde' },
+  costaScore: 'Tenente Costa', npcSandra: 'Inspetora Sandra', npcCosta: 'Tenente Costa', beatCosta: 'Venceste o Tenente Costa!', lostCosta: 'Desta vez ganhou o Tenente Costa.',
+}};
+
+const NAMES = {
+  en: { casino: 'Casino', bar: 'Bar', restaurant: 'Restaurant', gym: 'Gym', nightclub: 'Nightclub', gallery: 'Art Gallery', sh1: 'Safe House 1', sh2: 'Safe House 2', sh3: 'Safe House 3',
+    storeA: 'Store A', storeB: 'Store B', storeC: 'Store C', storeD: 'Store D', exit1: 'Exit 1', exit2: 'Exit 2', exit3: 'Exit 3', hospital: 'Hospital', clinic: 'Clinic', church: 'Church',
+    subway: 'Subway', heliport: 'Heliport', gang: 'Gang HQ',
+    helmet: 'Helmet', vest: 'Vest', hat: 'Hat', gasmask: 'Gas Mask',
+    move_county: 'Move County officer', move_federal: 'Move Federal officer', move_swat: 'Move SWAT officer', avoid_tile: 'Avoid all police on a tile', master_key: 'Master key', heal: 'Heal 1 wound', extra_action: 'Extra Action',
+    telephone: 'Telephone', safe: 'Safe', disguise: 'Disguise', idcard: 'ID Card', firstaid: 'First Aid Kit', motorcycle: 'Motorcycle', energy: 'Energy Drink', helicopter: 'Helicopter', scuba: 'Scuba', skater: 'Skater', gold: 'Gold Bars',
+    green: 'green', black: 'black', brown: 'brown' },
+  pt: { casino: 'Casino', bar: 'Bar', restaurant: 'Restaurante', gym: 'Ginásio', nightclub: 'Discoteca', gallery: 'Galeria de Arte', sh1: 'Casa Segura 1', sh2: 'Casa Segura 2', sh3: 'Casa Segura 3',
+    storeA: 'Loja A', storeB: 'Loja B', storeC: 'Loja C', storeD: 'Loja D', exit1: 'Saída 1', exit2: 'Saída 2', exit3: 'Saída 3', hospital: 'Hospital', clinic: 'Clínica', church: 'Igreja',
+    subway: 'Metro', heliport: 'Heliporto', gang: 'Sede do Gang',
+    helmet: 'Capacete', vest: 'Colete', hat: 'Boné', gasmask: 'Máscara de gás',
+    move_county: 'Mover polícia County', move_federal: 'Mover polícia Federal', move_swat: 'Mover polícia SWAT', avoid_tile: 'Evitar toda a polícia de uma peça', master_key: 'Chave mestra', heal: 'Curar 1 ferimento', extra_action: 'Ação Extra',
+    telephone: 'Telefone', safe: 'Cofre', disguise: 'Disfarce', idcard: 'Cartão de Identidade', firstaid: 'Kit de Primeiros Socorros', motorcycle: 'Mota', energy: 'Bebida Energética', helicopter: 'Helicóptero', scuba: 'Mergulho', skater: 'Skater', gold: 'Barras de Ouro',
+    green: 'verde', black: 'preto', brown: 'castanho' }
+};
+const EFFECT = {
+  en: { sewer: 'Move to a tile 2 away through the sewers, ignoring police in between', jetski: 'Cross water freely this turn', lose_notoriety: 'Lose 1 notoriety', heal: 'Heal 1 wound', move_police: t => `Move a ${t} officer to any tile without one`, refresh: 'Flip back all your used cards & equipment', chopper: 'Fly from a helipad tile to a place 1–2 tiles away (1 MP)', gang_ability: 'Use one gang ability (lose 1 notoriety / fly from helipad / ignore police on a tile)', avoid_types: t => `Avoid all ${t} officers on one tile`, take_contact: 'Take a Contact card', unlock_asset: 'Unlock an Asset tile', extra_action: 'Take an Extra Action disc', remove_police: t => `Remove a ${t} officer from the game`, avoid_one_any: 'Avoid 1 officer of any type', medevac: 'Fly straight to the Hospital (ends movement)', gain_income: 'Receive income', avoid_all_tile: 'Avoid all police on one tile', plus_mp: '+1 movement point', master_key: 'Visit a closed Business or open any locker' },
+  pt: { sewer: 'Ir pelos esgotos para uma peça a 2 de distância, ignorando a polícia pelo meio', jetski: 'Atravessar água livremente neste turno', lose_notoriety: 'Perder 1 de notoriedade', heal: 'Curar 1 ferimento', move_police: t => `Mover um polícia ${t} para outra peça sem nenhum`, refresh: 'Virar de volta todas as cartas e equipamento usados', chopper: 'Voar de uma peça com heliporto para um sítio a 1–2 peças (1 mov.)', gang_ability: 'Usar uma habilidade de gang (perder 1 notoriedade / voar de heliporto / ignorar a polícia de uma peça)', avoid_types: t => `Evitar todos os polícias ${t} de uma peça`, take_contact: 'Tirar uma carta de Contacto', unlock_asset: 'Desbloquear um ativo', extra_action: 'Ganhar um disco de Ação Extra', remove_police: t => `Retirar um polícia ${t} do jogo`, avoid_one_any: 'Evitar 1 polícia de qualquer tipo', medevac: 'Voar direto para o Hospital (termina o movimento)', gain_income: 'Receber rendimento', avoid_all_tile: 'Evitar toda a polícia de uma peça', plus_mp: '+1 ponto de movimento', master_key: 'Visitar um Business fechado ou abrir qualquer cacifo' }
+};
+
+const I = { lang: 'en' };
+I.set = (l) => { I.lang = l === 'pt' ? 'pt' : 'en'; };
+I.t = (k, ...a) => { let v = k.split('.').reduce((o, x) => o && o[x], L[I.lang]); if (v == null) v = k.split('.').reduce((o, x) => o && o[x], L.en); return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
+I.name = (k) => NAMES[I.lang][k] || NAMES.en[k] || k;
+I.effect = (eff, types) => { const f = EFFECT[I.lang][eff]; if (!f) return eff; if (typeof f === 'function') { const tt = (types || []).map(x => I.t('types.' + x)).join(I.lang === 'pt' ? ' e ' : ' & '); return f(tt); } return f; };
+
+// narrate an engine event -> string (or null to skip)
+I.narrate = function (e, ctx) {
+  const pt = I.lang === 'pt'; const N = (id) => ctx.pname(id); const loc = (id) => ctx.locName(id);
+  const sign = (d) => (d > 0 ? '+' : '−') + '$' + Math.abs(d) + 'k';
+  switch (e.t) {
+    case 'day': return pt ? `☀ Dia ${e.day} começa` : `☀ Day ${e.day} begins`;
+    case 'phase': return `— ${I.t('phases.' + e.ph)} —`;
+    case 'part': return `🕑 ${I.t('parts')[e.part]}`;
+    case 'patrol': return pt ? `🚓 Patrulha na Saída ${e.exit}${e.count === 2 ? ' — fechada!' : ''}` : `🚓 Patrol at Exit ${e.exit}${e.count === 2 ? ' — closed!' : ''}`;
+    case 'exitClosed': return null;
+    case 'place': return pt ? `${N(e.p)} coloca uma peça de cidade` : `${N(e.p)} places a city tile`;
+    case 'display': return pt ? 'Novas peças de cidade reveladas' : 'New city tiles revealed';
+    case 'order': return (pt ? 'Ordem: ' : 'Order: ') + e.order.map(N).join(' → ');
+    case 'turn': return pt ? `▶ Vez de ${N(e.p)}` : `▶ ${N(e.p)}'s turn`;
+    case 'move': return pt ? `${N(e.p)} vai para ${loc(e.to)}${e.mp ? ` (${e.mp} mov.)` : ''}` : `${N(e.p)} moves to ${loc(e.to)}${e.mp ? ` (${e.mp} MP)` : ''}`;
+    case 'rest': return pt ? `${N(e.p)} descansa e recupera o material` : `${N(e.p)} rests and refreshes`;
+    case 'pass': return pt ? `${N(e.p)} não tem jogada e passa` : `${N(e.p)} has no legal move and passes`;
+    case 'money': return `${N(e.p)} ${sign(e.d)}${ctx.why(e.why)}`;
+    case 'notor': return pt ? `${N(e.p)} ${e.d > 0 ? '+' : '−'}${Math.abs(e.d)} notoriedade${ctx.why(e.why)}` : `${N(e.p)} ${e.d > 0 ? '+' : '−'}${Math.abs(e.d)} notoriety${ctx.why(e.why)}`;
+    case 'level': return pt ? `${N(e.p)}: notoriedade ${e.from} → ${e.to}` : `${N(e.p)}: notoriety ${e.from} → ${e.to}`;
+    case 'threshold': return pt ? `⚠ ${N(e.p)} passa a linha ${e.n} de notoriedade!` : `⚠ ${N(e.p)} crosses notoriety line ${e.n}!`;
+    case 'wound': return pt ? `🩸 ${N(e.p)} leva um ferimento${ctx.why(e.why)}` : `🩸 ${N(e.p)} takes a wound${ctx.why(e.why)}`;
+    case 'cuffs': return pt ? `⛓ ${N(e.p)} leva umas algemas!` : `⛓ ${N(e.p)} gets handcuffed!`;
+    case 'heal': return pt ? `✚ ${N(e.p)} cura ${e.n} ferimento${e.n > 1 ? 's' : ''}` : `✚ ${N(e.p)} heals ${e.n} wound${e.n > 1 ? 's' : ''}`;
+    case 'police': return pt ? `👮 ${N(e.p)} move um polícia ${I.t('types.' + e.type)}` : `👮 ${N(e.p)} moves a ${I.t('types.' + e.type)} officer`;
+    case 'policeRemove': return pt ? `👮 ${N(e.p)} tira um polícia ${I.t('types.' + e.type)} do jogo` : `👮 ${N(e.p)} removes a ${I.t('types.' + e.type)} officer`;
+    case 'npcMoved': return pt ? `${N(e.p)} afasta ${N(e.npc)}` : `${N(e.p)} sends ${N(e.npc)} away`;
+    case 'avoided': return pt ? `🛡 ${N(e.p)} evita a polícia` : `🛡 ${N(e.p)} avoids the police`;
+    case 'avoidDone': return e.wounds ? null : null;
+    case 'bribe': return pt ? `${N(e.p)} suborna o Tenente Costa ($3k)` : `${N(e.p)} bribes Lt. Costa ($3k)`;
+    case 'visit': return pt ? `${N(e.p)} visita ${loc(e.loc)}` : `${N(e.p)} visits ${loc(e.loc)}`;
+    case 'cantVisit': return pt ? `${N(e.p)} não consegue visitar ${loc(e.loc)}` : `${N(e.p)} can't visit ${loc(e.loc)}`;
+    case 'cube': return pt ? `${N(e.p)} recupera o dinheiro em ${I.name(e.at)}${e.income ? ' (rendimento imediato)' : ''}` : `${N(e.p)} recovers the money at ${I.name(e.at)}${e.income ? ' (instant income)' : ''}`;
+    case 'closed': return pt ? `🔒 ${I.name(e.biz)} fecha` : `🔒 ${I.name(e.biz)} closes`;
+    case 'contact': return pt ? `🃏 ${N(e.p)} fica com o Contacto ${ctx.card(e.card)}` : `🃏 ${N(e.p)} takes the ${ctx.card(e.card)} contact`;
+    case 'contactDiscard': return pt ? `🃏 ${N(e.p)} descarta ${ctx.card(e.card)}` : `🃏 ${N(e.p)} discards ${ctx.card(e.card)}`;
+    case 'npcContact': return pt ? `🃏 ${N(e.p)} fica com ${ctx.card(e.card)}` : `🃏 ${N(e.p)} pockets ${ctx.card(e.card)}`;
+    case 'cdraw': return null;
+    case 'useContact': return pt ? `${N(e.p)} usa ${ctx.card(e.card)}` : `${N(e.p)} uses ${ctx.card(e.card)}`;
+    case 'useFixer': return pt ? `${N(e.p)} usa o Fixer ${I.name(e.id)}` : `${N(e.p)} uses the ${I.name(e.id)} Fixer`;
+    case 'useEquip': return pt ? `${N(e.p)} usa ${I.name(e.id)}` : `${N(e.p)} uses the ${I.name(e.id)}`;
+    case 'useAsset': return pt ? `${N(e.p)} usa o ativo ${I.name(e.id)}` : `${N(e.p)} uses asset: ${I.name(e.id)}`;
+    case 'useGang': return pt ? `🏍 ${N(e.p)} chama um motard do gang` : `🏍 ${N(e.p)} calls a gang biker`;
+    case 'gangFree': return pt ? `O gang fica livre outra vez` : `The gang is free again`;
+    case 'gangHire': return pt ? `🏍 ${N(e.p)} contrata o gang ($5k)` : `🏍 ${N(e.p)} hires the gang ($5k)`;
+    case 'firstAid': return pt ? `${N(e.p)} usa os primeiros socorros` : `${N(e.p)} uses first aid`;
+    case 'unlock': return pt ? `🔓 ${N(e.p)} desbloqueia: ${I.name(e.id)}` : `🔓 ${N(e.p)} unlocks: ${I.name(e.id)}`;
+    case 'unlockLost': return pt ? `${N(e.p)} perde o ativo ${I.name(e.id)} (sem espaço)` : `${N(e.p)} loses ${I.name(e.id)} (no room)`;
+    case 'key': return pt ? `🔑 ${N(e.p)} fica com uma chave ${I.name(e.color)}` : `🔑 ${N(e.p)} takes a ${I.name(e.color)} key`;
+    case 'keyUse': return pt ? `🔑 ${N(e.p)} usa uma chave ${I.name(e.color)}` : `🔑 ${N(e.p)} uses a ${I.name(e.color)} key`;
+    case 'gas': return pt ? `⛽ ${N(e.p)} leva uma lata de gasolina` : `⛽ ${N(e.p)} takes a gas can`;
+    case 'gasUse': return pt ? `⛽ ${N(e.p)} gasta gasolina (+1 mov.)` : `⛽ ${N(e.p)} burns gas (+1 MP)`;
+    case 'item': return e.item.kind === 'locker' || e.item.kind === 'exit' ? (pt ? `💰 ${N(e.p)} guarda um saco de dinheiro` : `💰 ${N(e.p)} stashes a money bag`) : (pt ? `${N(e.p)} compra ${I.name(e.item.id)}` : `${N(e.p)} buys ${I.name(e.item.id)}`);
+    case 'itemLost': return pt ? `${N(e.p)} deixa um item para trás` : `${N(e.p)} leaves an item behind`;
+    case 'locker': return pt ? `🗄 ${N(e.p)} abre um cacifo ${I.name(e.color)}` : `🗄 ${N(e.p)} opens a ${I.name(e.color)} locker`;
+    case 'exitTile': return null;
+    case 'refresh': return pt ? `${N(e.p)} recupera todo o material` : `${N(e.p)} refreshes everything`;
+    case 'disc': return pt ? `${N(e.p)} usa uma Ação Extra` : `${N(e.p)} spends an Extra Action`;
+    case 'discGain': return pt ? `${N(e.p)} ganha uma Ação Extra` : `${N(e.p)} gains an Extra Action`;
+    case 'restBack': return null;
+    case 'escape': return pt ? `🚗💨 ${N(e.p)} FOGE da cidade! (${e.order}.º, paga $${e.cost}k)` : `🚗💨 ${N(e.p)} ESCAPES the city! (#${e.order}, pays $${e.cost}k)`;
+    case 'arrest': return pt ? `🚨 ${N(e.p)} é preso!` : `🚨 ${N(e.p)} is arrested!`;
+    case 'npcStay': return pt ? `${N(e.p)} fica onde está` : `${N(e.p)} stays put`;
+    case 'npcWait': return pt ? `${N(e.p)} vigia a saída aberta` : `${N(e.p)} watches the open exit`;
+    case 'npcStack': return pt ? `💰 ${N(e.p)} recolhe ${e.n} peça(s)` : `💰 ${N(e.p)} collects ${e.n} tile(s)`;
+    case 'npcDiscard': return null;
+    case 'fixerDiscard': return pt ? `${N(e.p)} descarta um Fixer` : `${N(e.p)} discards a Fixer`;
+    case 'keyDiscard': return pt ? `${N(e.p)} descarta uma chave` : `${N(e.p)} discards a key`;
+    case 'lockerDiscard': return pt ? `${N(e.p)} esvazia um cacifo ${I.name(e.color)}` : `${N(e.p)} empties a ${I.name(e.color)} locker`;
+    case 'exitDiscard': return pt ? `${N(e.p)} descarta uma peça de saída` : `${N(e.p)} discards an exit tile`;
+    case 'gameOver': return pt ? '🏁 Fim do jogo' : '🏁 Game over';
+    default: return null;
+  }
+};
+I.whyText = function (why) {
+  const pt = I.lang === 'pt';
+  const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income',
+    crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
+    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
+  if (!why) return '';
+  if (why.startsWith('police:')) return ' (' + I.t('types.' + why.slice(7)) + ')';
+  const w = m[why]; return w ? ` (${w})` : '';
+};
+if (typeof module !== 'undefined' && module.exports) module.exports = I; else root.HeistI18n = I;
+})(this);
