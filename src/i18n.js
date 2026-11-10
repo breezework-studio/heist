@@ -31,6 +31,9 @@ en: {
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
+  lockerLegend: 'Back of each locker: open it if notoriety + Contact cards ≥ the number; you draw tiles = your cards ± the value shown. You need a key of that colour.',
+  lockerHelp: (min, draw) => `Needs notoriety + Contact cards ≥ ${min} and a key of this colour. Draw ${draw === '+1' ? 'cards + 1' : draw === '-1' ? 'cards − 1' : 'as many as your cards'} tiles and keep one.`,
   incomeNow: 'income now', endMoney: 'end of game', noKeys: 'no keys left',
   bizLegend: n => `Each business closes after ${n} visits (squares). After that you can still enter with a key. Each player visits a business only once.`,
   shLegend: 'Safe Houses never close and have no visit limit; each player visits each one once. Keys left shown on the right.',
@@ -80,6 +83,9 @@ pt: {
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
+  lockerLegend: 'Verso de cada cacifo: abre-se se notoriedade + cartas de Contacto ≥ número; tiras peças = as tuas cartas ± o valor indicado. Precisas de uma chave dessa cor.',
+  lockerHelp: (min, draw) => `Precisa de notoriedade + cartas de Contacto ≥ ${min} e de uma chave desta cor. Tiras ${draw === '+1' ? 'cartas + 1' : draw === '-1' ? 'cartas − 1' : 'tantas peças como cartas'} peças e guardas uma.`,
   incomeNow: 'rendimento já', endMoney: 'fim do jogo', noKeys: 'sem chaves',
   bizLegend: n => `Cada Business fecha ao fim de ${n} visitas (quadrados). Depois disso ainda se pode entrar com uma chave. Cada jogador só visita cada Business uma vez.`,
   shLegend: 'As Casas Seguras nunca fecham e não têm limite de visitas; cada jogador visita cada uma uma vez. À direita, as chaves que ainda lá estão.',
@@ -142,7 +148,12 @@ const MISSION_PT = {
   5: { goals: ['Visitar 2 Casas Seguras', 'Ter notoriedade 7'], abilities: ['Todas as peças contam como tendo helipad.', 'Controlas gangs de graça.', '1 vez por dia, move 1 polícia Federal.'] },
   6: { goals: ['Ter 5 ativos desbloqueados', 'Ter 3 equipamentos virados para cima'], abilities: ['Os ativos desbloqueados com escudo podem evitar 1 polícia de qualquer tipo.', '1 vez por dia, ignora um ganho de 1 de notoriedade (automático).', '1 vez por dia, move 1 polícia County.'] }
 };
+const CAP = {
+  en: { sewer: 'Sewer: jump 2 tiles', jetski: 'Cross water', lose_notoriety: '−1 notoriety', heal: 'Heal 1 wound', move_police: 'Move {t}', refresh: 'Refresh all', chopper: 'Fly 1–2 tiles', gang_ability: 'Gang ability', avoid_types: 'Avoid {t} on 1 tile', take_contact: '+1 Contact', unlock_asset: 'Unlock 1 asset', extra_action: '+1 Extra Action', remove_police: 'Remove {t}', avoid_one_any: 'Avoid 1 officer', medevac: 'Fly to Hospital', gain_income: 'Get income', avoid_all_tile: 'Avoid all on 1 tile', plus_mp: '+1 movement' },
+  pt: { sewer: 'Esgoto: saltar 2 peças', jetski: 'Atravessar água', lose_notoriety: '−1 notoriedade', heal: 'Curar 1 ferimento', move_police: 'Mover {t}', refresh: 'Recuperar tudo', chopper: 'Voar 1–2 peças', gang_ability: 'Habilidade de gang', avoid_types: 'Evitar {t} numa peça', take_contact: '+1 Contacto', unlock_asset: 'Desbloquear 1 ativo', extra_action: '+1 Ação Extra', remove_police: 'Retirar {t}', avoid_one_any: 'Evitar 1 polícia', medevac: 'Voar p/ Hospital', gain_income: 'Receber rendimento', avoid_all_tile: 'Evitar todos numa peça', plus_mp: '+1 movimento' }
+};
 const I = { lang: 'en' };
+I.cap = (eff, type, types) => { const c = CAP[I.lang][eff] || eff; const tt = types ? types.map(x => I.t('types.' + x)).join(' + ') : type ? I.t('types.' + type) : ''; return c.replace('{t}', tt); };
 I.powerText = (pw) => I.lang === 'pt' ? POWER_PT[pw.id] : pw.text;
 I.missionText = (m) => I.lang === 'pt' ? MISSION_PT[m.id] : m;
 I.set = (l) => { I.lang = l === 'pt' ? 'pt' : 'en'; };

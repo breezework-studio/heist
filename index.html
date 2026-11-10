@@ -146,16 +146,34 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .plan div{background:var(--paper);color:var(--ink);border-radius:4px;padding:3px 4px;font-size:11.5px;display:flex;justify-content:space-between;align-items:center;font-family:var(--ff-ui)}
 .plan div.v{background:#9bd08f}.plan div.inc{background:#f7e08a}
 .plan div b{font-size:13px}
-.ccard{width:74px;height:104px;border-radius:7px;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:4px;position:relative;font-family:var(--ff-ui);box-shadow:0 2px 6px #0008;flex:none;cursor:default;transition:transform .15s}
-.ccard .nm{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;text-align:center;line-height:1}
-.ccard .art{flex:1;display:grid;place-items:center;width:100%;border-radius:4px;margin:3px 0;background:linear-gradient(135deg,#2a3346,#3d2a3e);color:#f1e7d0}
-.ccard .art .ic{width:32px;height:32px}
-.ccard .ft{display:flex;justify-content:space-between;width:100%;font-size:13px;font-weight:700}
-.ccard .st{color:var(--red)}
-.ccard .step{font-size:10px;opacity:.7}
+.ccard{width:88px;height:136px;border-radius:7px;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:4px 4px 3px;position:relative;font-family:var(--ff-ui);box-shadow:0 2px 6px #0008;flex:none;cursor:default;transition:transform .15s}
+.ccard .nm{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;text-align:center;line-height:1;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
+.ccard .steps{display:flex;gap:2px;margin-top:3px}
+.stp{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:8px;color:#fff;letter-spacing:.03em}.stp .ic{width:10px;height:10px}
+.stp.tr{background:#2d7a2a}.stp.av{background:#b0302a}.stp.any{background:#6a6a6a}
+.ccard .art{height:46px;display:flex;align-items:center;justify-content:center;width:100%;border-radius:4px;margin:3px 0 2px;background:linear-gradient(135deg,#2a3346,#3d2a3e);color:#f1e7d0;position:relative}
+.ccard .art .ic.big{width:30px;height:30px}
+.sh .ic{width:30px;height:30px;filter:drop-shadow(0 1px 0 #fff8)}.sh.sm .ic{width:22px;height:22px}.sh.xs .ic{width:15px;height:15px}
+.pair,.hexbg{display:flex;gap:1px;align-items:center}.hexbg{background:#ffffff18;border-radius:6px;padding:3px}
+.ov{position:absolute;right:6px;bottom:2px;font-weight:700;font-size:15px;color:#fff;text-shadow:0 1px 2px #000}.ov.x{color:#ff6a5a}.ov.ok{color:#7fe08a}
+.ccard .cap{width:100%;font-size:10.5px;line-height:1.05;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;color:#3a332a}
+.ccard .ft{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:13px;font-weight:700}
+.ccard .st{color:var(--red)}.ccard .st .ic{width:16px;height:16px}
+.ccard .once{font-size:11px;opacity:.7}
+.fcard{background:#efe0bd}.fcard .art{background:linear-gradient(135deg,#5a4320,#3a2a12)}
 .ccard.pick{cursor:pointer}.ccard.pick:hover{transform:translateY(-4px)}
 .ccard.sel{outline:3px solid var(--mustard);transform:translateY(-6px)}
-.cardrow{display:flex;gap:6px;overflow-x:auto;padding:6px 2px 8px}
+.cardrow{display:flex;gap:6px;overflow-x:auto;padding:6px 2px 8px}.cardrow.wrap{flex-wrap:wrap;overflow:visible}
+.etile,.ltile{width:72px;height:96px;border-radius:7px;display:flex;flex-direction:column;align-items:center;padding:4px;font-family:var(--ff-ui);box-shadow:0 2px 6px #0008;flex:none;background:#2a3d52;border:1px solid #47678a;color:#e9eef5}
+.etile .nm,.ltile .nm{font-size:11.5px;font-weight:700;text-transform:uppercase;text-align:center;line-height:1.05;min-height:12px}
+.etile .ic.big,.ltile .ic.big{width:30px;height:30px;margin:4px 0 2px}
+.etile .av{display:flex;align-items:center;gap:1px;font-size:11px}.etile .av .ic{width:16px;height:16px}
+.etile .ft,.ltile .ft{margin-top:auto;display:flex;justify-content:space-between;width:100%;font-size:12px;font-weight:700}
+.etile.gas{background:#1e3446}
+.ltile{position:relative;color:#fff}.ltile.green{background:#2f7d3a;border-color:#58b065}.ltile.black{background:#24262b;border-color:#555}.ltile.brown{background:#7a4a22;border-color:#b07a45}
+.ltile .req{font-size:20px;font-weight:700;line-height:1}.ltile .drw{display:flex;align-items:center;gap:2px;font-size:13px}.ltile .drw .ic{width:13px;height:13px}.ltile .ft{justify-content:center}
+.slot .sart{display:flex;align-items:center;justify-content:center;height:24px;position:relative}.slot .sart .sh .ic{width:20px;height:20px}.slot .sart .sh.sm .ic{width:14px;height:14px}.slot .sart .sh.xs .ic{width:10px;height:10px}.slot .sart .ic.big{width:20px;height:20px;color:#3a2a4a}.slot .sart .ov{font-size:11px;right:-6px;bottom:-2px}
+.slot .sstep{position:absolute;bottom:1px;right:2px;display:flex}.slot .sstep .ic{width:10px;height:10px}
 .kv{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #ffffff14;font-size:14px}
 .biz{display:flex;align-items:center;gap:6px;padding:4px 0}.biz .ic{width:20px;height:20px}
 .legend{font-size:12px;color:var(--muted);margin:-2px 0 6px;line-height:1.3}
@@ -192,6 +210,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .choice{display:flex;align-items:center;gap:8px;background:#fff8;border:1px solid #0002;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink);text-align:left;font-family:var(--ff-body);font-size:14px}
 .choice:hover{background:#fff}
 .choice .ic{width:24px;height:24px}
+.choice .ccard .ic,.choice .etile .ic,.choice .ltile .ic{width:auto;height:auto}
 .choice b{font-family:var(--ff-ui);font-size:16px}
 .choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
 .off-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #0002;flex-wrap:wrap}
@@ -1781,6 +1800,9 @@ en: {
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
+  stepTravel: 'travel', stepAvoid: 'avoid', stepAny: 'any time',
+  lockerLegend: 'Back of each locker: open it if notoriety + Contact cards ≥ the number; you draw tiles = your cards ± the value shown. You need a key of that colour.',
+  lockerHelp: (min, draw) => `Needs notoriety + Contact cards ≥ ${min} and a key of this colour. Draw ${draw === '+1' ? 'cards + 1' : draw === '-1' ? 'cards − 1' : 'as many as your cards'} tiles and keep one.`,
   incomeNow: 'income now', endMoney: 'end of game', noKeys: 'no keys left',
   bizLegend: n => `Each business closes after ${n} visits (squares). After that you can still enter with a key. Each player visits a business only once.`,
   shLegend: 'Safe Houses never close and have no visit limit; each player visits each one once. Keys left shown on the right.',
@@ -1830,6 +1852,9 @@ pt: {
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
+  stepTravel: 'viagem', stepAvoid: 'evitar', stepAny: 'qualquer',
+  lockerLegend: 'Verso de cada cacifo: abre-se se notoriedade + cartas de Contacto ≥ número; tiras peças = as tuas cartas ± o valor indicado. Precisas de uma chave dessa cor.',
+  lockerHelp: (min, draw) => `Precisa de notoriedade + cartas de Contacto ≥ ${min} e de uma chave desta cor. Tiras ${draw === '+1' ? 'cartas + 1' : draw === '-1' ? 'cartas − 1' : 'tantas peças como cartas'} peças e guardas uma.`,
   incomeNow: 'rendimento já', endMoney: 'fim do jogo', noKeys: 'sem chaves',
   bizLegend: n => `Cada Business fecha ao fim de ${n} visitas (quadrados). Depois disso ainda se pode entrar com uma chave. Cada jogador só visita cada Business uma vez.`,
   shLegend: 'As Casas Seguras nunca fecham e não têm limite de visitas; cada jogador visita cada uma uma vez. À direita, as chaves que ainda lá estão.',
@@ -1892,7 +1917,12 @@ const MISSION_PT = {
   5: { goals: ['Visitar 2 Casas Seguras', 'Ter notoriedade 7'], abilities: ['Todas as peças contam como tendo helipad.', 'Controlas gangs de graça.', '1 vez por dia, move 1 polícia Federal.'] },
   6: { goals: ['Ter 5 ativos desbloqueados', 'Ter 3 equipamentos virados para cima'], abilities: ['Os ativos desbloqueados com escudo podem evitar 1 polícia de qualquer tipo.', '1 vez por dia, ignora um ganho de 1 de notoriedade (automático).', '1 vez por dia, move 1 polícia County.'] }
 };
+const CAP = {
+  en: { sewer: 'Sewer: jump 2 tiles', jetski: 'Cross water', lose_notoriety: '−1 notoriety', heal: 'Heal 1 wound', move_police: 'Move {t}', refresh: 'Refresh all', chopper: 'Fly 1–2 tiles', gang_ability: 'Gang ability', avoid_types: 'Avoid {t} on 1 tile', take_contact: '+1 Contact', unlock_asset: 'Unlock 1 asset', extra_action: '+1 Extra Action', remove_police: 'Remove {t}', avoid_one_any: 'Avoid 1 officer', medevac: 'Fly to Hospital', gain_income: 'Get income', avoid_all_tile: 'Avoid all on 1 tile', plus_mp: '+1 movement' },
+  pt: { sewer: 'Esgoto: saltar 2 peças', jetski: 'Atravessar água', lose_notoriety: '−1 notoriedade', heal: 'Curar 1 ferimento', move_police: 'Mover {t}', refresh: 'Recuperar tudo', chopper: 'Voar 1–2 peças', gang_ability: 'Habilidade de gang', avoid_types: 'Evitar {t} numa peça', take_contact: '+1 Contacto', unlock_asset: 'Desbloquear 1 ativo', extra_action: '+1 Ação Extra', remove_police: 'Retirar {t}', avoid_one_any: 'Evitar 1 polícia', medevac: 'Voar p/ Hospital', gain_income: 'Receber rendimento', avoid_all_tile: 'Evitar todos numa peça', plus_mp: '+1 movimento' }
+};
 const I = { lang: 'en' };
+I.cap = (eff, type, types) => { const c = CAP[I.lang][eff] || eff; const tt = types ? types.map(x => I.t('types.' + x)).join(' + ') : type ? I.t('types.' + type) : ''; return c.replace('{t}', tt); };
 I.powerText = (pw) => I.lang === 'pt' ? POWER_PT[pw.id] : pw.text;
 I.missionText = (m) => I.lang === 'pt' ? MISSION_PT[m.id] : m;
 I.set = (l) => { I.lang = l === 'pt' ? 'pt' : 'en'; };
@@ -2404,7 +2434,7 @@ function slotHTML(p, x, i, kind, viewer) {
   if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'fixer') return `<div class="slot fixer ${x.used ? 'used' : ''}" data-h="fixer:${x.id}"><span class="cost">$${E.FIXER[x.id].cost}</span>${ic(IC.FIX[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'locker' || x.kind === 'exit') { const show = viewer === p.id; return `<div class="slot bag" data-h="bag:${x.kind}">${ic('bag', '', '#9be08f')}<span class="lbl">${show ? '$' + x.val + 'k' : '?'}</span></div>`; }
-  if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}${ic(IC.EFF[C.effect], '', '#3a2a4a')}<span class="lbl">${C.name}</span></div>`; }
+  if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}<span class="sart">${effArt(C.effect, C.type, C.types)}</span><span class="lbl">${C.name}</span><span class="sstep">${C.step.includes('travel') ? ic('pawn', '', '#2d7a2a') : ''}${C.step.includes('avoid') ? ic('shield', '', '#a33') : ''}</span></div>`; }
   return `<div class="slot"></div>`;
 }
 function playerCard(S, p, full, viewer) {
@@ -2455,9 +2485,42 @@ function renderSide() {
   const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
 }
+const TRAVEL_EFF = new Set(['sewer', 'jetski', 'chopper', 'medevac', 'plus_mp']);
+const AVOID_EFF = new Set(['avoid_types', 'avoid_all_tile', 'avoid_one_any']);
+function effArt(eff, type, types) {
+  const sh = (col, cls = '') => `<span class="sh ${cls}">${ic('shield', '', col)}</span>`;
+  switch (eff) {
+    case 'move_police': return `${sh(COP[type])}<span class="ov">➜</span>`;
+    case 'remove_police': return `${sh(COP[type])}<span class="ov x">✕</span>`;
+    case 'avoid_types': return `<span class="pair">${(types || []).map(x => sh(COP[x], 'sm')).join('')}</span><span class="ov ok">✓</span>`;
+    case 'avoid_all_tile': return `<span class="hexbg">${['county', 'federal', 'swat'].map(x => sh(COP[x], 'xs')).join('')}</span><span class="ov ok">✓</span>`;
+    case 'avoid_one_any': return `${sh('#9aa3b2')}<span class="ov ok">1</span>`;
+    default: return ic(IC.EFF[eff] || 'info', 'big', eff === 'lose_notoriety' ? '#ff7a6e' : eff === 'gain_income' ? '#7fe08a' : eff === 'heal' || eff === 'medevac' ? '#ff8f7a' : undefined);
+  }
+}
+function stepBadge(step) {
+  const tr = step.includes('travel'), av = step.includes('avoid');
+  if (tr && av) return `<span class="stp tr">${ic('pawn')}</span><span class="stp av">${ic('shield')}</span>`;
+  if (tr) return `<span class="stp tr">${ic('pawn')} ${t('stepTravel')}</span>`;
+  if (av) return `<span class="stp av">${ic('shield')} ${t('stepAvoid')}</span>`;
+  return `<span class="stp any">${t('stepAny')}</span>`;
+}
 function contactCardHTML(card, cls = '', extra = '') {
   const C = E.CONTACT[card];
-  return `<div class="ccard ${cls}" data-card="${card}" data-h="contact:${card}" ${extra}><div class="nm">${C.name}</div><div class="art">${ic(IC.EFF[C.effect])}</div><div class="ft"><span>$${C.cost}</span><span class="step">${C.step === 'avoid' ? ic('shield') : ic('pawn')}</span>${C.notoriety ? `<span class="st">${ic('star')}</span>` : '<span></span>'}</div></div>`;
+  return `<div class="ccard ${cls}" data-card="${card}" data-h="contact:${card}" ${extra}><div class="nm">${C.name}</div><div class="steps">${stepBadge(C.step)}</div><div class="art">${effArt(C.effect, C.type, C.types)}</div><div class="cap">${T.cap(C.effect, C.type, C.types)}</div><div class="ft"><span>$${C.cost}</span>${C.notoriety ? `<span class="st">${ic('starPlus')}</span>` : '<span></span>'}</div></div>`;
+}
+function fixerStep(eff) { return TRAVEL_EFF.has(eff) ? 'travel' : eff === 'gang_ability' ? 'travel+avoid' : AVOID_EFF.has(eff) ? 'avoid' : 'any'; }
+function fixerCardHTML(id, cls = '') {
+  const F = E.FIXER[id];
+  return `<div class="ccard fcard ${cls}" data-h="fixer:${id}"><div class="nm">${nm(id)}</div><div class="steps">${stepBadge(fixerStep(F.effect))}</div><div class="art">${ic(IC.FIX[id], 'big')}</div><div class="cap">${T.cap(F.effect)}</div><div class="ft"><span>$${F.cost}</span><span class="once">×1</span></div></div>`;
+}
+function equipTileHTML(id, left) {
+  const Q = E.EQUIP[id]; const ty = Q.avoids || Q.avoids_one_of;
+  return `<div class="etile" data-h="equip:${id}"><div class="nm">${nm(id)}</div>${ic(IC.EQUIP[id], 'big')}<div class="av">${ty.map(x => ic('shield', '', COP[x])).join(Q.avoids_one_of ? '<small>/</small>' : '')}</div><div class="ft"><span>$${Q.cost}</span><span>×${left}</span></div></div>`;
+}
+function lockerBackHTML(col, left) {
+  const L = window.HEIST_DATA.lockers.lockers[col]; const draw = { '+1': '+1', '0': '', '-1': '−1' }[L.draw];
+  return `<div class="ltile ${col}" data-h="locker:${col}"><div class="nm">${nm(col)}</div>${ic('lock', 'big')}<div class="req" title="">${L.min}+</div><div class="drw">${ic('card')}${draw}</div><div class="ft">×${left}</div></div>`;
 }
 function marketHTML(S) {
   let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
@@ -2480,9 +2543,9 @@ function marketHTML(S) {
   h += `<div class="rowlbl">${t('safehouses')}</div>`;
   h += `<div class="legend">${t('shLegend')}</div>`;
   ['sh1', 'sh2', 'sh3'].forEach(k => { const cubes = S.shCubes[k] || []; h += `<div class="bizrow"><div class="bh">${ic('house', '', '#ff7a6e')} ${nm(k)}<span class="cap">${(S.shKeys[k] || []).map(c => ic('key', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])).join('') || '<em>' + t('noKeys') + '</em>'}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`; });
-  h += `<div class="rowlbl">${t('fixers')}</div><div class="chips">${S.fixers.map(f => `<span class="chip" data-h="fixer:${f}">${ic(IC.FIX[f])} ${nm(f)} $${E.FIXER[f].cost}</span>`).join('')}</div>`;
-  h += `<div class="rowlbl">${t('equipment')}</div><div class="chips">${Object.keys(S.equip).map(k => `<span class="chip" data-h="equip:${k}">${ic(IC.EQUIP[k])} ${nm(k)} $${E.EQUIP[k].cost} ×${S.equip[k]}</span>`).join('')}<span class="chip">${ic('gas')} ×${S.gasSupply}</span></div>`;
-  h += `<div class="rowlbl">${t('lockers')}</div><div class="chips">${['green', 'black', 'brown'].map(c => `<span class="chip" data-h="locker:${c}">${ic('lock', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])} ${nm(c)} ${window.HEIST_DATA.lockers.lockers[c].min}+ · ×${S.lockers[c].length}</span>`).join('')}</div>`;
+  h += `<div class="rowlbl">${t('fixers')}</div><div class="cardrow wrap">${S.fixers.map(f => fixerCardHTML(f)).join('')}</div>`;
+  h += `<div class="rowlbl">${t('equipment')}</div><div class="cardrow wrap">${Object.keys(S.equip).map(k => equipTileHTML(k, S.equip[k])).join('')}<div class="etile gas" data-h="stat:gas"><div class="nm">${t('gas')}</div>${ic('gas', 'big', '#7fc3ff')}<div class="av">+1 ${t('mp')}</div><div class="ft"><span>${t('free')}</span><span>×${S.gasSupply}</span></div></div></div>`;
+  h += `<div class="rowlbl">${t('lockers')}</div><div class="legend">${t('lockerLegend')}</div><div class="cardrow wrap">${['green', 'black', 'brown'].map(c => lockerBackHTML(c, S.lockers[c].length)).join('')}</div>`;
   h += `<div class="kv" style="margin-top:8px"><span>${ic('disc')} ${t('discs')}</span><b>${S.discs}</b></div><div class="kv"><span>${ic('shield', '', COP.county)}${ic('shield', '', COP.federal)}${ic('shield', '', '#888')} bag</span><b>${S.bag.county}/${S.bag.federal}/${S.bag.swat}</b></div>`;
   return h;
 }
@@ -2602,9 +2665,9 @@ function chooseSheet(pd, p) {
   if (q === 'bonus_biz' || q === 'bonus_sh') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'disc' ? 'disc' : 'unlock')}<b>${o === 'disc' ? t('opt.disc') : t(q === 'bonus_sh' ? 'opt.unlockSh' : 'opt.unlockBiz')}</b>` }));
   if (q === 'hospital') opts = pd.opts.map(o => ({ v: o, html: `${ic('cross', '', '#d23b33')}<b>${t('opt.heal', o)}</b>` }));
   if (q === 'key') opts = pd.opts.map(o => ({ v: o, html: `${ic('key', '', keyC[o])}<b>${nm(o)}</b>` }));
-  if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.FIX[o])}<span><b>${nm(o)} $${E.FIXER[o].cost}k</b><br>${T.effect(E.FIXER[o].effect)}</span>` });
-  if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic(IC.EQUIP[o])}<span><b>${nm(o)} $${E.EQUIP[o].cost}k</b><br>${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
-  if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${ic('lock', '', keyC[o])}<b>${nm(o)}</b>` });
+  if (q === 'fixer') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${fixerCardHTML(o)}<span style="font-size:13px">${T.effect(E.FIXER[o].effect)}</span>` });
+  if (q === 'equip') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${equipTileHTML(o, G.S.equip[o])}<span style="font-size:13px">${(E.EQUIP[o].avoids || E.EQUIP[o].avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span>` });
+  if (q === 'locker') opts = pd.opts.map(o => o === 'none' ? { v: o, html: `<b>${t('none')}</b>` } : { v: o, html: `${lockerBackHTML(o, G.S.lockers[o].length)}` });
   if (q === 'clawsExtra') opts = pd.opts.map(o => ({ v: o, html: `${ic('bag', '', '#2d7a2a')}<b>${t('extraN', o)}</b>` }));
   if (q === 'mrv') opts = pd.opts.map(o => ({ v: o, html: `${ic(o === 'lose' ? 'starMinus' : o === 'gain' ? 'starPlus' : 'star', '', '#d23b33')}<b>${t('mrvOpt.' + o)}</b>` }));
   if (q === 'mission') { const M = window.HEIST_DATA.missions.missions.find(m => m.id === pd.mission); const MT = T.missionText(M); opts = pd.opts.map((o, i) => ({ v: o, html: `${ic('check', '', '#2d7a2a')}<span>${MT.abilities[i]}</span>` })); }
@@ -2686,7 +2749,7 @@ function helpHTML(key) {
     case 'stat': { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
     case 'plan': return `<b>${t('plan')}: ${nm(id)}</b>${pt ? 'Valor no fim do jogo, ou $ = rendimento imediato quando visitas.' : 'Value at the end of the game, or $ = instant income when you visit.'}`;
     case 'key': return `<b>${t('keys')}</b>${pt ? 'Abre um cacifo desta cor ou um Business fechado.' : 'Opens a locker of this colour or a closed Business.'}`;
-    case 'locker': return `<b>${t('lockers')}: ${nm(id)}</b>${topic('store')}`;
+    case 'locker': { const L = window.HEIST_DATA.lockers.lockers[id]; return `<b>${t('lockers')}: ${nm(id)}</b>${t('lockerHelp', L.min, L.draw)}`; }
     case 'track': return `<b>${t('notoriety')} ${id}</b>${topic('notoriety')}`;
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
