@@ -112,7 +112,15 @@ function tileSVG(tile, rot, cx, cy, opts = {}) {
   s += `<circle r="${R0 * 0.16}" fill="url(#vig)" opacity=".0"/>`;
   s += `</g><polygon points="${hexPts(0, 0)}" class="tile-edge"/>`;
   if (TL.helipad) VANG.forEach((a, k) => { const v = vtx(k, 0.8); s += `<g transform="translate(${v.x},${v.y})"><circle r="8" fill="#fff" stroke="${'#d23b33'}" stroke-width="2"/><text y="3.5" text-anchor="middle" font-size="10" font-weight="700" fill="#d23b33" font-family="Arial">H</text></g>`; });
-  if (TL.ferry) { const ww = g.w.filter(x => x.T === 'W'); [ww[0], ww[ww.length - 1]].forEach(x => { if (!x) return; const px = (x.p0.x + x.p1.x) / 2 * 0.82, py = (x.p0.y + x.p1.y) / 2 * 0.82; s += `<g transform="translate(${px},${py})"><circle r="9" fill="#fff" stroke="#2f72c6" stroke-width="2"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#2f72c6" font-family="Arial">F</text></g>`; }); }
+  if (TL.ferry) {
+    // one F marker where each run of water meets the tile border, joined by a dashed ferry route
+    const runs = []; let start = g.w.findIndex((x, k) => x.T === 'W' && g.w[(k + 11) % 12].T !== 'W');
+    if (start >= 0) { for (let k = 0; k < 12; k++) { const i = (start + k) % 12; if (g.w[i].T !== 'W') continue; if (!runs.length || g.w[(i + 11) % 12].T !== 'W') runs.push([]); runs[runs.length - 1].push(g.w[i]); } }
+    const mid = (w) => ({ x: (w.p0.x + w.p1.x) / 2 * 0.86, y: (w.p0.y + w.p1.y) / 2 * 0.86 });
+    const pts = runs.length === 1 ? (runs[0].length >= 2 ? [mid(runs[0][0]), mid(runs[0][runs[0].length - 1])] : [mid(runs[0][0])]) : runs.map(r => { const a = r[Math.floor((r.length - 1) / 2)], b = r[Math.ceil((r.length - 1) / 2)]; const x = (a.p0.x + a.p1.x + b.p0.x + b.p1.x) / 4, y = (a.p0.y + a.p1.y + b.p0.y + b.p1.y) / 4; return { x: x * 0.86, y: y * 0.86 }; });
+    if (pts.length >= 2) s += `<path d="M${pts[0].x},${pts[0].y} Q0,0 ${pts[1].x},${pts[1].y}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" opacity=".7"/>`;
+    pts.forEach(p => { s += `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})"><circle r="10" fill="#fff" stroke="#2f72c6" stroke-width="2.5"/><text y="4.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2f72c6" font-family="Arial">F</text></g>`; });
+  }
   s += '</g>';
   return s;
 }
@@ -326,11 +334,13 @@ function fixerCardHTML(id, cls = '') {
 }
 function equipTileHTML(id, left) {
   const Q = E.EQUIP[id]; const ty = Q.avoids || Q.avoids_one_of;
-  return `<div class="etile" data-h="equip:${id}"><div class="nm">${nm(id)}</div>${ic(IC.EQUIP[id], 'big')}<div class="av">${ty.map(x => ic('shield', '', COP[x])).join(Q.avoids_one_of ? '<small>/</small>' : '')}</div><div class="ft"><span>$${Q.cost}</span><span>×${left}</span></div></div>`;
+  return `<div class="etile" data-h="equip:${id}"><div class="nm">${nm(id)}</div>${ic(IC.EQUIP[id], 'big')}<div class="av">${ty.map(x => ic('shield', '', COP[x])).join(Q.avoids_one_of ? '<small>/</small>' : '')}</div><div class="ft"><span>$${Q.cost}</span><span data-h="ui:left">×${left}</span></div></div>`;
 }
 function lockerBackHTML(col, left) {
   const L = window.HEIST_DATA.lockers.lockers[col]; const draw = { '+1': '+1', '0': '', '-1': '−1' }[L.draw];
-  return `<div class="ltile ${col}" data-h="locker:${col}"><div class="nm">${nm(col)}</div>${ic('lock', 'big')}<div class="req" title="">${L.min}+</div><div class="drw">${ic('card')}${draw}</div><div class="ft">×${left}</div></div>`;
+  const cnt = {}; L.tiles.forEach(v => cnt[v] = (cnt[v] || 0) + 1);
+  const comp = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(v => `<div><span>${v ? '$' + v + 'k' : '✕ $0'}</span><b>${cnt[v]}/${L.tiles.length}</b></div>`).join('');
+  return `<div class="ltile ${col}" data-h="locker:${col}"><div class="lh"><span class="nm">${nm(col)}</span>${ic('lock')}</div><div class="lr"><div class="req">${L.min}+</div><div class="drw">${ic('card')}${draw || '='}</div></div><div class="comp">${comp}</div><div class="ft" data-h="ui:left">${t('left', left)}</div></div>`;
 }
 function marketHTML(S) {
   let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
@@ -339,8 +349,8 @@ function marketHTML(S) {
   for (let lv = 1; lv <= S.cfg.max; lv++) {
     const here = S.players.concat(S.npcs || []).filter(q => q.notor === lv && !q.arrested);
     const ti = S.cfg.th.indexOf(lv);
-    if (ti >= 0) h += `<div class="thlbl">▲ ${t('thGain')[ti]}</div>`;
-    h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}"><span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
+    const thb = ti < 0 ? '' : `<span class="thb" data-h="th:${ti}">${ic('unlock')}<small>×${ti === 1 ? 2 : 1}</small>${ti === 2 ? ic('disc', '', '#e8b546') : ''}<span class="sep"></span>${ic('shield', '', '#ff8a7a')}<small>➜</small></span>`;
+    h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}">${thb}<span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
   }
   h += `</div><div class="rowlbl">${t('businesses')}</div>`;
   const cubeRow = (cubes) => { const inc = cubes.filter(c => c.income), end = cubes.filter(c => !c.income); const sq = (arr) => arr.map(c => `<i style="background:${pcolor(c.pid)}" title="${pname(c.pid)}"></i>`).join('') || '<em>—</em>'; return `<div class="bc"><span class="hx inc" data-h="ui:incHex">$ ${t('incomeNow')}</span>${sq(inc)}<span class="hx end" data-h="ui:endHex">${ic('bag')} ${t('endMoney')}</span>${sq(end)}</div>`; };
@@ -560,11 +570,12 @@ function helpHTML(key) {
     case 'plan': return `<b>${t('plan')}: ${nm(id)}</b>${pt ? 'Valor no fim do jogo, ou $ = rendimento imediato quando visitas.' : 'Value at the end of the game, or $ = instant income when you visit.'}`;
     case 'key': return `<b>${t('keys')}</b>${pt ? 'Abre um cacifo desta cor ou um Business fechado.' : 'Opens a locker of this colour or a closed Business.'}`;
     case 'locker': { const L = window.HEIST_DATA.lockers.lockers[id]; return `<b>${t('lockers')}: ${nm(id)}</b>${t('lockerHelp', L.min, L.draw)}`; }
+    case 'th': return `<b>${t('thTitle', +id + 1)}</b>${t('thGain')[+id]}`;
     case 'track': return `<b>${t('notoriety')} ${id}</b>${topic('notoriety')}`;
     case 'biz': return `<b>${nm(id)}</b>${topic('business')}`;
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
-    case 'ui': if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
