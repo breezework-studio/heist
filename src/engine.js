@@ -22,7 +22,7 @@ const PTYPES = ['county', 'federal', 'swat'];
 const PLAN_KEYS = ['casino', 'bar', 'restaurant', 'gym', 'nightclub', 'gallery', 'sh1', 'sh2', 'sh3'];
 const GROUPS = { purple: ['casino', 'bar', 'restaurant'], blue: ['gym', 'nightclub', 'gallery'] };
 const CONTACT_SCORE = [0, 0, 10, 30, 60, 100];
-const UNLOCK_COSTS = [5, 4, 3, 2, 1, 1];
+const UNLOCK_COSTS = [5, 4, 3, 2, 1, 0];
 // 18-cell board, flat-top, odd-q (odd columns shifted down)
 const CELLS = []; (() => { for (let c = 0; c < 5; c++) { const rows = c % 2 ? 3 : 4; for (let r = 0; r < rows; r++) CELLS.push({ c, r }); } })();
 const START_CELLS = [CELLS.findIndex(x => x.c === 2 && x.r === 1), CELLS.findIndex(x => x.c === 2 && x.r === 2)];

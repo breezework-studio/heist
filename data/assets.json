@@ -1,5 +1,5 @@
 {
-  "_comment": "7 Asset tiles per player. Back: $10k (each used tile is worth $10k at game end). Unlock costs by slot: 5,4,3,2,1 (left column of player board). Use once per game, any step.",
+  "_comment": "7 Asset tiles per player. Back: $10k (each used tile is worth $10k at game end). Unlock costs by slot: 5,4,3,2,1,0 (last space free; left column of player board). Use once per game, any step.",
   "assets": [
     {"id": "move_county", "effect": "move_police", "type": "county", "start": "item"},
     {"id": "move_federal", "effect": "move_police", "type": "federal", "start": "item"},
