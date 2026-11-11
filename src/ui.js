@@ -301,11 +301,12 @@ function renderTop() {
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
   el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
-  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button><button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
+  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
   $('#bSpeed').onclick = () => { const o = ['slow', 'normal', 'fast']; G.prefs.speed = o[(o.indexOf(G.prefs.speed) + 1) % 3]; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); renderTop(); };
   $('#bMenu').onclick = () => { if (confirm(t('confirmQuit'))) { saveGame(); showMenu(); } };
+  $('#bFull') && ($('#bFull').onclick = toggleFull);
   $('#sideToggle').onclick = () => $('#side').classList.toggle('open');
 }
 
@@ -791,7 +792,7 @@ function helpHTML(key) {
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
-    case 'ui': if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -807,6 +808,16 @@ function bindTips() {
   document.addEventListener('touchmove', () => clearTimeout(lp), { passive: true });
 }
 
+// full screen (where the browser allows it)
+function isFull() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function toggleFull() {
+  const d = document, el = d.documentElement;
+  try {
+    if (isFull()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else { const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el); if (r && r.then) r.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); }
+  } catch (e) {}
+}
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { const b = document.getElementById('bFull'); if (b) b.innerHTML = ic(isFull() ? 'unfull' : 'full'); setTimeout(() => { try { fitMap && fitMap(); } catch (e) {} }, 200); }));
 // ---------------- rules assistant ----------------
 function openRules(topicId) {
   const lang = G.prefs.lang; let cur = topicId || 'goal'; let q = '';
