@@ -1,0 +1,19 @@
+plugins { id 'com.android.application' }
+android {
+  namespace 'io.github.breezeworkstudio.heist'
+  compileSdk 34
+  defaultConfig {
+    applicationId 'io.github.breezeworkstudio.heist'
+    minSdk 21
+    targetSdk 34
+    versionCode((System.getenv('VERSION_CODE') ?: '1') as int)
+    versionName "1.0." + (System.getenv('VERSION_CODE') ?: '1')
+  }
+  signingConfigs {
+    // fan project: the key is public on purpose so anyone can rebuild the same app
+    release { storeFile file('../heist.keystore'); storePassword 'heistfan2026'; keyAlias 'heist'; keyPassword 'heistfan2026' }
+  }
+  buildTypes { release { minifyEnabled false; signingConfig signingConfigs.release } }
+  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0' }
