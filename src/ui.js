@@ -897,6 +897,27 @@ function playerAnchor(pid) {
   const pc = $('#pc-' + pid); if (pc) { const r = pc.getBoundingClientRect(); if (r.width) return { x: r.left + r.width / 2, y: r.top + 20 }; }
   return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 }
+// draw attention to a part of the screen: a pulsing ring around it (non-blocking)
+function ring(target, ms = 1600) {
+  const els = typeof target === 'string' ? $$(target) : [target].filter(Boolean); if (!els.length || !spd()) return;
+  els.forEach(el => { const r = el.getBoundingClientRect(); if (!r.width) return; const d = document.createElement('div'); d.className = 'ring'; Object.assign(d.style, { left: r.left - 6 + 'px', top: r.top - 6 + 'px', width: r.width + 12 + 'px', height: r.height + 12 + 'px' }); document.body.appendChild(d); setTimeout(() => d.remove(), ms * spd()); });
+}
+// a big card in the middle of the screen that then flies into its place (e.g. a patrol card to its exit)
+function flyToSpot(html, target, hold = 900) {
+  if (!spd()) return Promise.resolve();
+  const d = document.createElement('div'); d.className = 'bigcard'; d.innerHTML = html; document.body.appendChild(d);
+  return new Promise(res => setTimeout(() => {
+    const el = typeof target === 'string' ? $(target) : target; const r = el && el.getBoundingClientRect(); const b = d.getBoundingClientRect();
+    if (r && r.width) { const dx = r.left + r.width / 2 - (b.left + b.width / 2), dy = r.top + r.height / 2 - (b.top + b.height / 2); d.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.15)`, opacity: .2 }], { duration: 600 * spd(), easing: 'ease-in', fill: 'forwards' }); }
+    setTimeout(() => { d.remove(); if (el) ring(el); res(); }, 620 * spd());
+  }, hold * spd()));
+}
+// spotlight for the tutorial: dims everything except the highlighted element
+function spotlight(sel) {
+  $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = $$(sel).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
+  const rs = els.map(e => e.getBoundingClientRect()); const L = Math.min(...rs.map(r => r.left)), T = Math.min(...rs.map(r => r.top)), R = Math.max(...rs.map(r => r.right)), B = Math.max(...rs.map(r => r.bottom));
+  const d = document.createElement('div'); d.className = 'spot'; Object.assign(d.style, { left: L - 8 + 'px', top: T - 8 + 'px', width: R - L + 16 + 'px', height: B - T + 16 + 'px' }); document.body.appendChild(d);
+}
 function banner(text, small) { if (!spd()) return; const d = document.createElement('div'); d.className = 'banner'; d.innerHTML = (small ? `<small>${small}</small>` : '') + text; fx().appendChild(d); setTimeout(() => d.remove(), 1500 * spd()); }
 function stamp(text) { if (!spd()) return; const d = document.createElement('div'); d.className = 'stamp'; d.textContent = text; d.style.left = '50%'; d.style.top = '40%'; d.style.marginLeft = '-140px'; fx().appendChild(d); setTimeout(() => d.remove(), 1400 * spd()); }
 function flyCard(card, pid) {
@@ -971,13 +992,21 @@ async function playEvent(e) {
   addLog(e);
   const redraw = () => { renderMap(); renderTop(); renderSide(); setTicker(); };
   switch (e.t) {
-    case 'day': patchVS(VS, S, e); redraw(); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
-    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); await wait(900); } return;
-    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); await wait(900); return;
-    case 'patrol': patchVS(VS, S, e); redraw(); { const b = $$('.exitb')[e.exit - 1]; b && b.classList.add('flash'); } if (e.count === 2) stamp(`EXIT ${e.exit}`); await wait(e.count === 2 ? 1200 : 600); return;
+    case 'day': patchVS(VS, S, e); redraw(); ring('.daybox'); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
+    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); ring('.daybox.ph'); if (e.ph === 'patrol') ring('.exits'); if (e.ph === 'income') ring('.stat.money'); await wait(900); } return;
+    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); ring('.timeline .tl.on'); await wait(900); return;
+    case 'patrol': {
+      const pt = G.prefs.lang === 'pt';
+      await flyToSpot(`<div class="patcard"><small>${pt ? 'Carta de patrulha' : 'Patrol card'}</small><b>EXIT ${e.exit}</b><span>${e.count === 2 ? (pt ? '2.ª carta — a saída fecha!' : '2nd card — the exit closes!') : (pt ? '1.ª carta nesta saída' : '1st card on this exit')}</span></div>`, $$('.exitb')[e.exit - 1], 1000);
+      patchVS(VS, S, e); redraw(); { const b = $$('.exitb')[e.exit - 1]; b && b.classList.add('flash'); ring(b); } if (e.count === 2) stamp(`EXIT ${e.exit}`); await wait(e.count === 2 ? 1300 : 700); return;
+    }
     case 'place': G.dropCell = e.cell; patchVS(VS, S, e); redraw(); { const el = $('#tile-' + e.cell); if (el && k) { el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center'; el.animate([{ transform: el.getAttribute('transform') + ' scale(1.5)', opacity: 0 }, { transform: el.getAttribute('transform') + ' scale(1)', opacity: 1 }], { duration: 600 * k, easing: 'cubic-bezier(.3,1.4,.6,1)' }); } } G.dropCell = null; await wait(650); return;
     case 'display': patchVS(VS, S, e); redraw(); return;
-    case 'order': patchVS(VS, S, e); redraw(); await wait(300); return;
+    case 'order': {
+      patchVS(VS, S, e); const pt = G.prefs.lang === 'pt';
+      await flyToSpot(`<div class="ordcard"><small>${pt ? 'Ordem de turno' : 'Turn order'}</small>${VS.order.map((id, i) => { const q = E.P(VS, id); return `<div><i style="background:${pcolor(id)}"></i>${i + 1}. ${pname(id)} <em>★${q ? q.notor : ''}</em></div>`; }).join('')}</div>`, '.topord', 1300);
+      redraw(); ring('.topord'); await wait(300); return;
+    }
     case 'turn': redraw(); if (isHuman(e.p)) { banner(t('yourTurn'), pname(e.p)); await wait(900); } else await wait(350); return;
     case 'move': {
       const q = E.P(VS, e.p); const spots = pawnSpots(VS); const start = spots[e.p];
@@ -1030,13 +1059,13 @@ function startTutorial() {
   G.S = E.newGame({ seed: 20261112, players, gasCan: true, upgradeFixers: true });
   G.logLines = []; startScreen(true);
 }
-function coachClose() { const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
-function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
+function coachClose() { $$('.spot').forEach(x => x.remove()); const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
+function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) { $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (!c._dec) spotlight(c._hl); } if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
 // show a coach card; resolves when the player presses Next / Got it (or the card is closed by playing)
 function coach(entry, o = {}) {
   coachClose(); const U = TUT().ui;
   return new Promise(res => {
-    const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null;
+    const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null; d._dec = !!o.decision;
     d.innerHTML = `<h4><span class="grip">⠿</span> <small>🎓 ${U.step}</small><br>${entry.t}</h4><div class="cb">${entry.b || ''}${o.extra || ''}</div><div class="row">${o.doIt ? `<button class="pri" id="cDo">${U.doIt}</button>` : ''}<button class="${o.doIt ? 'ghost' : 'pri'}" id="cNext">${o.decision ? U.gotIt : U.next}</button><button class="ghost" id="cSkip">${U.skip}</button></div>`;
     document.body.appendChild(d); makeDraggable(d, $('h4', d)); coachHL();
     $('#cNext', d).onclick = () => coachClose();

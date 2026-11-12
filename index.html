@@ -239,6 +239,11 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .mapctr{position:absolute;right:10px;bottom:10px;width:38px;height:38px;border-radius:50%;background:#1c2028cc;color:#e8e2d4;border:1px solid #444b58;font-size:20px;line-height:1;z-index:5;cursor:pointer}
 .coach{position:fixed;left:14px;bottom:86px;z-index:70;width:min(380px,calc(100vw - 28px));max-height:70vh;overflow:auto;padding:12px 14px;border-radius:12px;box-shadow:0 10px 40px #000a;border:2px solid #f2c629}.coach h4{margin:0 0 6px;font-family:var(--ff-type);font-size:19px;line-height:1.2}.coach h4 small{font-family:var(--ff-ui);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8a6a10}.coach .cb{font-size:14.5px;line-height:1.45}.coach .cb p{margin:4px 0 6px}.coach .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.coach .row button{font-size:14px;padding:6px 12px}.coach .lt{padding:0 5px;border-radius:4px;color:#fff;font-size:12.5px}.tmean{background:#0000000d;border-radius:8px;padding:6px 10px;margin:6px 0;font-size:13px}.tmean ul{margin:3px 0 0;padding-left:18px}.tsug{background:#f2c62933;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:14px}
 .tut-hl{outline:3px solid #f2c629!important;outline-offset:3px;border-radius:8px;animation:tutp 1.1s ease-in-out infinite}#map .tut-hl{outline:none;animation:tutsvg 1.1s ease-in-out infinite}#map .tut-hl .ring{stroke:#f2c629!important;stroke-width:7px!important}@keyframes tutp{50%{outline-color:#f2c62933}}@keyframes tutsvg{50%{opacity:.55}}
+.ring{position:fixed;z-index:65;pointer-events:none;border:3px solid #f2c629;border-radius:10px;box-shadow:0 0 18px #f2c629aa;animation:ringp calc(.8s*var(--speed)) ease-in-out 2}@keyframes ringp{0%{transform:scale(1.25);opacity:0}40%{transform:scale(1);opacity:1}100%{opacity:.9}}
+.spot{position:fixed;z-index:68;pointer-events:none;border:3px solid #f2c629;border-radius:12px;box-shadow:0 0 0 9999px #000a,0 0 24px #f2c629}
+.bigcard{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:66;pointer-events:none;animation:bigin calc(.35s*var(--speed)) ease-out}@keyframes bigin{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+.patcard{width:230px;padding:18px 16px;border-radius:14px;background:#f2c629;color:#1a1a1a;text-align:center;box-shadow:0 14px 50px #000c;border:4px solid #1a1a1a;font-family:var(--ff-type)}.patcard small{display:block;font-family:var(--ff-ui);letter-spacing:.12em;text-transform:uppercase;font-size:13px}.patcard b{display:block;font-size:46px;line-height:1.1}.patcard span{font-family:var(--ff-ui);font-size:15px;font-weight:700}
+.ordcard{min-width:240px;padding:14px 18px;border-radius:14px;background:var(--paper);color:var(--ink);box-shadow:0 14px 50px #000c;border:3px solid #f2c629;font-size:18px}.ordcard small{display:block;font-family:var(--ff-type);font-size:22px;margin-bottom:6px}.ordcard div{display:flex;align-items:center;gap:8px;margin:3px 0}.ordcard i{width:16px;height:16px;border-radius:50%;display:inline-block}.ordcard em{margin-left:auto;font-style:normal;color:#b8432f}
 .credits{font-size:11px;color:var(--muted);text-align:center;max-width:440px;margin:10px auto 0;line-height:1.4;opacity:.8}
 .mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.menu-btns .mrow button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.menu-btns .mrow button small{font-size:11.5px;font-weight:400;opacity:.8}.menu-btns .mrow .ic{display:none}.msmall{text-align:center;font-size:12.5px;margin-top:4px}.msmall a{color:var(--muted)}
 .savemode{margin-top:14px;text-align:center}.smt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.smb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.smb button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:150px;padding:8px 12px;background:#20242c;border:2px solid #343a46;color:#e8e2d4;border-radius:10px;font-size:15px}.smb button small{font-size:11.5px;color:var(--muted)}.smb button.on{border-color:#f2c629;background:#2a2a1e}.smb .ic{width:20px;height:20px}.priv{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
@@ -3656,6 +3661,27 @@ function playerAnchor(pid) {
   const pc = $('#pc-' + pid); if (pc) { const r = pc.getBoundingClientRect(); if (r.width) return { x: r.left + r.width / 2, y: r.top + 20 }; }
   return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 }
+// draw attention to a part of the screen: a pulsing ring around it (non-blocking)
+function ring(target, ms = 1600) {
+  const els = typeof target === 'string' ? $$(target) : [target].filter(Boolean); if (!els.length || !spd()) return;
+  els.forEach(el => { const r = el.getBoundingClientRect(); if (!r.width) return; const d = document.createElement('div'); d.className = 'ring'; Object.assign(d.style, { left: r.left - 6 + 'px', top: r.top - 6 + 'px', width: r.width + 12 + 'px', height: r.height + 12 + 'px' }); document.body.appendChild(d); setTimeout(() => d.remove(), ms * spd()); });
+}
+// a big card in the middle of the screen that then flies into its place (e.g. a patrol card to its exit)
+function flyToSpot(html, target, hold = 900) {
+  if (!spd()) return Promise.resolve();
+  const d = document.createElement('div'); d.className = 'bigcard'; d.innerHTML = html; document.body.appendChild(d);
+  return new Promise(res => setTimeout(() => {
+    const el = typeof target === 'string' ? $(target) : target; const r = el && el.getBoundingClientRect(); const b = d.getBoundingClientRect();
+    if (r && r.width) { const dx = r.left + r.width / 2 - (b.left + b.width / 2), dy = r.top + r.height / 2 - (b.top + b.height / 2); d.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.15)`, opacity: .2 }], { duration: 600 * spd(), easing: 'ease-in', fill: 'forwards' }); }
+    setTimeout(() => { d.remove(); if (el) ring(el); res(); }, 620 * spd());
+  }, hold * spd()));
+}
+// spotlight for the tutorial: dims everything except the highlighted element
+function spotlight(sel) {
+  $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = $$(sel).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
+  const rs = els.map(e => e.getBoundingClientRect()); const L = Math.min(...rs.map(r => r.left)), T = Math.min(...rs.map(r => r.top)), R = Math.max(...rs.map(r => r.right)), B = Math.max(...rs.map(r => r.bottom));
+  const d = document.createElement('div'); d.className = 'spot'; Object.assign(d.style, { left: L - 8 + 'px', top: T - 8 + 'px', width: R - L + 16 + 'px', height: B - T + 16 + 'px' }); document.body.appendChild(d);
+}
 function banner(text, small) { if (!spd()) return; const d = document.createElement('div'); d.className = 'banner'; d.innerHTML = (small ? `<small>${small}</small>` : '') + text; fx().appendChild(d); setTimeout(() => d.remove(), 1500 * spd()); }
 function stamp(text) { if (!spd()) return; const d = document.createElement('div'); d.className = 'stamp'; d.textContent = text; d.style.left = '50%'; d.style.top = '40%'; d.style.marginLeft = '-140px'; fx().appendChild(d); setTimeout(() => d.remove(), 1400 * spd()); }
 function flyCard(card, pid) {
@@ -3730,13 +3756,21 @@ async function playEvent(e) {
   addLog(e);
   const redraw = () => { renderMap(); renderTop(); renderSide(); setTicker(); };
   switch (e.t) {
-    case 'day': patchVS(VS, S, e); redraw(); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
-    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); await wait(900); } return;
-    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); await wait(900); return;
-    case 'patrol': patchVS(VS, S, e); redraw(); { const b = $$('.exitb')[e.exit - 1]; b && b.classList.add('flash'); } if (e.count === 2) stamp(`EXIT ${e.exit}`); await wait(e.count === 2 ? 1200 : 600); return;
+    case 'day': patchVS(VS, S, e); redraw(); ring('.daybox'); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
+    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); ring('.daybox.ph'); if (e.ph === 'patrol') ring('.exits'); if (e.ph === 'income') ring('.stat.money'); await wait(900); } return;
+    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); ring('.timeline .tl.on'); await wait(900); return;
+    case 'patrol': {
+      const pt = G.prefs.lang === 'pt';
+      await flyToSpot(`<div class="patcard"><small>${pt ? 'Carta de patrulha' : 'Patrol card'}</small><b>EXIT ${e.exit}</b><span>${e.count === 2 ? (pt ? '2.ª carta — a saída fecha!' : '2nd card — the exit closes!') : (pt ? '1.ª carta nesta saída' : '1st card on this exit')}</span></div>`, $$('.exitb')[e.exit - 1], 1000);
+      patchVS(VS, S, e); redraw(); { const b = $$('.exitb')[e.exit - 1]; b && b.classList.add('flash'); ring(b); } if (e.count === 2) stamp(`EXIT ${e.exit}`); await wait(e.count === 2 ? 1300 : 700); return;
+    }
     case 'place': G.dropCell = e.cell; patchVS(VS, S, e); redraw(); { const el = $('#tile-' + e.cell); if (el && k) { el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center'; el.animate([{ transform: el.getAttribute('transform') + ' scale(1.5)', opacity: 0 }, { transform: el.getAttribute('transform') + ' scale(1)', opacity: 1 }], { duration: 600 * k, easing: 'cubic-bezier(.3,1.4,.6,1)' }); } } G.dropCell = null; await wait(650); return;
     case 'display': patchVS(VS, S, e); redraw(); return;
-    case 'order': patchVS(VS, S, e); redraw(); await wait(300); return;
+    case 'order': {
+      patchVS(VS, S, e); const pt = G.prefs.lang === 'pt';
+      await flyToSpot(`<div class="ordcard"><small>${pt ? 'Ordem de turno' : 'Turn order'}</small>${VS.order.map((id, i) => { const q = E.P(VS, id); return `<div><i style="background:${pcolor(id)}"></i>${i + 1}. ${pname(id)} <em>★${q ? q.notor : ''}</em></div>`; }).join('')}</div>`, '.topord', 1300);
+      redraw(); ring('.topord'); await wait(300); return;
+    }
     case 'turn': redraw(); if (isHuman(e.p)) { banner(t('yourTurn'), pname(e.p)); await wait(900); } else await wait(350); return;
     case 'move': {
       const q = E.P(VS, e.p); const spots = pawnSpots(VS); const start = spots[e.p];
@@ -3789,13 +3823,13 @@ function startTutorial() {
   G.S = E.newGame({ seed: 20261112, players, gasCan: true, upgradeFixers: true });
   G.logLines = []; startScreen(true);
 }
-function coachClose() { const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
-function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
+function coachClose() { $$('.spot').forEach(x => x.remove()); const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
+function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) { $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (!c._dec) spotlight(c._hl); } if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
 // show a coach card; resolves when the player presses Next / Got it (or the card is closed by playing)
 function coach(entry, o = {}) {
   coachClose(); const U = TUT().ui;
   return new Promise(res => {
-    const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null;
+    const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null; d._dec = !!o.decision;
     d.innerHTML = `<h4><span class="grip">⠿</span> <small>🎓 ${U.step}</small><br>${entry.t}</h4><div class="cb">${entry.b || ''}${o.extra || ''}</div><div class="row">${o.doIt ? `<button class="pri" id="cDo">${U.doIt}</button>` : ''}<button class="${o.doIt ? 'ghost' : 'pri'}" id="cNext">${o.decision ? U.gotIt : U.next}</button><button class="ghost" id="cSkip">${U.skip}</button></div>`;
     document.body.appendChild(d); makeDraggable(d, $('h4', d)); coachHL();
     $('#cNext', d).onclick = () => coachClose();
