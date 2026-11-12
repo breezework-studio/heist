@@ -1863,7 +1863,7 @@ en: {
   incomeLbl: 'Income',
   credits: 'Unofficial fan project inspired by <i>Escape Plan</i> by Vital Lacerda (Eagle-Gryphon Games). Not affiliated with or endorsed by them.',
   single: 'Single player', singleH: 'You against the computer (solo or 2–5 players), saved on your Google account — continue on any device.', multi: 'Multiplayer', multiH: 'Play against other people over the internet.', soon: 'Not yet available',
-  contLocal: 'Continue', contCloud: 'Continue online', newLocal: 'New game', newCloud: 'New online game', onDevice: 'on this device', anyDevice: 'Google account · any device', signOut: 'Sign out of Google', signOutQ: 'Sign out of Google on this device? Your online game stays on Drive.', noSaveCloud: 'No online game found', needNet: 'You need internet to start an online game', cloudOfflineCont: 'No internet: continuing from this device’s copy',
+  contLocal: 'Continue', contCloud: 'Continue online', newLocal: 'New game', newCloud: 'New online game', onDevice: 'on this device', anyDevice: 'Google account · any device', signOut: 'Switch / sign out of Google account', signOutQ: 'Sign out of Google on this device? Your online game stays on Drive.', noSaveCloud: 'No online game found', needNet: 'You need internet to start an online game', cloudOfflineCont: 'No internet: continuing from this device’s copy',
   saveWhere: 'Where to save your games', smLocal: 'This device', smLocalH: 'works offline, only here', smCloud: 'Google account', smCloudH: 'continue on any device', privacy: 'Privacy',
   driveConnect: 'Connect Google Drive', driveOn: 'Google Drive: on', driveOffQ: 'Save only on this device from now on (sign out of Google here)?', driveDone: 'Google Drive connected — your games are saved there too', driveFail: 'Could not connect to Google Drive', cloudLook: 'Looking for your game on Google Drive…', cloudGot: 'Using the newer game from Google Drive', noSave: 'No saved game found', cloudLast: 'Last copy on Drive:',
   cloudSt: { ok: 'Your game is saved on Drive.', pending: 'Saving… (tap anywhere if it waits — Google may need to confirm your sign-in).', offline: 'No internet: saved on this device; it will go to Drive when the connection is back.', error: 'Could not reach Drive; saved on this device and it will try again.', off: 'Off.' },
@@ -1932,7 +1932,7 @@ pt: {
   incomeLbl: 'Rendimento',
   credits: 'Projeto de fãs não oficial inspirado em <i>Escape Plan</i>, de Vital Lacerda (Eagle-Gryphon Games). Sem ligação nem aprovação destes.',
   single: 'Um jogador', singleH: 'Tu contra o computador (solo ou 2–5 jogadores), guardado na tua conta Google — continua em qualquer dispositivo.', multi: 'Multijogador', multiH: 'Jogar contra outras pessoas pela internet.', soon: 'Ainda não disponível',
-  contLocal: 'Continuar', contCloud: 'Continuar online', newLocal: 'Novo jogo', newCloud: 'Novo jogo online', onDevice: 'neste dispositivo', anyDevice: 'conta Google · qualquer dispositivo', signOut: 'Sair da conta Google', signOutQ: 'Sair da conta Google neste dispositivo? O teu jogo online continua no Drive.', noSaveCloud: 'Não há nenhum jogo online guardado', needNet: 'Precisas de internet para começar um jogo online', cloudOfflineCont: 'Sem internet: a continuar a partir da cópia deste dispositivo',
+  contLocal: 'Continuar', contCloud: 'Continuar online', newLocal: 'Novo jogo', newCloud: 'Novo jogo online', onDevice: 'neste dispositivo', anyDevice: 'conta Google · qualquer dispositivo', signOut: 'Trocar / sair da conta Google', signOutQ: 'Sair da conta Google neste dispositivo? O teu jogo online continua no Drive.', noSaveCloud: 'Não há nenhum jogo online guardado', needNet: 'Precisas de internet para começar um jogo online', cloudOfflineCont: 'Sem internet: a continuar a partir da cópia deste dispositivo',
   saveWhere: 'Onde guardar os teus jogos', smLocal: 'Neste dispositivo', smLocalH: 'funciona offline, só aqui', smCloud: 'Conta Google', smCloudH: 'continua em qualquer dispositivo', privacy: 'Privacidade',
   driveConnect: 'Ligar ao Google Drive', driveOn: 'Google Drive: ligado', driveOffQ: 'Passar a guardar só neste dispositivo (sair da conta Google aqui)?', driveDone: 'Google Drive ligado — os teus jogos ficam também guardados lá', driveFail: 'Não foi possível ligar ao Google Drive', cloudLook: 'A procurar o teu jogo no Google Drive…', cloudGot: 'A usar o jogo mais recente do Google Drive', noSave: 'Não há nenhum jogo guardado', cloudLast: 'Última cópia no Drive:',
   cloudSt: { ok: 'O teu jogo está guardado no Drive.', pending: 'A guardar… (se ficar à espera, toca em qualquer sítio — o Google pode precisar de confirmar a sessão).', offline: 'Sem internet: guardado neste dispositivo; vai para o Drive quando a ligação voltar.', error: 'Não foi possível chegar ao Drive; está guardado neste dispositivo e vai tentar outra vez.', off: 'Desligado.' },
@@ -2536,6 +2536,8 @@ const H = {
   isOn: () => H.enabled() && !!cfg().on,
   state: () => (!H.isOn() ? 'off' : C.pending ? (online() ? 'pending' : 'offline') : C.state),
   lastSync: () => cfg().last || 0,
+  used: () => !!cfg().used, // an account was used on this device before (show "Continue online" even when signed out)
+  uid: () => cfg().uid || null, // anonymous id of the Google account (Drive permissionId), so each account keeps its own game
   onChange: f => C.listeners.push(f),
   _dbg: () => ({ tok: !!C.token, ok: Date.now() < C.exp, st: C.state, err: C.err, busy: C.busy, np: C.np, pending: !!C.pending }),
 };
@@ -2563,13 +2565,20 @@ const tokenOK = () => C.token && Date.now() < C.exp;
 function getToken(first) {
   if (tokenOK()) return Promise.resolve(C.token);
   const tc = tokenClient(); if (!tc) return Promise.reject(new Error('gis'));
-  return new Promise((res, rej) => { C.wait = { res, rej }; tc.requestAccessToken({ prompt: first ? 'consent' : '' }); });
+  return new Promise((res, rej) => { C.wait = { res, rej }; tc.requestAccessToken({ prompt: first ? 'select_account consent' : '' }); });
 }
 async function api(url, opt = {}) {
   const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + C.token }, opt.headers || {}) }));
   if (r.status === 401) { C.token = null; throw new Error('401'); }
   if (!r.ok) throw new Error('http ' + r.status);
   return r;
+}
+// which Google account is signed in: Drive's anonymous permissionId (no name or e-mail is read)
+async function whoAmI() {
+  const r = await api('https://www.googleapis.com/drive/v3/about?fields=user(permissionId)'); const j = await r.json();
+  const uid = j.user && j.user.permissionId; if (!uid) throw new Error('uid');
+  if (uid !== cfg().uid) { setCfg({ uid, fileId: null }); C.pending = null; }
+  return uid;
 }
 async function fileId() {
   const c = cfg(); if (c.fileId) return c.fileId;
@@ -2600,18 +2609,18 @@ async function flush() {
   } catch (e) { set(online() ? 'error' : 'offline', e.message); }
   C.busy = false; if (C.pending && C.pending !== body) setTimeout(flush, 500);
 }
-H.push = (json) => { if (!H.isOn()) return; C.np = (C.np || 0) + 1; C.pending = json; clearTimeout(C.t); C.t = setTimeout(flush, 1500); set(H.state()); };
+H.push = (json, uid) => { if (!H.isOn() || (uid && uid !== cfg().uid)) return; C.np = (C.np || 0) + 1; C.pending = json; clearTimeout(C.t); C.t = setTimeout(flush, 1500); set(H.state()); };
 H.remove = () => { if (!H.isOn()) return; C.pending = '__delete__'; flush(); };
 // newest save on Drive (call from a tap): returns the text or null
 H.pull = async () => {
   if (!H.isOn() || !online()) return null;
-  try { await loadGis(); await getToken(false); const id = await fileId(); if (!id) return null; const r = await api(`${API}/${id}?alt=media`); set('ok'); return await r.text(); }
+  try { await loadGis(); await getToken(false); await whoAmI(); const id = await fileId(); if (!id) return null; const r = await api(`${API}/${id}?alt=media`); set('ok'); return await r.text(); }
   catch (e) { set(online() ? 'error' : 'offline', e.message); return null; }
 };
 H.connect = async () => {
-  await loadGis(); await getToken(!cfg().on); setCfg({ on: true }); set('ok'); return true;
+  await loadGis(); const fresh = !cfg().on || !cfg().uid; await getToken(fresh); await whoAmI(); setCfg({ on: true, used: true }); set('ok'); return cfg().uid;
 };
-H.disconnect = () => { try { if (C.token && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(C.token, () => {}); } catch (e) { } C.token = null; C.pending = null; setCfg({ on: false, fileId: null }); set('off'); };
+H.disconnect = () => { try { if (C.token && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(C.token, () => {}); } catch (e) { } C.token = null; C.pending = null; setCfg({ on: false, fileId: null, uid: null }); set('off'); };
 // any tap while a save is waiting refreshes the sign-in (silently when already granted) and sends it
 H.tap = () => { if (!H.isOn() || !C.pending || !online() || tokenOK() || C.wait) return; if (!tokenClient()) { loadGis().catch(() => {}); return; } getToken(false).then(flush).catch(e => set('error', e.message)); };
 root.addEventListener && root.addEventListener('online', () => { if (H.isOn()) { loadGis().catch(() => {}); flush(); } });
@@ -2650,11 +2659,14 @@ const wait = (ms) => { const k = spd(); return k ? sleep(ms * k) : Promise.resol
 const CLOUD = window.HeistCloud;
 // two kinds of game: 'local' (saved only on this device) and 'cloud' (saved on this device + the player's Google Drive)
 const SAVEKEY = { local: 'heist.save', cloud: 'heist.cloudsave' };
+// the device copy of an online game belongs to one Google account
+const cloudKey = uid => 'heist.cloudsave.' + (uid || 'x');
+const saveKey = mode => mode === 'cloud' ? cloudKey(G.cloudUid) : SAVEKEY.local;
 function saveGame() {
   const mode = G.mode || 'local';
   try {
-    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(SAVEKEY[mode], j); if (mode === 'cloud' && CLOUD) CLOUD.push(j); }
-    else { localStorage.removeItem(SAVEKEY[mode]); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
+    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(saveKey(mode), j); if (mode === 'cloud' && CLOUD) CLOUD.push(j, G.cloudUid); }
+    else { localStorage.removeItem(saveKey(mode)); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
   } catch (e) { }
 }
 function loadSaveText(txt, mode) { const sv = JSON.parse(txt); if (!sv.S || !sv.S.players) throw new Error('bad save'); G.mode = mode; G.S = sv.S; E.resume(G.S); G.logLines = sv.log || []; startScreen(); }
@@ -2662,12 +2674,14 @@ const savedAt = txt => { try { return JSON.parse(txt).savedAt || 0; } catch (e) 
 function continueLocal() { const txt = localStorage.getItem(SAVEKEY.local); if (!txt) { toast(t('noSave')); return; } try { loadSaveText(txt, 'local'); } catch (e) { toast(t('noSave')); } }
 // online: sign in if needed, then the newest between Drive and this device's copy
 async function continueCloud() {
-  const cache = localStorage.getItem(SAVEKEY.cloud); let txt = cache;
+  let uid = CLOUD.uid(); let cache = localStorage.getItem(cloudKey(uid)); let txt = cache;
   if (navigator.onLine !== false) {
-    try { await CLOUD.connect(); } catch (e) { if (!cache) { toast(t('driveFail')); return; } }
+    try { uid = await CLOUD.connect(); } catch (e) { if (!cache) { toast(t('driveFail')); return; } }
+    cache = localStorage.getItem(cloudKey(uid)); txt = cache;
     toast(t('cloudLook')); const remote = await CLOUD.pull();
-    if (remote && savedAt(remote) > savedAt(cache)) { txt = remote; try { localStorage.setItem(SAVEKEY.cloud, remote); } catch (e) { } }
+    if (remote && savedAt(remote) > savedAt(cache)) { txt = remote; try { localStorage.setItem(cloudKey(uid), remote); } catch (e) { } }
   } else if (cache) toast(t('cloudOfflineCont'));
+  G.cloudUid = uid;
   if (!txt) { toast(t('noSaveCloud')); return; }
   try { loadSaveText(txt, 'cloud'); } catch (e) { toast(t('noSaveCloud')); }
 }
@@ -2680,11 +2694,12 @@ function newCloudGame() {
   $('#nSingle', d).onclick = async () => {
     d.remove();
     if (navigator.onLine === false) { toast(t('needNet')); return; }
-    try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
+    try { G.cloudUid = await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
     G.mode = 'cloud'; showSetup();
   };
 }
 function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
+try { localStorage.removeItem('heist.cloudsave'); } catch (e) { }
 function hasSave(k = 'heist.save') { try { return !!localStorage.getItem(k); } catch (e) { return false; } }
 
 // ---------------- names / helpers ----------------
@@ -3687,7 +3702,7 @@ function showMenu() {
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
   <div class="menu-btns">${(() => {
-    const cl = CLOUD && CLOUD.enabled(); const hl = hasSave(); const hc = cl && (CLOUD.isOn() || hasSave('heist.cloudsave'));
+    const cl = CLOUD && CLOUD.enabled(); const hl = hasSave(); const hc = cl && (CLOUD.isOn() || CLOUD.used());
     const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
     const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
     return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;

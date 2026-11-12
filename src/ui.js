@@ -27,11 +27,14 @@ const wait = (ms) => { const k = spd(); return k ? sleep(ms * k) : Promise.resol
 const CLOUD = window.HeistCloud;
 // two kinds of game: 'local' (saved only on this device) and 'cloud' (saved on this device + the player's Google Drive)
 const SAVEKEY = { local: 'heist.save', cloud: 'heist.cloudsave' };
+// the device copy of an online game belongs to one Google account
+const cloudKey = uid => 'heist.cloudsave.' + (uid || 'x');
+const saveKey = mode => mode === 'cloud' ? cloudKey(G.cloudUid) : SAVEKEY.local;
 function saveGame() {
   const mode = G.mode || 'local';
   try {
-    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(SAVEKEY[mode], j); if (mode === 'cloud' && CLOUD) CLOUD.push(j); }
-    else { localStorage.removeItem(SAVEKEY[mode]); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
+    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(saveKey(mode), j); if (mode === 'cloud' && CLOUD) CLOUD.push(j, G.cloudUid); }
+    else { localStorage.removeItem(saveKey(mode)); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
   } catch (e) { }
 }
 function loadSaveText(txt, mode) { const sv = JSON.parse(txt); if (!sv.S || !sv.S.players) throw new Error('bad save'); G.mode = mode; G.S = sv.S; E.resume(G.S); G.logLines = sv.log || []; startScreen(); }
@@ -39,12 +42,14 @@ const savedAt = txt => { try { return JSON.parse(txt).savedAt || 0; } catch (e) 
 function continueLocal() { const txt = localStorage.getItem(SAVEKEY.local); if (!txt) { toast(t('noSave')); return; } try { loadSaveText(txt, 'local'); } catch (e) { toast(t('noSave')); } }
 // online: sign in if needed, then the newest between Drive and this device's copy
 async function continueCloud() {
-  const cache = localStorage.getItem(SAVEKEY.cloud); let txt = cache;
+  let uid = CLOUD.uid(); let cache = localStorage.getItem(cloudKey(uid)); let txt = cache;
   if (navigator.onLine !== false) {
-    try { await CLOUD.connect(); } catch (e) { if (!cache) { toast(t('driveFail')); return; } }
+    try { uid = await CLOUD.connect(); } catch (e) { if (!cache) { toast(t('driveFail')); return; } }
+    cache = localStorage.getItem(cloudKey(uid)); txt = cache;
     toast(t('cloudLook')); const remote = await CLOUD.pull();
-    if (remote && savedAt(remote) > savedAt(cache)) { txt = remote; try { localStorage.setItem(SAVEKEY.cloud, remote); } catch (e) { } }
+    if (remote && savedAt(remote) > savedAt(cache)) { txt = remote; try { localStorage.setItem(cloudKey(uid), remote); } catch (e) { } }
   } else if (cache) toast(t('cloudOfflineCont'));
+  G.cloudUid = uid;
   if (!txt) { toast(t('noSaveCloud')); return; }
   try { loadSaveText(txt, 'cloud'); } catch (e) { toast(t('noSaveCloud')); }
 }
@@ -57,11 +62,12 @@ function newCloudGame() {
   $('#nSingle', d).onclick = async () => {
     d.remove();
     if (navigator.onLine === false) { toast(t('needNet')); return; }
-    try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
+    try { G.cloudUid = await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
     G.mode = 'cloud'; showSetup();
   };
 }
 function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
+try { localStorage.removeItem('heist.cloudsave'); } catch (e) { }
 function hasSave(k = 'heist.save') { try { return !!localStorage.getItem(k); } catch (e) { return false; } }
 
 // ---------------- names / helpers ----------------
@@ -1064,7 +1070,7 @@ function showMenu() {
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
   <div class="menu-btns">${(() => {
-    const cl = CLOUD && CLOUD.enabled(); const hl = hasSave(); const hc = cl && (CLOUD.isOn() || hasSave('heist.cloudsave'));
+    const cl = CLOUD && CLOUD.enabled(); const hl = hasSave(); const hc = cl && (CLOUD.isOn() || CLOUD.used());
     const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
     const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
     return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;

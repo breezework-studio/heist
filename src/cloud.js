@@ -17,6 +17,8 @@ const H = {
   isOn: () => H.enabled() && !!cfg().on,
   state: () => (!H.isOn() ? 'off' : C.pending ? (online() ? 'pending' : 'offline') : C.state),
   lastSync: () => cfg().last || 0,
+  used: () => !!cfg().used, // an account was used on this device before (show "Continue online" even when signed out)
+  uid: () => cfg().uid || null, // anonymous id of the Google account (Drive permissionId), so each account keeps its own game
   onChange: f => C.listeners.push(f),
   _dbg: () => ({ tok: !!C.token, ok: Date.now() < C.exp, st: C.state, err: C.err, busy: C.busy, np: C.np, pending: !!C.pending }),
 };
@@ -44,13 +46,20 @@ const tokenOK = () => C.token && Date.now() < C.exp;
 function getToken(first) {
   if (tokenOK()) return Promise.resolve(C.token);
   const tc = tokenClient(); if (!tc) return Promise.reject(new Error('gis'));
-  return new Promise((res, rej) => { C.wait = { res, rej }; tc.requestAccessToken({ prompt: first ? 'consent' : '' }); });
+  return new Promise((res, rej) => { C.wait = { res, rej }; tc.requestAccessToken({ prompt: first ? 'select_account consent' : '' }); });
 }
 async function api(url, opt = {}) {
   const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + C.token }, opt.headers || {}) }));
   if (r.status === 401) { C.token = null; throw new Error('401'); }
   if (!r.ok) throw new Error('http ' + r.status);
   return r;
+}
+// which Google account is signed in: Drive's anonymous permissionId (no name or e-mail is read)
+async function whoAmI() {
+  const r = await api('https://www.googleapis.com/drive/v3/about?fields=user(permissionId)'); const j = await r.json();
+  const uid = j.user && j.user.permissionId; if (!uid) throw new Error('uid');
+  if (uid !== cfg().uid) { setCfg({ uid, fileId: null }); C.pending = null; }
+  return uid;
 }
 async function fileId() {
   const c = cfg(); if (c.fileId) return c.fileId;
@@ -81,18 +90,18 @@ async function flush() {
   } catch (e) { set(online() ? 'error' : 'offline', e.message); }
   C.busy = false; if (C.pending && C.pending !== body) setTimeout(flush, 500);
 }
-H.push = (json) => { if (!H.isOn()) return; C.np = (C.np || 0) + 1; C.pending = json; clearTimeout(C.t); C.t = setTimeout(flush, 1500); set(H.state()); };
+H.push = (json, uid) => { if (!H.isOn() || (uid && uid !== cfg().uid)) return; C.np = (C.np || 0) + 1; C.pending = json; clearTimeout(C.t); C.t = setTimeout(flush, 1500); set(H.state()); };
 H.remove = () => { if (!H.isOn()) return; C.pending = '__delete__'; flush(); };
 // newest save on Drive (call from a tap): returns the text or null
 H.pull = async () => {
   if (!H.isOn() || !online()) return null;
-  try { await loadGis(); await getToken(false); const id = await fileId(); if (!id) return null; const r = await api(`${API}/${id}?alt=media`); set('ok'); return await r.text(); }
+  try { await loadGis(); await getToken(false); await whoAmI(); const id = await fileId(); if (!id) return null; const r = await api(`${API}/${id}?alt=media`); set('ok'); return await r.text(); }
   catch (e) { set(online() ? 'error' : 'offline', e.message); return null; }
 };
 H.connect = async () => {
-  await loadGis(); await getToken(!cfg().on); setCfg({ on: true }); set('ok'); return true;
+  await loadGis(); const fresh = !cfg().on || !cfg().uid; await getToken(fresh); await whoAmI(); setCfg({ on: true, used: true }); set('ok'); return cfg().uid;
 };
-H.disconnect = () => { try { if (C.token && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(C.token, () => {}); } catch (e) { } C.token = null; C.pending = null; setCfg({ on: false, fileId: null }); set('off'); };
+H.disconnect = () => { try { if (C.token && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(C.token, () => {}); } catch (e) { } C.token = null; C.pending = null; setCfg({ on: false, fileId: null, uid: null }); set('off'); };
 // any tap while a save is waiting refreshes the sign-in (silently when already granted) and sends it
 H.tap = () => { if (!H.isOn() || !C.pending || !online() || tokenOK() || C.wait) return; if (!tokenClient()) { loadGis().catch(() => {}); return; } getToken(false).then(flush).catch(e => set('error', e.message)); };
 root.addEventListener && root.addEventListener('online', () => { if (H.isOn()) { loadGis().catch(() => {}); flush(); } });
