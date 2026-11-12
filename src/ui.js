@@ -419,6 +419,11 @@ function playerCard(S, p, full, viewer) {
     else if (p.mission.ability) { const ai = 'abc'.indexOf(p.mission.ability); h += `<b>${MT.abilities[ai]}</b>`; if (/1 vez|Once per day|1x/i.test(M.abilities[ai] + MT.abilities[ai])) h += `<br><small>${p.mission.token ? '● ' + t('tokenOn') : '○ ' + t('tokenOff')}</small>`; if (p.mission.id === 3 && p.mission.ability === 'b' && viewer === p.id) h += `<br><label class="chk"><input type="checkbox" id="kfu" ${p.keepFaceUp ? 'checked' : ''}> ${t('keepFaceUp')}</label>`; }
     h += `</div>`;
   } else if (p.mission) h += `<div class="rowlbl" data-sec="mission">${t('mission')}${SQ('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
+  if (viewer === p.id && !p.arrested) {
+    const sc = E.score(S).find(x => x.pid === p.id); const cats = ['g1', 'g2', 'sh', 'cash', 'assets', 'contacts', 'bags', 'notor', 'wounds'];
+    const tot = cats.reduce((a, k) => a + (sc[k] || 0), 0); const mny = v => v ? (v > 0 ? '' : '−') + '$' + Math.abs(v) + 'k' : '—';
+    h += `<div class="rowlbl" data-sec="proj">${t('projT')}${SQ('proj')}</div><div class="proj">${cats.map(k => `<div class="${(sc[k] || 0) < 0 ? 'neg' : ''}"><span>${t('score.' + k)}</span><b>${mny(sc[k])}</b></div>`).join('')}<div class="ptot"><span>${t('total')}</span><b>$${tot}k</b></div></div>`;
+  }
   if (viewer === p.id) {
     const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
     h += `<div class="rowlbl" data-sec="plan">${t('plan')}${SQ('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''} g${i < 3 ? 'p' : i < 6 ? 'b' : 'r'}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
@@ -1099,7 +1104,7 @@ function coach(entry, o = {}) {
     $('#cSkip', d).onclick = () => { G.tut = null; coachClose(); };
   });
 }
-const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
+const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'proj'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
 function tourTab(tab) { if (G.tab !== tab) { G.tab = tab; renderSide(); } const sd = $('#side'); if (sd && !sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') { sd.classList.add('open'); if (G.tut) G.tut.openedSide = true; } }
 async function tutIntro() {
   G.tut.introDone = true; const T = TUT(); const it = T.intro;
