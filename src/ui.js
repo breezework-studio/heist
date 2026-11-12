@@ -322,7 +322,7 @@ function fitMap() {
   if (!set.size) E.CELLS.forEach((c, i) => set.add(i));
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; set.forEach(i => { const o = cellXY(i); x0 = Math.min(x0, o.x - R0); x1 = Math.max(x1, o.x + R0); y0 = Math.min(y0, o.y - H0); y1 = Math.max(y1, o.y + H0); });
   const pad = placing ? 14 : 40; const key = [x0, y0, x1, y1].map(Math.round).join(',');
-  if (G.vbKey !== key) { svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`); G.vbKey = key; }
+  if (G.vbKey !== key || !svg.getAttribute('viewBox')) { svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`); G.vbKey = key; }
   G.fitted = true;
 }
 function mapView() {
@@ -751,6 +751,7 @@ function bindPanZoom() {
   svg.addEventListener('touchmove', (e) => { if (pinch && e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); G.zoom.k = Math.max(0.6, Math.min(3, pinch.k * d / pinch.d)); G.panMoved = true; apply(); } }, { passive: true });
   svg.addEventListener('touchend', () => { if (pinch) setTimeout(() => pinch = null, 50); });
   svg.addEventListener('dblclick', () => { G.zoom = { k: 1, x: 0, y: 0 }; apply(); });
+  const bc = document.getElementById('bCenter'); if (bc) bc.onclick = () => { G.zoom = { k: 1, x: 0, y: 0 }; G.vbKey = null; fitMap(); apply(); };
   svg.addEventListener('click', onMapClick);
 }
 function svgScale() { const svg = $('#map'); const m = svg.getScreenCTM(); return m ? m.a : 1; }
@@ -835,7 +836,7 @@ function helpHTML(key) {
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
-    case 'ui': if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'center') return `<b>${t('centerT')}</b>${t('centerH')}`; if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -1120,9 +1121,9 @@ function showSetup() {
   };
 }
 function startScreen(fresh) {
-  G.screen = 'game'; G.fitted = false; G.zoom = { k: 1, x: 0, y: 0 }; G.sel = {}; G.tab = 'me';
+  G.screen = 'game'; G.fitted = false; G.vbKey = null; G.zoom = { k: 1, x: 0, y: 0 }; G.sel = {}; G.tab = 'me';
   const app = $('#app');
-  app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
+  app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg><button id="bCenter" class="mapctr" data-h="ui:center">⌖</button></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
   if (fresh) { G.VS = E.clone(G.S); G.VS.events = []; G.VS.cells = G.VS.cells.map(() => null); G.VS.display = []; G.VS.day = 1; G.VS.part = 0; }
   else { G.VS = E.clone(G.S); G.S.events = []; }
   // fresh: start tiles appear first
