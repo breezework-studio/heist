@@ -21,7 +21,7 @@ for fam, file, weight in [('Special Elite', 'special-elite-latin-400-normal.woff
         faces.append(f"@font-face{{font-family:'{fam}';font-weight:{weight};font-style:normal;font-display:swap;src:url(data:font/woff2;base64,{b}) format('woff2')}}")
 html = html.replace('/*FONTS*/', '\n'.join(faces))
 html = html.replace('/*DATA*/', 'window.HEIST_DATA = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';')
-for mark, name in [('ENGINE', 'engine.js'), ('AI', 'ai.js'), ('I18N', 'i18n.js'), ('RULES', 'rules.js'), ('ICONS', 'icons.js'), ('CLOUD', 'cloud.js'), ('UI', 'ui.js')]:
+for mark, name in [('ENGINE', 'engine.js'), ('AI', 'ai.js'), ('I18N', 'i18n.js'), ('RULES', 'rules.js'), ('ICONS', 'icons.js'), ('CLOUD', 'cloud.js'), ('TUTORIAL', 'tutorial.js'), ('UI', 'ui.js')]:
     html = html.replace(f'/*{mark}*/', (src / name).read_text(encoding='utf-8'))
 # PWA hooks
 html = html.replace('<meta name="theme-color" content="#121419">',

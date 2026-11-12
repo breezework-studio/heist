@@ -31,7 +31,7 @@ const SAVEKEY = { local: 'heist.save', cloud: 'heist.cloudsave' };
 const cloudKey = uid => 'heist.cloudsave.' + (uid || 'x');
 const saveKey = mode => mode === 'cloud' ? cloudKey(G.cloudUid) : SAVEKEY.local;
 function saveGame() {
-  const mode = G.mode || 'local';
+  const mode = G.mode || 'local'; if (mode === 'tutorial') return;
   try {
     if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(saveKey(mode), j); if (mode === 'cloud' && CLOUD) CLOUD.push(j, G.cloudUid); }
     else { localStorage.removeItem(saveKey(mode)); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
@@ -313,7 +313,7 @@ function renderMap(view) {
   const spots = pawnSpots(S); S.players.concat(S.npcs || []).forEach(q => { const p = spots[q.id]; if (p) s += pawnSVG(S, q, p.x, p.y); });
   s += labelsSVG + badges + '</g>';
   svg.innerHTML = s;
-  fitMap();
+  fitMap(); if (G.tut) coachHL();
 }
 function fitMap() {
   const svg = $('#map'); if (!svg) return; const S = G.VS || G.S;
@@ -1013,8 +1013,82 @@ async function playEvent(e) {
 }
 async function playAll() {
   const S = G.S; const evs = S.events.splice(0);
-  for (const e of evs) { await playEvent(e); }
+  if (G.tut && !G.tut.introDone) await tutIntro();
+  for (const e of evs) { await playEvent(e); if (G.tut) await tutEvent(e); }
   const ph = G.VS.uiPhase; G.VS = E.clone(S); G.VS.uiPhase = S.pending && S.pending.type === 'place' ? 'city' : (S.pending && (S.pending.type === 'yesno' && S.pending.q === 'incomeUnlock') ? 'income' : (S.pending && ['action', 'avoid', 'end', 'contact', 'choose', 'unlock', 'policeMove', 'pickTile'].includes(S.pending.type) ? null : ph)); G.skip = G.skip && !(S.pending && isHuman(S.pending.pid));
+}
+
+
+// ---------------- guided tutorial ----------------
+// A normal game (you + 2 bots, fixed seed) with a coach that explains each new thing the first time it happens,
+// summarises what the others did, and can play the suggested move for you.
+const TUT = () => window.HeistTutorial[G.prefs.lang === 'pt' ? 'pt' : 'en'];
+function startTutorial() {
+  G.tut = { seen: {}, introDone: false, humanTurns: 0, logMark: 0, hlLoc: null };
+  G.mode = 'tutorial';
+  const players = [{ color: 'orange', name: t('colors.orange'), ai: false }, { color: 'purple', name: t('colors.purple') + ' 🤖', ai: true }, { color: 'pink', name: t('colors.pink') + ' 🤖', ai: true }];
+  G.S = E.newGame({ seed: 20261112, players, gasCan: true, upgradeFixers: true });
+  G.logLines = []; startScreen(true);
+}
+function coachClose() { const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
+function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
+// show a coach card; resolves when the player presses Next / Got it (or the card is closed by playing)
+function coach(entry, o = {}) {
+  coachClose(); const U = TUT().ui;
+  return new Promise(res => {
+    const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null;
+    d.innerHTML = `<h4><span class="grip">⠿</span> <small>🎓 ${U.step}</small><br>${entry.t}</h4><div class="cb">${entry.b || ''}${o.extra || ''}</div><div class="row">${o.doIt ? `<button class="pri" id="cDo">${U.doIt}</button>` : ''}<button class="${o.doIt ? 'ghost' : 'pri'}" id="cNext">${o.decision ? U.gotIt : U.next}</button><button class="ghost" id="cSkip">${U.skip}</button></div>`;
+    document.body.appendChild(d); makeDraggable(d, $('h4', d)); coachHL();
+    $('#cNext', d).onclick = () => coachClose();
+    $('#cDo', d) && ($('#cDo', d).onclick = () => { const f = o.doIt; coachClose(); f(); });
+    $('#cSkip', d).onclick = () => { G.tut = null; coachClose(); };
+  });
+}
+async function tutIntro() { G.tut.introDone = true; for (const x of TUT().intro) { if (!G.tut) return; await coach(x); } }
+async function tutEvent(e) {
+  const tu = G.tut; if (!tu) return; const me = 0; let keys = [];
+  switch (e.t) {
+    case 'day': if (e.day === 2) keys = ['done', 'day2']; if (e.day === 3) keys = ['day3']; break;
+    case 'patrol': keys = ['patrol']; break;
+    case 'phase': if (e.ph === 'city') keys = ['city']; if (e.ph === 'order') keys = ['order']; break;
+    case 'part': if (e.part === 0) keys = ['part1']; if (e.part === 3) keys = ['part4']; break;
+    case 'notor': if (e.p === me) keys = ['notor']; break;
+    case 'level': if (tu.seen['ev.notor']) keys = ['level']; break;
+    case 'threshold': keys = ['threshold']; break;
+    case 'wound': if (e.p === me) keys = ['wound']; break;
+    case 'cube': if (e.p === me) keys = ['cube']; break;
+    case 'key': if (e.p === me) keys = ['key']; break;
+    case 'contact': if (e.p === me) keys = ['contact']; break;
+    case 'closed': keys = ['closed']; break;
+    case 'police': keys = ['police']; break;
+    case 'escape': if (e.p !== me) keys = ['escape']; break;
+  }
+  for (const k of keys) { if (!G.tut || tu.seen['ev.' + k]) continue; tu.seen['ev.' + k] = true; renderTop(); renderSide(); await coach(TUT().ev[k]); }
+}
+function tutDecision(pd) {
+  const tu = G.tut; if (!tu || pd.pid !== 0) return; const X = TUT(), U = X.ui;
+  const isQ = pd.type === 'choose' || pd.type === 'yesno';
+  const key = isQ ? 'q.' + (X.q[pd.q] ? pd.q : 'default') : 'dec.' + pd.type;
+  const entry = isQ ? X.q[X.q[pd.q] ? pd.q : 'default'] : X.dec[pd.type];
+  // what the others did since your last turn (first turns only)
+  let mean = '';
+  if (pd.type === 'action') {
+    tu.humanTurns++;
+    if (tu.humanTurns <= 6) {
+      const lines = G.logLines.slice(tu.logMark).filter(l => l.e && l.e.p != null && l.e.p !== 0 && !l.cls).map(l => l.html.replace(/<[^>]+>/g, '')).slice(-8);
+      if (lines.length) mean = `<div class="tmean"><b>${U.meanwhile}</b><ul>${lines.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+    }
+    tu.logMark = G.logLines.length;
+  }
+  const fresh = entry && !tu.seen[key];
+  if (!fresh && !mean) return;
+  if (fresh) tu.seen[key] = true;
+  let a = null; try { a = AI.decide(E, G.S); } catch (e) { }
+  let sug = '';
+  if (a && pd.type === 'action') { if (a.type === 'move' && a.dest) { sug = `${U.goTo} <b>${locName(a.dest)}</b>`; tu.hlLoc = a.dest; } else if (a.type === 'rest') sug = `<b>${U.rest}</b>`; else if (a.type === 'escapeHere') sug = `<b>${U.escape}</b>`; }
+  if (a && pd.type === 'contact' && a.card != null) sug = `${U.cardFor} <b>${cardName(a.card)}</b>`;
+  const body = fresh ? entry : { t: U.meanwhile, b: '' };
+  coach(fresh ? body : { t: U.meanwhile, b: '', h: null }, { decision: true, doIt: a ? () => human(a) : null, extra: (fresh ? mean : mean.replace(/<b>[^<]*<\/b>/, '')) + (sug ? `<div class="tsug">💡 ${U.suggest}: ${sug}</div>` : '') });
 }
 
 // ---------------- game loop ----------------
@@ -1026,7 +1100,7 @@ async function loop() {
       if (S.events.length) { G.busy = true; renderBar(); await playAll(); }
       if (S.over) { G.busy = false; renderAll(); saveGame(); showEnd(); break; }
       const pd = S.pending; if (!pd) break;
-      if (isHuman(pd.pid)) { G.busy = false; G.skip = false; G.viewer = pd.pid; renderAll(); saveGame(); break; }
+      if (isHuman(pd.pid)) { G.busy = false; G.skip = false; G.viewer = pd.pid; renderAll(); saveGame(); if (G.tut) tutDecision(pd); break; }
       G.busy = true; renderBar();
       await wait(pd.type === 'action' ? 450 : 200);
       const a = AI.decide(E, S); E.act(S, a);
@@ -1035,7 +1109,7 @@ async function loop() {
   G.looping = false;
 }
 function human(a) {
-  const S = G.S; G.sel = {}; closeSheet(); $('.pop') && $('.pop').remove();
+  const S = G.S; G.sel = {}; closeSheet(); $('.pop') && $('.pop').remove(); if (G.tut) coachClose();
   const snap = E.clone(S);
   try { E.act(S, a); } catch (err) { console.error(err); Object.keys(S).forEach(k => delete S[k]); Object.assign(S, snap); showError(err); loop(); return; }
   loop();
@@ -1066,6 +1140,7 @@ function importSave() {
 if (window.HeistCloud) HeistCloud.onChange(() => { const b = document.getElementById('bCloud'); if (b) { const [n, c] = cloudIcon(); b.innerHTML = ic(n, '', c); } });
 function toast(msg) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 function showMenu() {
+  G.tut = null; coachClose && coachClose();
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) { }
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
@@ -1075,9 +1150,9 @@ function showMenu() {
     const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
     const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
     return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;
-  })()}<button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}<div class="credits">${t('credits')}</div></div>
+  })()}<div class="mrow"><button id="mTut">🎓 ${TUT().ui.start}<small>${TUT().ui.startH}</small></button><button id="mRules">${ic('book')} ${t('rules')}</button></div>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}<div class="credits">${t('credits')}</div></div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
-  $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mRules').onclick = () => openRules();
+  $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mTut').onclick = startTutorial; $('#mRules').onclick = () => openRules();
   $('#mCont') && ($('#mCont').onclick = continueLocal); $('#mContC') && ($('#mContC').onclick = continueCloud); $('#mNewC') && ($('#mNewC').onclick = newCloudGame);
   $('#mOut') && ($('#mOut').onclick = e => { e.preventDefault(); if (confirm(t('signOutQ'))) { CLOUD.disconnect(); showMenu(); } });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
