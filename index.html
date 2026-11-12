@@ -255,6 +255,18 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 #top.f2 .topord,#top.f2 #bLang,#top.f2 .exitb .xl{display:none}
 #top.f3 .timeline .tl:not(.on){display:none}#top.f3{gap:6px}#top.f3 .tbtn{padding:6px 7px}
 #top.f4 .exitb{font-size:11px;padding:2px 5px;gap:2px}#top.f4 .exitb .pc i{width:5px;height:9px}#top.f4 .daybox{font-size:14px}
+.box.pad,#rules .box.pad{background:#f7f1dc;color:#2a2620;border-radius:4px 10px 10px 4px;padding:18px 18px 16px 52px !important;background-image:linear-gradient(90deg,transparent 38px,#d9534f88 38px,#d9534f88 40px,transparent 40px),repeating-linear-gradient(0deg,transparent 0 29px,#7aa3d433 29px 30px);box-shadow:0 20px 60px #000c,inset 6px 0 0 #0000000d;font-family:var(--ff-ui)}
+.padhead small{font-family:var(--ff-type);letter-spacing:.15em;text-transform:uppercase;color:#8a7a5a;font-size:12px}.padhead h2{font-family:var(--ff-type);margin:0;font-size:30px}.padhead .verdict{font-size:20px;margin:4px 0 8px}
+.padscroll{overflow-x:auto}
+.scoretbl.pad td,.scoretbl.pad th{border-bottom:1px solid #7aa3d455;vertical-align:top}
+.scoretbl.pad td .v{display:block;font-family:var(--ff-type);font-size:18px;color:#1d3c78}
+.scoretbl.pad td small{display:block;font-size:11px;color:#6b6250;line-height:1.25;max-width:150px;margin-left:auto}
+.scoretbl.pad td.cat{white-space:nowrap;font-weight:600}.scoretbl.pad td.cat svg{width:16px;height:16px;vertical-align:-3px}
+.scoretbl.pad .secq{border-color:#8a7a5a;color:#8a7a5a}
+.scoretbl.pad td.arr .v{color:#999;text-decoration:line-through}
+.scoretbl.pad tr.tot td{font-family:var(--ff-type);font-size:22px;color:#b8432f;border-top:2px solid #2a2620}
+.scoretbl.pad td:first-child,.scoretbl.pad th:first-child{position:sticky;left:0;background:#f7f1dc;z-index:1}
+.padnote{font-size:12.5px;color:#6b6250;margin:10px 0 0}
 .credits{font-size:11px;color:var(--muted);text-align:center;max-width:440px;margin:10px auto 0;line-height:1.4;opacity:.8}
 .mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.menu-btns .mrow button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.menu-btns .mrow button small{font-size:11.5px;font-weight:400;opacity:.8}.menu-btns .mrow .ic{display:none}.msmall{text-align:center;font-size:12.5px;margin-top:4px}.msmall a{color:var(--muted)}
 .savemode{margin-top:14px;text-align:center}.smt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.smb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.smb button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:150px;padding:8px 12px;background:#20242c;border:2px solid #343a46;color:#e8e2d4;border-radius:10px;font-size:15px}.smb button small{font-size:11.5px;color:var(--muted)}.smb button.on{border-color:#f2c629;background:#2a2a1e}.smb .ic{width:20px;height:20px}.priv{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
@@ -1906,6 +1918,7 @@ en: {
   cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
   market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Getaway plan', patrols: 'Exits',
   open: 'open', closed: 'closed', business: 'Business', businesses: 'Businesses', safehouses: 'Safe Houses', fixers: 'Fixers', equipment: 'Equipment', lockers: 'Lockers', display: 'Contact display',
+ scoreHelp: { g1: 'Purple group (Casino, Bar, Restaurant): the values on your Getaway Plan for the ones you visited. Those marked $ were already paid as income during the game, so they add nothing here.', g2: 'Blue group (Gym, Nightclub, Art Gallery): Getaway Plan values of the ones you visited ($ = already paid as income).', sh: 'Safe Houses you visited: their Getaway Plan values ($ = already paid as income).', cash: 'Money in hand at the end.', assets: '$10k for each asset you used (flipped) during the game.', contacts: 'Contact cards on your board: 1/2/3/4/5 = $0/10/30/60/100k. First you discard 1 card per Handcuffs.', bags: 'Locker and Exit tiles you kept: their values are revealed now.', notor: 'Penalty shown next to your notoriety level on the track (up to −$100k).', wounds: '−$20k for each red wound cube.' }, scoreTitle: 'Score pad', scoreArrested: 'Arrested players score nothing and cannot win.', scoreTie: 'Tie: most cash, then least notoriety, then fewest wounds.', sd: { visited: 'visited', none: 'none visited', paid: 'paid', used: n => `${n} used × $10k`, cards: (n, c) => `${n} card${n === 1 ? '' : 's'}${c ? ` (−${c} handcuffs)` : ''}`, bags: n => `${n} bag${n === 1 ? '' : 's'}`, level: n => `★ ${n}`, wounds: n => `${n} × −$20k`, inHand: 'in hand' },
   gameOver: 'Game over', winner: 'Winner', winners: 'Winners', arrested: 'Arrested', escaped: 'Escaped', playAgain: 'Play again', total: 'Total',
   score: { g1: 'Purple businesses', g2: 'Blue businesses', sh: 'Safe Houses', cash: 'Cash', assets: 'Used assets', contacts: 'Contact cards', bags: 'Locker & exit bags', notor: 'Notoriety', wounds: 'Wounds' },
   replay: 'Replay last turn', menu: 'Menu', help: 'Help', search: 'Search the rules…', close: 'Close', noResults: 'Nothing found. Try other words.',
@@ -1976,6 +1989,7 @@ pt: {
   cards: 'Contactos', items: 'Itens', assets: 'Ativos desbloqueados', locked: 'bloqueado', keys: 'Chaves', gang: 'Gang', discs: 'Ações extra', gas: 'Gasolina',
   market: 'Cidade', log: 'Histórico', me: 'Eu', opponents: 'Rivais', hidden: 'escondido', plan: 'Plano de fuga', patrols: 'Saídas',
   open: 'aberta', closed: 'fechada', business: 'Business', businesses: 'Businesses', safehouses: 'Casas Seguras', fixers: 'Fixers', equipment: 'Equipamento', lockers: 'Cacifos', display: 'Mostra de Contactos',
+ scoreHelp: { g1: 'Grupo roxo (Casino, Bar, Restaurante): os valores do teu Plano de Fuga dos que visitaste. Os que têm $ já foram pagos como rendimento durante o jogo, por isso aqui não somam nada.', g2: 'Grupo azul (Ginásio, Discoteca, Galeria): valores do Plano de Fuga dos que visitaste ($ = já pago como rendimento).', sh: 'Casas Seguras que visitaste: os valores do Plano de Fuga ($ = já pago como rendimento).', cash: 'Dinheiro na mão no fim.', assets: '$10k por cada ativo que usaste (viraste) durante o jogo.', contacts: 'Cartas de Contacto no tabuleiro: 1/2/3/4/5 = $0/10/30/60/100k. Primeiro descartas 1 carta por cada Algema.', bags: 'Peças de cacifo e de saída que guardaste: os valores são revelados agora.', notor: 'Penalização indicada ao lado do teu nível de notoriedade no trilho (até −$100k).', wounds: '−$20k por cada cubo de ferimento vermelho.' }, scoreTitle: 'Caderno de pontuação', scoreArrested: 'Quem foi preso não pontua e não pode ganhar.', scoreTie: 'Empate: mais dinheiro na mão, depois menos notoriedade, depois menos ferimentos.', sd: { visited: 'visitados', none: 'nenhum visitado', paid: 'pago', used: n => `${n} usado${n === 1 ? '' : 's'} × $10k`, cards: (n, c) => `${n} carta${n === 1 ? '' : 's'}${c ? ` (−${c} algemas)` : ''}`, bags: n => `${n} saco${n === 1 ? '' : 's'}`, level: n => `★ ${n}`, wounds: n => `${n} × −$20k`, inHand: 'na mão' },
   gameOver: 'Fim do jogo', winner: 'Vencedor', winners: 'Vencedores', arrested: 'Preso', escaped: 'Fugiu', playAgain: 'Jogar outra vez', total: 'Total',
   score: { g1: 'Business roxos', g2: 'Business azuis', sh: 'Casas Seguras', cash: 'Dinheiro', assets: 'Ativos usados', contacts: 'Cartas de Contacto', bags: 'Sacos de cacifos e saídas', notor: 'Notoriedade', wounds: 'Ferimentos' },
   replay: 'Rever último turno', menu: 'Menu', help: 'Ajuda', search: 'Pesquisar nas regras…', close: 'Fechar', noResults: 'Não encontrei nada. Tenta outras palavras.',
@@ -3759,7 +3773,7 @@ function secHelp(key, btn) {
   d.style.left = Math.max(8, Math.min(innerWidth - b.width - 8, r.right - b.width)) + 'px'; d.style.top = (r.bottom + 6 + b.height < innerHeight ? r.bottom + 6 : Math.max(8, r.top - b.height - 6)) + 'px';
   $('.x', d).onclick = () => d.remove(); const mo = $('.more', d); if (mo) mo.onclick = () => { d.remove(); openRules(x.r); };
 }
-document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('.secq'); if (q) { ev.stopPropagation(); secHelp(q.dataset.sq, q); return; } if (!ev.target.closest || !ev.target.closest('.secpop')) $$('.secpop').forEach(x => x.remove()); }, true);
+document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('.secq[data-sq]'); if (q) { ev.stopPropagation(); secHelp(q.dataset.sq, q); return; } if (!ev.target.closest || !ev.target.closest('.secpop')) $$('.secpop').forEach(x => x.remove()); }, true);
 function banner(text, small) { if (!spd()) return; const d = document.createElement('div'); d.className = 'banner'; d.innerHTML = (small ? `<small>${small}</small>` : '') + text; fx().appendChild(d); setTimeout(() => d.remove(), 1500 * spd()); }
 function stamp(text) { if (!spd()) return; const d = document.createElement('div'); d.className = 'stamp'; d.textContent = text; d.style.left = '50%'; d.style.top = '40%'; d.style.marginLeft = '-140px'; fx().appendChild(d); setTimeout(() => d.remove(), 1400 * spd()); }
 function flyCard(card, pid) {
@@ -4102,23 +4116,45 @@ function startScreen(fresh) {
 function showEnd() {
   const S = G.S; const sc = S.score || E.score(S); const win = E.winners(S);
   const cats = ['g1', 'g2', 'sh', 'cash', 'assets', 'contacts', 'bags', 'notor', 'wounds'];
+  const catIc = { g1: ['dice', '#b07be0'], g2: ['dumbbell', '#6aa0ff'], sh: ['house', '#e0574a'], cash: ['money', '#3c9a52'], assets: ['unlock', '#8a6bc0'], contacts: ['card', '#5a5a5a'], bags: ['bag', '#a07a3a'], notor: ['star', '#d0453a'], wounds: ['bandage', '#d0453a'] };
   const cols = sc.map(x => ({ x, name: x.npc ? t('costaScore') : pname(x.pid), col: x.npc ? '#2b3f6b' : pcolor(x.pid) }));
   const costa = sc.find(x => x.npc); const hum = sc.filter(x => !x.npc);
   let verdict = win.length ? `${t(win.length > 1 ? 'winners' : 'winner')}: ${win.map(id => id >= 100 ? t('costaScore') : pname(id)).join(', ')}` : t('arrested');
   if (costa && hum.length === 1) verdict = win.includes(hum[0].pid) ? t('beatCosta') : t('lostCosta');
+  const SD = t('sd');
+  // small handwritten note under each number: where it came from
+  const detail = (x, k) => {
+    if (x.npc) return '';
+    const p = S.players[x.pid]; const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
+    const pv = key => plan[E.PLAN_KEYS.indexOf(key)];
+    const places = keys => { const v = keys.filter(b => p.visited[b]); return v.length ? v.map(b => `${nm(b)} ${pv(b) === '$' ? '$ (' + SD.paid + ')' : pv(b)}`).join(' · ') : SD.none; };
+    switch (k) {
+      case 'g1': return places(E.GROUPS.purple); case 'g2': return places(E.GROUPS.blue); case 'sh': return places(['sh1', 'sh2', 'sh3']);
+      case 'cash': return SD.inHand; case 'assets': return SD.used(p.unlocked.filter(u => u && u.used).length);
+      case 'contacts': return SD.cards(p.contacts.filter(c => c && c.kind === 'contact').length, p.cuffs);
+      case 'bags': { const b = p.items.filter(z => z && (z.kind === 'locker' || z.kind === 'exit')); return b.length ? b.map(z => '$' + (z.val + (z.val2 || 0)) + 'k').join(' + ') : SD.bags(0); }
+      case 'notor': return SD.level(p.notor); case 'wounds': return SD.wounds(p.wounds);
+    }
+    return '';
+  };
+  const money = v => v ? (v > 0 ? '' : '−') + '$' + Math.abs(v) + 'k' : '—';
   const d = document.createElement('div'); d.id = 'rules';
-  d.innerHTML = `<div class="box paper" style="display:block;height:auto;max-height:95%;overflow:auto;padding:20px 22px;position:relative"><h2 style="font-family:var(--ff-type);margin:0">${t('gameOver')}</h2><div style="font-size:20px;margin:6px 0 10px;font-family:var(--ff-ui)">🏆 ${verdict}</div>
-   <table class="scoretbl"><tr><th></th>${cols.map(c => `<th class="${win.includes(c.x.pid) ? 'win' : ''}"><span class="dot" style="background:${c.col}"></span> ${c.name}<br><small>${c.x.escaped ? '🚗 ' + t('escaped') : '🚨 ' + t('arrested')}</small></th>`).join('')}</tr>
-   ${cats.map(k => `<tr><td>${t('score.' + k)}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x[k] ? (c.x[k] > 0 ? '' : '−') + '$' + Math.abs(c.x[k]) + 'k' : '—'}</td>`).join('')}</tr>`).join('')}
-   <tr class="tot"><td>${t('total')}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x.escaped ? '$' + c.x.total + 'k' : '0'}</td>`).join('')}</tr></table>
-   <div class="row" style="display:flex;gap:10px;margin-top:14px"><button class="pri" id="eAgain">${t('playAgain')}</button><button class="ghost" id="eMenu" style="color:var(--ink)">${t('menu')}</button><button class="ghost" id="eClose" style="color:var(--ink)">${t('close')}</button></div></div>`;
+  d.innerHTML = `<div class="box pad" style="display:block;height:auto;max-height:95%;overflow:auto;position:relative">
+   <div class="padhead"><small>${t('scoreTitle')}</small><h2>${t('gameOver')}</h2><div class="verdict">🏆 ${verdict}</div></div>
+   <div class="padscroll"><table class="scoretbl pad">
+   <tr><th></th>${cols.map(c => `<th class="${win.includes(c.x.pid) ? 'win' : ''}"><span class="dot" style="background:${c.col}"></span> ${c.name}<br><small>${c.x.escaped ? '🚗 ' + t('escaped') : '🚨 ' + t('arrested')}</small></th>`).join('')}</tr>
+   ${cats.map(k => `<tr><td class="cat">${ic(catIc[k][0], '', catIc[k][1])} ${t('score.' + k)} <button class="secq" data-sh="${k}">?</button></td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''} ${c.x.escaped ? '' : 'arr'}"><span class="v">${money(c.x[k])}</span><small>${detail(c.x, k)}</small></td>`).join('')}</tr>`).join('')}
+   <tr class="tot"><td>${t('total')}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x.escaped ? '$' + c.x.total + 'k' : `<s>$${cats.reduce((a, k) => a + (c.x[k] || 0), 0)}k</s> 0`}</td>`).join('')}</tr></table></div>
+   <p class="padnote">${sc.some(x => !x.escaped) ? t('scoreArrested') + ' ' : ''}${t('scoreTie')}</p>
+   <div class="row" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap"><button class="pri" id="eAgain">${t('playAgain')}</button><button class="ghost" id="eMenu" style="color:var(--ink)">${t('menu')}</button><button class="ghost" id="eClose" style="color:var(--ink)">${t('close')}</button></div></div>`;
   document.body.appendChild(d);
+  $$('[data-sh]', d).forEach(b => b.onclick = ev => { ev.stopPropagation(); $$('.secpop').forEach(x => x.remove()); const k = b.dataset.sh; const pop = document.createElement('div'); pop.className = 'secpop paper'; pop.style.zIndex = 300; pop.innerHTML = `<h4>${t('score.' + k)}<button class="x">✕</button></h4><p>${t('scoreHelp.' + k)}</p>`; document.body.appendChild(pop); const r = b.getBoundingClientRect(); pop.style.left = Math.min(innerWidth - pop.offsetWidth - 8, r.left) + 'px'; pop.style.top = Math.min(innerHeight - pop.offsetHeight - 8, r.bottom + 6) + 'px'; $('.x', pop).onclick = () => pop.remove(); });
   $('#eAgain').onclick = () => { d.remove(); showSetup(); }; $('#eMenu').onclick = () => { d.remove(); showMenu(); }; $('#eClose').onclick = () => d.remove();
 }
 
 // ---------------- boot ----------------
 bindTips();
-window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML };
+window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML, showEnd };
 showMenu();
 })();
 

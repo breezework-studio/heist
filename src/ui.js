@@ -942,7 +942,7 @@ function secHelp(key, btn) {
   d.style.left = Math.max(8, Math.min(innerWidth - b.width - 8, r.right - b.width)) + 'px'; d.style.top = (r.bottom + 6 + b.height < innerHeight ? r.bottom + 6 : Math.max(8, r.top - b.height - 6)) + 'px';
   $('.x', d).onclick = () => d.remove(); const mo = $('.more', d); if (mo) mo.onclick = () => { d.remove(); openRules(x.r); };
 }
-document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('.secq'); if (q) { ev.stopPropagation(); secHelp(q.dataset.sq, q); return; } if (!ev.target.closest || !ev.target.closest('.secpop')) $$('.secpop').forEach(x => x.remove()); }, true);
+document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('.secq[data-sq]'); if (q) { ev.stopPropagation(); secHelp(q.dataset.sq, q); return; } if (!ev.target.closest || !ev.target.closest('.secpop')) $$('.secpop').forEach(x => x.remove()); }, true);
 function banner(text, small) { if (!spd()) return; const d = document.createElement('div'); d.className = 'banner'; d.innerHTML = (small ? `<small>${small}</small>` : '') + text; fx().appendChild(d); setTimeout(() => d.remove(), 1500 * spd()); }
 function stamp(text) { if (!spd()) return; const d = document.createElement('div'); d.className = 'stamp'; d.textContent = text; d.style.left = '50%'; d.style.top = '40%'; d.style.marginLeft = '-140px'; fx().appendChild(d); setTimeout(() => d.remove(), 1400 * spd()); }
 function flyCard(card, pid) {
@@ -1285,22 +1285,44 @@ function startScreen(fresh) {
 function showEnd() {
   const S = G.S; const sc = S.score || E.score(S); const win = E.winners(S);
   const cats = ['g1', 'g2', 'sh', 'cash', 'assets', 'contacts', 'bags', 'notor', 'wounds'];
+  const catIc = { g1: ['dice', '#b07be0'], g2: ['dumbbell', '#6aa0ff'], sh: ['house', '#e0574a'], cash: ['money', '#3c9a52'], assets: ['unlock', '#8a6bc0'], contacts: ['card', '#5a5a5a'], bags: ['bag', '#a07a3a'], notor: ['star', '#d0453a'], wounds: ['bandage', '#d0453a'] };
   const cols = sc.map(x => ({ x, name: x.npc ? t('costaScore') : pname(x.pid), col: x.npc ? '#2b3f6b' : pcolor(x.pid) }));
   const costa = sc.find(x => x.npc); const hum = sc.filter(x => !x.npc);
   let verdict = win.length ? `${t(win.length > 1 ? 'winners' : 'winner')}: ${win.map(id => id >= 100 ? t('costaScore') : pname(id)).join(', ')}` : t('arrested');
   if (costa && hum.length === 1) verdict = win.includes(hum[0].pid) ? t('beatCosta') : t('lostCosta');
+  const SD = t('sd');
+  // small handwritten note under each number: where it came from
+  const detail = (x, k) => {
+    if (x.npc) return '';
+    const p = S.players[x.pid]; const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
+    const pv = key => plan[E.PLAN_KEYS.indexOf(key)];
+    const places = keys => { const v = keys.filter(b => p.visited[b]); return v.length ? v.map(b => `${nm(b)} ${pv(b) === '$' ? '$ (' + SD.paid + ')' : pv(b)}`).join(' · ') : SD.none; };
+    switch (k) {
+      case 'g1': return places(E.GROUPS.purple); case 'g2': return places(E.GROUPS.blue); case 'sh': return places(['sh1', 'sh2', 'sh3']);
+      case 'cash': return SD.inHand; case 'assets': return SD.used(p.unlocked.filter(u => u && u.used).length);
+      case 'contacts': return SD.cards(p.contacts.filter(c => c && c.kind === 'contact').length, p.cuffs);
+      case 'bags': { const b = p.items.filter(z => z && (z.kind === 'locker' || z.kind === 'exit')); return b.length ? b.map(z => '$' + (z.val + (z.val2 || 0)) + 'k').join(' + ') : SD.bags(0); }
+      case 'notor': return SD.level(p.notor); case 'wounds': return SD.wounds(p.wounds);
+    }
+    return '';
+  };
+  const money = v => v ? (v > 0 ? '' : '−') + '$' + Math.abs(v) + 'k' : '—';
   const d = document.createElement('div'); d.id = 'rules';
-  d.innerHTML = `<div class="box paper" style="display:block;height:auto;max-height:95%;overflow:auto;padding:20px 22px;position:relative"><h2 style="font-family:var(--ff-type);margin:0">${t('gameOver')}</h2><div style="font-size:20px;margin:6px 0 10px;font-family:var(--ff-ui)">🏆 ${verdict}</div>
-   <table class="scoretbl"><tr><th></th>${cols.map(c => `<th class="${win.includes(c.x.pid) ? 'win' : ''}"><span class="dot" style="background:${c.col}"></span> ${c.name}<br><small>${c.x.escaped ? '🚗 ' + t('escaped') : '🚨 ' + t('arrested')}</small></th>`).join('')}</tr>
-   ${cats.map(k => `<tr><td>${t('score.' + k)}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x[k] ? (c.x[k] > 0 ? '' : '−') + '$' + Math.abs(c.x[k]) + 'k' : '—'}</td>`).join('')}</tr>`).join('')}
-   <tr class="tot"><td>${t('total')}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x.escaped ? '$' + c.x.total + 'k' : '0'}</td>`).join('')}</tr></table>
-   <div class="row" style="display:flex;gap:10px;margin-top:14px"><button class="pri" id="eAgain">${t('playAgain')}</button><button class="ghost" id="eMenu" style="color:var(--ink)">${t('menu')}</button><button class="ghost" id="eClose" style="color:var(--ink)">${t('close')}</button></div></div>`;
+  d.innerHTML = `<div class="box pad" style="display:block;height:auto;max-height:95%;overflow:auto;position:relative">
+   <div class="padhead"><small>${t('scoreTitle')}</small><h2>${t('gameOver')}</h2><div class="verdict">🏆 ${verdict}</div></div>
+   <div class="padscroll"><table class="scoretbl pad">
+   <tr><th></th>${cols.map(c => `<th class="${win.includes(c.x.pid) ? 'win' : ''}"><span class="dot" style="background:${c.col}"></span> ${c.name}<br><small>${c.x.escaped ? '🚗 ' + t('escaped') : '🚨 ' + t('arrested')}</small></th>`).join('')}</tr>
+   ${cats.map(k => `<tr><td class="cat">${ic(catIc[k][0], '', catIc[k][1])} ${t('score.' + k)} <button class="secq" data-sh="${k}">?</button></td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''} ${c.x.escaped ? '' : 'arr'}"><span class="v">${money(c.x[k])}</span><small>${detail(c.x, k)}</small></td>`).join('')}</tr>`).join('')}
+   <tr class="tot"><td>${t('total')}</td>${cols.map(c => `<td class="${win.includes(c.x.pid) ? 'win' : ''}">${c.x.escaped ? '$' + c.x.total + 'k' : `<s>$${cats.reduce((a, k) => a + (c.x[k] || 0), 0)}k</s> 0`}</td>`).join('')}</tr></table></div>
+   <p class="padnote">${sc.some(x => !x.escaped) ? t('scoreArrested') + ' ' : ''}${t('scoreTie')}</p>
+   <div class="row" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap"><button class="pri" id="eAgain">${t('playAgain')}</button><button class="ghost" id="eMenu" style="color:var(--ink)">${t('menu')}</button><button class="ghost" id="eClose" style="color:var(--ink)">${t('close')}</button></div></div>`;
   document.body.appendChild(d);
+  $$('[data-sh]', d).forEach(b => b.onclick = ev => { ev.stopPropagation(); $$('.secpop').forEach(x => x.remove()); const k = b.dataset.sh; const pop = document.createElement('div'); pop.className = 'secpop paper'; pop.style.zIndex = 300; pop.innerHTML = `<h4>${t('score.' + k)}<button class="x">✕</button></h4><p>${t('scoreHelp.' + k)}</p>`; document.body.appendChild(pop); const r = b.getBoundingClientRect(); pop.style.left = Math.min(innerWidth - pop.offsetWidth - 8, r.left) + 'px'; pop.style.top = Math.min(innerHeight - pop.offsetHeight - 8, r.bottom + 6) + 'px'; $('.x', pop).onclick = () => pop.remove(); });
   $('#eAgain').onclick = () => { d.remove(); showSetup(); }; $('#eMenu').onclick = () => { d.remove(); showMenu(); }; $('#eClose').onclick = () => d.remove();
 }
 
 // ---------------- boot ----------------
 bindTips();
-window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML };
+window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML, showEnd };
 showMenu();
 })();
