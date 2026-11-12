@@ -48,10 +48,18 @@ async function continueCloud() {
   if (!txt) { toast(t('noSaveCloud')); return; }
   try { loadSaveText(txt, 'cloud'); } catch (e) { toast(t('noSaveCloud')); }
 }
-async function newCloudGame() {
-  if (navigator.onLine === false) { toast(t('needNet')); return; }
-  try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
-  G.mode = 'cloud'; showSetup();
+// online game: choose single player (bots, saved on your Google account) or multiplayer (coming later)
+function newCloudGame() {
+  const d = document.createElement('div'); d.className = 'overlay';
+  d.innerHTML = `<div class="paper box npick"><h3>${t('newCloud')}</h3><div class="npo"><button id="nSingle" class="choice"><b>${t('single')}</b><span>${t('singleH')}</span></button><button id="nMulti" class="choice off" disabled><b>${t('multi')} <em class="soon">${t('soon')}</em></b><span>${t('multiH')}</span></button></div><div class="row"><button class="ghost" id="nX">${t('cancel')}</button></div></div>`;
+  document.body.appendChild(d);
+  $('#nX', d).onclick = () => d.remove(); d.onclick = e => { if (e.target === d) d.remove(); };
+  $('#nSingle', d).onclick = async () => {
+    d.remove();
+    if (navigator.onLine === false) { toast(t('needNet')); return; }
+    try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
+    G.mode = 'cloud'; showSetup();
+  };
 }
 function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
 function hasSave(k = 'heist.save') { try { return !!localStorage.getItem(k); } catch (e) { return false; } }

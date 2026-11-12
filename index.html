@@ -235,6 +235,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .pop button.pri{background:var(--red);color:#fff}
 .loclabel{cursor:pointer}.mpb{pointer-events:none}.mpb circle{fill:#f2c629;stroke:#1a1a1a;stroke-width:2.5}.mpb text{font:700 13px 'Barlow Condensed',sans-serif;text-anchor:middle;fill:#1a1a1a}
 .abgrp{margin:6px 0 8px}.abh{font-family:var(--ff-ui);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#5a4a2a;margin-bottom:4px;display:flex;align-items:center;gap:5px}.abh .ic{width:15px;height:15px}
+.overlay{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}.npick{max-width:520px;width:100%;padding:16px 18px}.npick h3{margin:0 0 10px;font-family:var(--ff-type)}.npick .row{margin-top:12px}.npo{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.npo .choice{flex-direction:column;align-items:flex-start;gap:4px;text-align:left}.npo .choice span{font-size:13.5px;opacity:.85}.soon{font-style:normal;font-size:11px;background:#f2c629;color:#1a1a1a;border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:2px}
 .mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.menu-btns .mrow button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.menu-btns .mrow button small{font-size:11.5px;font-weight:400;opacity:.8}.menu-btns .mrow .ic{display:none}.msmall{text-align:center;font-size:12.5px;margin-top:4px}.msmall a{color:var(--muted)}
 .savemode{margin-top:14px;text-align:center}.smt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.smb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.smb button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:150px;padding:8px 12px;background:#20242c;border:2px solid #343a46;color:#e8e2d4;border-radius:10px;font-size:15px}.smb button small{font-size:11.5px;color:var(--muted)}.smb button.on{border-color:#f2c629;background:#2a2a1e}.smb .ic{width:20px;height:20px}.priv{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
 .filebtns{display:flex;gap:8px;justify-content:center;margin-top:4px}.filebtns button{font-size:14px;padding:6px 12px}.filebtns .ic{width:16px;height:16px;vertical-align:-3px}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1c2028;color:#fff;border:1px solid #f2c629;border-radius:8px;padding:8px 14px;z-index:99;font-size:14px}
@@ -1859,6 +1860,7 @@ en: {
   setHelpBiz: 'At the end of the turn in which you have visited all 3 Businesses of this group, choose: take an Extra Action disc, OR unlock an asset and lose 1 notoriety. Once per group per game.', setHelpSh: 'At the end of the turn in which you have visited all 3 Safe Houses, choose: take an Extra Action disc, OR unlock an asset and receive income. Once per game.',
   slotReplace: 'goes to the box',
   incomeLbl: 'Income',
+  single: 'Single player', singleH: 'You against the computer (solo or 2–5 players), saved on your Google account — continue on any device.', multi: 'Multiplayer', multiH: 'Play against other people over the internet.', soon: 'Not yet available',
   contLocal: 'Continue', contCloud: 'Continue online', newLocal: 'New game', newCloud: 'New online game', onDevice: 'on this device', anyDevice: 'Google account · any device', signOut: 'Sign out of Google', signOutQ: 'Sign out of Google on this device? Your online game stays on Drive.', noSaveCloud: 'No online game found', needNet: 'You need internet to start an online game', cloudOfflineCont: 'No internet: continuing from this device’s copy',
   saveWhere: 'Where to save your games', smLocal: 'This device', smLocalH: 'works offline, only here', smCloud: 'Google account', smCloudH: 'continue on any device', privacy: 'Privacy',
   driveConnect: 'Connect Google Drive', driveOn: 'Google Drive: on', driveOffQ: 'Save only on this device from now on (sign out of Google here)?', driveDone: 'Google Drive connected — your games are saved there too', driveFail: 'Could not connect to Google Drive', cloudLook: 'Looking for your game on Google Drive…', cloudGot: 'Using the newer game from Google Drive', noSave: 'No saved game found', cloudLast: 'Last copy on Drive:',
@@ -1926,6 +1928,7 @@ pt: {
   setHelpBiz: 'No fim do turno em que visitaste os 3 Businesses deste grupo, escolhes: um disco de Ação Extra, OU desbloquear um ativo e perder 1 de notoriedade. Uma vez por grupo em todo o jogo.', setHelpSh: 'No fim do turno em que visitaste as 3 Casas Seguras, escolhes: um disco de Ação Extra, OU desbloquear um ativo e receber rendimento. Uma vez em todo o jogo.',
   slotReplace: 'vai para a caixa',
   incomeLbl: 'Rendimento',
+  single: 'Um jogador', singleH: 'Tu contra o computador (solo ou 2–5 jogadores), guardado na tua conta Google — continua em qualquer dispositivo.', multi: 'Multijogador', multiH: 'Jogar contra outras pessoas pela internet.', soon: 'Ainda não disponível',
   contLocal: 'Continuar', contCloud: 'Continuar online', newLocal: 'Novo jogo', newCloud: 'Novo jogo online', onDevice: 'neste dispositivo', anyDevice: 'conta Google · qualquer dispositivo', signOut: 'Sair da conta Google', signOutQ: 'Sair da conta Google neste dispositivo? O teu jogo online continua no Drive.', noSaveCloud: 'Não há nenhum jogo online guardado', needNet: 'Precisas de internet para começar um jogo online', cloudOfflineCont: 'Sem internet: a continuar a partir da cópia deste dispositivo',
   saveWhere: 'Onde guardar os teus jogos', smLocal: 'Neste dispositivo', smLocalH: 'funciona offline, só aqui', smCloud: 'Conta Google', smCloudH: 'continua em qualquer dispositivo', privacy: 'Privacidade',
   driveConnect: 'Ligar ao Google Drive', driveOn: 'Google Drive: ligado', driveOffQ: 'Passar a guardar só neste dispositivo (sair da conta Google aqui)?', driveDone: 'Google Drive ligado — os teus jogos ficam também guardados lá', driveFail: 'Não foi possível ligar ao Google Drive', cloudLook: 'A procurar o teu jogo no Google Drive…', cloudGot: 'A usar o jogo mais recente do Google Drive', noSave: 'Não há nenhum jogo guardado', cloudLast: 'Última cópia no Drive:',
@@ -2665,10 +2668,18 @@ async function continueCloud() {
   if (!txt) { toast(t('noSaveCloud')); return; }
   try { loadSaveText(txt, 'cloud'); } catch (e) { toast(t('noSaveCloud')); }
 }
-async function newCloudGame() {
-  if (navigator.onLine === false) { toast(t('needNet')); return; }
-  try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
-  G.mode = 'cloud'; showSetup();
+// online game: choose single player (bots, saved on your Google account) or multiplayer (coming later)
+function newCloudGame() {
+  const d = document.createElement('div'); d.className = 'overlay';
+  d.innerHTML = `<div class="paper box npick"><h3>${t('newCloud')}</h3><div class="npo"><button id="nSingle" class="choice"><b>${t('single')}</b><span>${t('singleH')}</span></button><button id="nMulti" class="choice off" disabled><b>${t('multi')} <em class="soon">${t('soon')}</em></b><span>${t('multiH')}</span></button></div><div class="row"><button class="ghost" id="nX">${t('cancel')}</button></div></div>`;
+  document.body.appendChild(d);
+  $('#nX', d).onclick = () => d.remove(); d.onclick = e => { if (e.target === d) d.remove(); };
+  $('#nSingle', d).onclick = async () => {
+    d.remove();
+    if (navigator.onLine === false) { toast(t('needNet')); return; }
+    try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
+    G.mode = 'cloud'; showSetup();
+  };
 }
 function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
 function hasSave(k = 'heist.save') { try { return !!localStorage.getItem(k); } catch (e) { return false; } }
