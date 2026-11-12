@@ -387,34 +387,34 @@ function playerCard(S, p, full, viewer) {
   const cubes = (n, cls) => Array.from({ length: n }, () => `<span class="cube ${cls}"></span>`).join('');
   let h = `<div class="pcard ${cur ? 'cur' : ''}" style="--c:${col}" id="pc-${p.id}"><h3 ${exp ? `data-exp="${p.id}" style="cursor:pointer"` : ''}>${exp ? `<span class="expi">${full ? '▾' : '▸'}</span>` : ''}<span class="dot" style="background:${col}"></span>${pname(p.id)}${p.ai ? ` <small style="color:var(--muted);font-size:12px">${t('bot')}</small>` : ''}<span class="tagx">${p.escaped ? '🚗 ' + t('escaped') : p.arrested ? '🚨 ' + t('arrested') : locName(p.loc)}</span></h3>`;
   if (p.npc) {
-    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div>${p.escaped || p.arrested ? '' : `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p)}</div>`;
+    h += `<div class="stats"><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:discs">${ic('disc')} ${p.discs}</span>${p.npc === 'costa' ? `<span class="stat">${ic('card')} ${p.contacts.length}</span><span class="stat">${ic('bag')} ${p.stacks.length}</span>${p.debt ? `<span class="stat money">−$${p.debt}k</span>` : ''}` : ''}</div>${p.escaped || p.arrested ? '' : `<div class="rowlbl" data-sec="nbox">${t('nbTitle')}${SQ('nbox')}</div>` + notorBoxHTML(S, p)}</div>`;
     return h;
   }
-  h += `<div class="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">${t("incomeLbl")} <b>+$${p.income}k</b></span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
+  h += `<div class="stats" data-sec="stats"><span class="stat money" data-h="stat:money">${ic('money')} ${showMoney ? money(p.money) : '$??'}</span><span class="stat inc" data-h="stat:income">${t("incomeLbl")} <b>+$${p.income}k</b></span><span class="stat not" data-h="stat:notor">${ic('star')} ${p.notor}${p.red || p.blue ? ` <small>${p.red ? '▲' + p.red : ''}${p.blue ? '▼' + p.blue : ''}</small>` : ''}</span><span class="stat" data-h="stat:wounds"><span class="cubes">${cubes(3 - p.wounds, '')}${cubes(p.wounds, 'r')}</span></span></div>`;
   if (!full) {
     const cc = p.contacts.filter(c => c && c.kind === 'contact').length; const eq = p.items.filter(x => x && (x.kind === 'equip' || x.kind === 'fixer')).length; const bags = p.items.filter(x => x && (x.kind === 'locker' || x.kind === 'exit')).length;
     const keyC = { green: '#3eae50', black: '#aaa', brown: '#c07a3a' };
     const keys = ['sh1', 'sh2', 'sh3'].filter(k => p.keys[k]).map(k => ic('key', '', keyC[p.keys[k].color])).join('') || '0';
-    h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-exp="${p.id}">${t('showBoard')}</div></div>`;
+    h += `<div class="chips"><span class="chip" data-h="stat:cards">${ic('card')} ${cc}</span><span class="chip" data-h="stat:equip">${ic('helmet')} ${eq}</span><span class="chip" data-h="stat:bags">${ic('bag')} ${bags}</span><span class="chip" data-h="stat:keys">${keys}</span><span class="chip" data-h="stat:gas">${ic('gas')} ${p.gas}</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon')}</span>${p.cuffs ? `<span class="chip" data-h="stat:cuffs">⛓ ${p.cuffs}</span>` : ''}</div><div class="exphint" data-sec="rivals" data-exp="${p.id}">${t('showBoard')}</div></div>`;
     return h;
   }
-  if (!p.escaped && !p.arrested) h += `<div class="rowlbl">${t('nbTitle')}</div>` + notorBoxHTML(S, p);
-  h += `<div class="rowlbl">${t('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('cards')}</div><div class="slots">${p.contacts.map((x, i) => slotHTML(p, x, i, 'contacts', viewer)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
+  if (!p.escaped && !p.arrested) h += `<div class="rowlbl" data-sec="nbox">${t('nbTitle')}${SQ('nbox')}</div>` + notorBoxHTML(S, p);
+  h += `<div class="rowlbl" data-sec="items">${t('items')}${SQ('items')}</div><div class="slots">${p.items.map((x, i) => slotHTML(p, x, i, 'items', viewer)).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="contacts">${t('cards')}${SQ('contacts')}</div><div class="slots">${p.contacts.map((x, i) => slotHTML(p, x, i, 'contacts', viewer)).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="assets">${t('assets')}${SQ('assets')}</div><div class="slots six">${p.unlocked.map((u, i) => u ? `<div class="slot asset ${u.used ? 'used' : ''}" data-h="asset:${u.id}"><span class="cost">$${E.UNLOCK_COSTS[i]}</span>${ic(IC.ASSET[u.id], '', u.id === 'move_county' ? COP.county : u.id === 'move_federal' ? COP.federal : u.id === 'move_swat' ? '#bbb' : undefined)}</div>` : `<div class="slot"><span class="cost" style="color:var(--muted)">$${E.UNLOCK_COSTS[i]}</span></div>`).join('')}</div>`;
   const keyC = { green: '#3eae50', black: '#555', brown: '#9b5a2a' };
-  h += `<div class="rowlbl">${t('keys')} · ${t('gas')} · ${t('gang')} · ${t('discs')}</div><div class="chips">${['sh1', 'sh2', 'sh3'].map(k => p.keys[k] ? `<span class="chip" data-h="key:${p.keys[k].color}" style="${p.keys[k].used ? 'opacity:.4' : ''}">${ic('key', '', keyC[p.keys[k].color])} ${k.slice(2)}</span>` : `<span class="chip" style="opacity:.35">${ic('key')} ${k.slice(2)}</span>`).join('')}<span class="chip" data-h="stat:gas">${ic('gas', '', '#7fc3ff')} ${p.gas}/2</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc', '', '#e8b546')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon', '', p.rest ? '#f2c629' : '#9fb3d9')}</span><span class="chip" data-h="stat:firstaid" style="${p.firstAid ? '' : 'opacity:.4'}">${ic('bandage', '', '#ff8f7a')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div>`;
-  if (p.power) { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === p.power); h += `<div class="rowlbl">${t('power')}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px" data-h="power:${p.power}"><b>${PW.name}</b> — ${PW.title}<br><span style="font-size:12.5px;color:#cfd3db">${T.powerText(PW)}</span></div>`; }
+  h += `<div class="rowlbl" data-sec="chips">${t('keys')} · ${t('gas')} · ${t('gang')} · ${t('discs')}${SQ('chips')}</div><div class="chips">${['sh1', 'sh2', 'sh3'].map(k => p.keys[k] ? `<span class="chip" data-h="key:${p.keys[k].color}" style="${p.keys[k].used ? 'opacity:.4' : ''}">${ic('key', '', keyC[p.keys[k].color])} ${k.slice(2)}</span>` : `<span class="chip" style="opacity:.35">${ic('key')} ${k.slice(2)}</span>`).join('')}<span class="chip" data-h="stat:gas">${ic('gas', '', '#7fc3ff')} ${p.gas}/2</span><span class="chip" data-h="stat:gang">${ic('biker')} ${p.gangMembers.length}</span><span class="chip" data-h="stat:discs">${ic('disc', '', '#e8b546')} ${p.discs}</span><span class="chip" data-h="stat:rest">${ic(p.rest ? 'sun' : 'moon', '', p.rest ? '#f2c629' : '#9fb3d9')}</span><span class="chip" data-h="stat:firstaid" style="${p.firstAid ? '' : 'opacity:.4'}">${ic('bandage', '', '#ff8f7a')}</span>${p.cuffs ? `<span class="chip">⛓ ${p.cuffs}</span>` : ''}</div>`;
+  if (p.power) { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === p.power); h += `<div class="rowlbl" data-sec="power">${t('power')}${SQ('power')}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px" data-h="power:${p.power}"><b>${PW.name}</b> — ${PW.title}<br><span style="font-size:12.5px;color:#cfd3db">${T.powerText(PW)}</span></div>`; }
   if (p.mission && (viewer === p.id || p.mission.done)) {
     const M = window.HEIST_DATA.missions.missions.find(m => m.id === p.mission.id); const MT = T.missionText(M);
-    h += `<div class="rowlbl">${t('mission')} ${p.mission.done ? '✔' : ''}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px;background:#3a3020">`;
+    h += `<div class="rowlbl" data-sec="mission">${t('mission')} ${p.mission.done ? '✔' : ''}${SQ('mission')}</div><div class="chip" style="border-radius:8px;display:block;padding:6px 8px;background:#3a3020">`;
     if (!p.mission.done) h += MT.goals.map(g => '• ' + g).join('<br>');
     else if (p.mission.ability) { const ai = 'abc'.indexOf(p.mission.ability); h += `<b>${MT.abilities[ai]}</b>`; if (/1 vez|Once per day|1x/i.test(M.abilities[ai] + MT.abilities[ai])) h += `<br><small>${p.mission.token ? '● ' + t('tokenOn') : '○ ' + t('tokenOff')}</small>`; if (p.mission.id === 3 && p.mission.ability === 'b' && viewer === p.id) h += `<br><label class="chk"><input type="checkbox" id="kfu" ${p.keepFaceUp ? 'checked' : ''}> ${t('keepFaceUp')}</label>`; }
     h += `</div>`;
-  } else if (p.mission) h += `<div class="rowlbl">${t('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
+  } else if (p.mission) h += `<div class="rowlbl" data-sec="mission">${t('mission')}${SQ('mission')}</div><div class="chip">🔒 ${t('secret')}</div>`;
   if (viewer === p.id) {
     const plan = window.HEIST_DATA.escapePlans.cards[p.plan];
-    h += `<div class="rowlbl">${t('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''} g${i < 3 ? 'p' : i < 6 ? 'b' : 'r'}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
+    h += `<div class="rowlbl" data-sec="plan">${t('plan')}${SQ('plan')}</div><div class="plan">${E.PLAN_KEYS.map((k, i) => `<div class="${plan[i] === '$' ? 'inc' : ''} ${p.visited[k] ? 'v' : ''} g${i < 3 ? 'p' : i < 6 ? 'b' : 'r'}" data-h="plan:${k}"><span>${p.visited[k] ? '✔ ' : ''}${nm(k).replace('Safe House', 'SH').replace('Casa Segura', 'CS')}</span><b>${plan[i] === '$' ? '$' : plan[i]}</b></div>`).join('')}</div>`;
   }
   return h + '</div>';
 }
@@ -483,16 +483,16 @@ function setBonusHTML(S, g) {
   return `<div class="setb" style="border-color:${col}" data-h="ui:set_${g}"><div class="st"><span class="dots">${keys.map(k => `<i style="${me && me.visited[k] ? 'background:' + col : ''};border-color:${col}"></i>`).join('')}</span>${t('setTitle')}</div><div class="so"><span class="opt">${ic('disc', '', '#e8b546')} ${t('setDisc')}</span><em>${t('or')}</em><span class="opt">${optB} ${t(g === 'sh' ? 'setSh' : 'setBiz')}</span></div><div class="sp">${t('setYou', n)}${got.length ? ' · ' + t('setGot') + ' ' + got.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('') : ''}</div></div>`;
 }
 function marketHTML(S) {
-  let h = `<div class="rowlbl">${t('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('turnOrder')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
-  h += `<div class="rowlbl">${t('notoriety')}</div><div class="track">`;
+  let h = `<div class="rowlbl" data-sec="display">${t('display')}${SQ('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="order">${t('turnOrder')}${SQ('order')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="track">${t('notoriety')}${SQ('track')}</div><div class="track">`;
   for (let lv = 1; lv <= S.cfg.max; lv++) {
     const here = S.players.concat(S.npcs || []).filter(q => q.notor === lv && !q.arrested);
     const ti = S.cfg.th.indexOf(lv);
     const thb = ti < 0 ? '' : `<span class="thb" data-h="th:${ti}">${ic('unlock')}<small>×${ti === 1 ? 2 : 1}</small>${ti === 2 ? ic('disc', '', '#e8b546') : ''}<span class="sep"></span>${ic('shield', '', '#ff8a7a')}<small>➜</small></span>`;
     h += `<div class="trow ${ti >= 0 ? 'th' : ''}" data-h="track:${lv}">${thb}<span class="lv">${lv}</span>${here.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('')}<span class="pen">${S.cfg.pen[lv] ? '−$' + S.cfg.pen[lv] + 'k' : ''}</span></div>`;
   }
-  h += `</div><div class="rowlbl">${t('businesses')}</div>`;
+  h += `</div><div class="rowlbl" data-sec="businesses">${t('businesses')}${SQ('businesses')}</div>`;
   const cubeRow = (cubes) => { const inc = cubes.filter(c => c.income), end = cubes.filter(c => !c.income); const sq = (arr) => arr.map(c => `<i style="background:${pcolor(c.pid)}" title="${pname(c.pid)}"></i>`).join('') || '<em>—</em>'; return `<div class="bc"><span class="hx inc" data-h="ui:incHex">$ ${t('incomeNow')}</span>${sq(inc)}<span class="hx end" data-h="ui:endHex">${ic('bag')} ${t('endMoney')}</span>${sq(end)}</div>`; };
   h += `<div class="legend">${t('bizLegend', S.cfg.closeAt)}</div>`;
   window.HEIST_DATA.locations.businesses.forEach(b => {
@@ -501,13 +501,13 @@ function marketHTML(S) {
     h += `<div class="bizrow ${closed ? 'cl' : ''}" data-h="biz:${b.id}"><div class="bh">${ic(IC.BIZ[b.id], '', b.group === 'purple' ? '#b07be0' : '#6aa0ff')} ${nm(b.id)}<span class="cap">${slots}${closed ? ' ' + ic('lock', '', '#f2c629') + ' ' + t('closed') : ''}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`;
     const grp = window.HEIST_DATA.locations.businesses.filter(x => x.group === b.group); if (grp[grp.length - 1].id === b.id) h += setBonusHTML(S, b.group);
   });
-  h += `<div class="rowlbl">${t('safehouses')}</div>`;
+  h += `<div class="rowlbl" data-sec="safehouses">${t('safehouses')}${SQ('safehouses')}</div>`;
   h += `<div class="legend">${t('shLegend')}</div>`;
   ['sh1', 'sh2', 'sh3'].forEach(k => { const cubes = S.shCubes[k] || []; h += `<div class="bizrow"><div class="bh">${ic('house', '', '#ff7a6e')} ${nm(k)}<span class="cap">${(S.shKeys[k] || []).map(c => ic('key', '', { green: '#3eae50', black: '#aaa', brown: '#c07a3a' }[c])).join('') || '<em>' + t('noKeys') + '</em>'}</span></div>${cubes.length ? cubeRow(cubes) : ''}</div>`; });
   h += setBonusHTML(S, 'sh');
-  h += `<div class="rowlbl">${t('fixers')}</div><div class="cardrow wrap">${S.fixers.map(f => fixerCardHTML(f)).join('')}</div>`;
-  h += `<div class="rowlbl">${t('equipment')}</div><div class="cardrow wrap">${Object.keys(S.equip).map(k => equipTileHTML(k, S.equip[k])).join('')}<div class="etile gas" data-h="stat:gas"><div class="nm">${t('gas')}</div>${ic('gas', 'big', '#7fc3ff')}<div class="av">+1 ${t('mp')}</div><div class="ft"><span>${t('free')}</span><span>×${S.gasSupply}</span></div></div></div>`;
-  h += `<div class="rowlbl">${t('lockers')}</div><div class="legend">${t('lockerLegend')}</div><div class="cardrow wrap">${['green', 'black', 'brown'].map(c => lockerBackHTML(c, S.lockers[c].length)).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="fixers">${t('fixers')}${SQ('fixers')}</div><div class="cardrow wrap">${S.fixers.map(f => fixerCardHTML(f)).join('')}</div>`;
+  h += `<div class="rowlbl" data-sec="equipment">${t('equipment')}${SQ('equipment')}</div><div class="cardrow wrap">${Object.keys(S.equip).map(k => equipTileHTML(k, S.equip[k])).join('')}<div class="etile gas" data-h="stat:gas"><div class="nm">${t('gas')}</div>${ic('gas', 'big', '#7fc3ff')}<div class="av">+1 ${t('mp')}</div><div class="ft"><span>${t('free')}</span><span>×${S.gasSupply}</span></div></div></div>`;
+  h += `<div class="rowlbl" data-sec="lockers">${t('lockers')}${SQ('lockers')}</div><div class="legend">${t('lockerLegend')}</div><div class="cardrow wrap">${['green', 'black', 'brown'].map(c => lockerBackHTML(c, S.lockers[c].length)).join('')}</div>`;
   h += `<div class="kv" style="margin-top:8px"><span>${ic('disc')} ${t('discs')}</span><b>${S.discs}</b></div><div class="kv"><span>${ic('shield', '', COP.county)}${ic('shield', '', COP.federal)}${ic('shield', '', '#888')} bag</span><b>${S.bag.county}/${S.bag.federal}/${S.bag.swat}</b></div>`;
   return h;
 }
@@ -913,11 +913,29 @@ function flyToSpot(html, target, hold = 900) {
   }, hold * spd()));
 }
 // spotlight for the tutorial: dims everything except the highlighted element
-function spotlight(sel) {
-  $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = $$(sel).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
-  const rs = els.map(e => e.getBoundingClientRect()); const L = Math.min(...rs.map(r => r.left)), T = Math.min(...rs.map(r => r.top)), R = Math.max(...rs.map(r => r.right)), B = Math.max(...rs.map(r => r.bottom));
-  const d = document.createElement('div'); d.className = 'spot'; Object.assign(d.style, { left: L - 8 + 'px', top: T - 8 + 'px', width: R - L + 16 + 'px', height: B - T + 16 + 'px' }); document.body.appendChild(d);
+function spotlight(sel, tries) {
+  $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = (sel.startsWith('sec:') ? secEls(sel.slice(4)) : $$(sel)).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
+  if (sel.startsWith('sec:') && !tries) { const sp = $('#sidepanel'); if (sp) { const a = els[0].getBoundingClientRect(), z = els[els.length - 1].getBoundingClientRect(), pr = sp.getBoundingClientRect(); if (a.top < pr.top || z.bottom > pr.bottom) { sp.scrollTop += a.top - pr.top - 30; const tok = spotlight.tok = (spotlight.tok || 0) + 1; return requestAnimationFrame(() => { if (spotlight.tok === tok) spotlight(sel, 1); }); } } }
+  const rs = els.map(e => e.getBoundingClientRect()); const L = Math.max(4, Math.min(...rs.map(r => r.left))), T = Math.max(4, Math.min(...rs.map(r => r.top))), R = Math.min(innerWidth - 4, Math.max(...rs.map(r => r.right))), B = Math.min(innerHeight - 4, Math.max(...rs.map(r => r.bottom)));
+  const d = document.createElement('div'); d.className = 'spot'; Object.assign(d.style, { left: Math.max(2, L - 8) + 'px', top: Math.max(2, T - 8) + 'px', width: Math.min(innerWidth - 4, R - L + 16) + 'px', height: Math.min(innerHeight - 4, B - T + 16) + 'px' }); document.body.appendChild(d);
+  const c = document.getElementById('coach'); if (c && !c._moved) { c.style.top = ''; c.style.bottom = ''; const cr = c.getBoundingClientRect(); if (cr.left < R && cr.right > L && cr.top < B && cr.bottom > T) { if ((T + B) / 2 > innerHeight / 2) { c.style.top = '56px'; c.style.bottom = 'auto'; } else { c.style.top = 'auto'; c.style.bottom = '12px'; } } }
 }
+// "?" button on each section header of the boards
+function SQ(key) { return `<button class="secq" data-sq="${key}" title="?">?</button>`; }
+function secEls(key) {
+  const panel = $('#sidepanel') || document; const head = [...panel.querySelectorAll(`[data-sec="${key}"]`)].find(e => e.getBoundingClientRect().width); if (!head) return [];
+  if (!head.classList.contains('rowlbl')) return key === 'rivals' ? [head.closest('.pcard') || head] : [head];
+  const out = [head]; let n = head.nextElementSibling; while (n && !n.classList.contains('rowlbl') && !n.classList.contains('secstop')) { out.push(n); n = n.nextElementSibling; } return out;
+}
+function secHelp(key, btn) {
+  $$('.secpop').forEach(x => x.remove()); const x = TUT().sec[key]; if (!x) return;
+  const d = document.createElement('div'); d.className = 'secpop paper';
+  d.innerHTML = `<h4>${x.t}<button class="x" aria-label="close">✕</button></h4>${x.b}${x.r ? `<a class="more">${G.prefs.lang === 'pt' ? 'Ver nas regras →' : 'More in the rules →'}</a>` : ''}`;
+  document.body.appendChild(d); const r = btn.getBoundingClientRect(), b = d.getBoundingClientRect();
+  d.style.left = Math.max(8, Math.min(innerWidth - b.width - 8, r.right - b.width)) + 'px'; d.style.top = (r.bottom + 6 + b.height < innerHeight ? r.bottom + 6 : Math.max(8, r.top - b.height - 6)) + 'px';
+  $('.x', d).onclick = () => d.remove(); const mo = $('.more', d); if (mo) mo.onclick = () => { d.remove(); openRules(x.r); };
+}
+document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('.secq'); if (q) { ev.stopPropagation(); secHelp(q.dataset.sq, q); return; } if (!ev.target.closest || !ev.target.closest('.secpop')) $$('.secpop').forEach(x => x.remove()); }, true);
 function banner(text, small) { if (!spd()) return; const d = document.createElement('div'); d.className = 'banner'; d.innerHTML = (small ? `<small>${small}</small>` : '') + text; fx().appendChild(d); setTimeout(() => d.remove(), 1500 * spd()); }
 function stamp(text) { if (!spd()) return; const d = document.createElement('div'); d.className = 'stamp'; d.textContent = text; d.style.left = '50%'; d.style.top = '40%'; d.style.marginLeft = '-140px'; fx().appendChild(d); setTimeout(() => d.remove(), 1400 * spd()); }
 function flyCard(card, pid) {
@@ -1060,20 +1078,35 @@ function startTutorial() {
   G.logLines = []; startScreen(true);
 }
 function coachClose() { $$('.spot').forEach(x => x.remove()); const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
-function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) { $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (!c._dec) spotlight(c._hl); } if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
+function coachHL() { if (!G.tut) return; const c = document.getElementById('coach'); if (c && c._hl) { if (!c._hl.startsWith('sec:')) $$(c._hl).forEach(x => x.classList.add('tut-hl')); if (!c._dec) spotlight(c._hl); } if (G.tut.hlLoc) $$(`#map [data-loc="${G.tut.hlLoc}"]`).forEach(x => x.classList.add('tut-hl')); }
 // show a coach card; resolves when the player presses Next / Got it (or the card is closed by playing)
 function coach(entry, o = {}) {
   coachClose(); const U = TUT().ui;
   return new Promise(res => {
     const d = document.createElement('div'); d.id = 'coach'; d.className = 'coach paper'; d._res = res; d._hl = entry.h || null; d._dec = !!o.decision;
-    d.innerHTML = `<h4><span class="grip">⠿</span> <small>🎓 ${U.step}</small><br>${entry.t}</h4><div class="cb">${entry.b || ''}${o.extra || ''}</div><div class="row">${o.doIt ? `<button class="pri" id="cDo">${U.doIt}</button>` : ''}<button class="${o.doIt ? 'ghost' : 'pri'}" id="cNext">${o.decision ? U.gotIt : U.next}</button><button class="ghost" id="cSkip">${U.skip}</button></div>`;
+    d.innerHTML = `<h4><span class="grip">⠿</span> <small>🎓 ${U.step}</small><br>${entry.t}</h4><div class="cb">${entry.b || ''}${o.extra || ''}</div><div class="row">${o.doIt ? `<button class="pri" id="cDo">${U.doIt}</button>` : ''}<button class="${o.doIt ? 'ghost' : 'pri'}" id="cNext">${o.decision ? U.gotIt : U.next}</button>${o.skipTour ? `<button class="ghost" id="cTour">${U.skipTour}</button>` : ''}<button class="ghost" id="cSkip">${U.skip}</button></div>`;
     document.body.appendChild(d); makeDraggable(d, $('h4', d)); coachHL();
     $('#cNext', d).onclick = () => coachClose();
+    $('#cTour', d) && ($('#cTour', d).onclick = () => { o.skipTour(); coachClose(); });
     $('#cDo', d) && ($('#cDo', d).onclick = () => { const f = o.doIt; coachClose(); f(); });
     $('#cSkip', d).onclick = () => { G.tut = null; coachClose(); };
   });
 }
-async function tutIntro() { G.tut.introDone = true; for (const x of TUT().intro) { if (!G.tut) return; await coach(x); } }
+const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
+function tourTab(tab) { if (G.tab !== tab) { G.tab = tab; renderSide(); } const sd = $('#side'); if (sd && !sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') { sd.classList.add('open'); if (G.tut) G.tut.openedSide = true; } }
+async function tutIntro() {
+  G.tut.introDone = true; const T = TUT(); const it = T.intro;
+  const steps = [it[0], it[1], it[2], ...TOUR.map(([tab, k]) => ({ ...T.sec[k], h: 'sec:' + k, tab, tour: true })), ...it.slice(3)];
+  let skip = false;
+  for (const x of steps) {
+    if (!G.tut) return; if (x.tour && skip) continue;
+    if (x.tab) tourTab(x.tab); else if (G.tab !== 'me') tourTab('me');
+    const sp = $('#sidepanel'); if (sp && x.tab && x.h === 'sec:' + TOUR[0][1]) sp.scrollTop = 0;
+    await new Promise(r => requestAnimationFrame(r));
+    await coach(x, x.tour || x === it[2] ? { skipTour: () => { skip = true; } } : {});
+  }
+  tourTab('me'); const sp = $('#sidepanel'); if (sp) sp.scrollTop = 0; if (G.tut && G.tut.openedSide) $('#side').classList.remove('open');
+}
 async function tutEvent(e) {
   const tu = G.tut; if (!tu) return; const me = 0; let keys = [];
   switch (e.t) {
