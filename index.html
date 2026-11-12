@@ -88,7 +88,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .dot{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #0005}
 @media (max-width:900px),(max-height:520px){
   #game{grid-template-columns:minmax(0,1fr);grid-template-rows:46px minmax(0,1fr) auto;grid-template-areas:"top" "map" "bar"}
-  #side{position:fixed;right:0;top:46px;bottom:0;width:min(300px,82vw);transform:translateX(105%);transition:transform .25s;box-shadow:-10px 0 30px #0008}
+  #side{position:fixed;right:0;top:var(--toph,46px);bottom:var(--barh,0px);width:min(300px,82vw);transform:translateX(105%);transition:transform .25s;box-shadow:-10px 0 30px #0008}
   #side.open{transform:none}
   #top .daybox{font-size:16px}.tl{width:22px;height:22px}
   .exitb{font-size:12px;padding:3px 6px}
@@ -4094,6 +4094,8 @@ function startScreen(fresh) {
   // fresh: start tiles appear first
   if (fresh) { G.S.cells.forEach((c, i) => { if (c && (c.tile === 'S1' || c.tile === 'S2')) G.VS.cells[i] = E.clone(c); }); }
   bindPanZoom(); renderAll();
+  // in the narrow layout the side panel floats: keep it between the top bar and the bottom bar (which changes height)
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => { const b = $('#bar'), tp = $('#top'); if (b) document.documentElement.style.setProperty('--barh', b.offsetHeight + 'px'); if (tp) document.documentElement.style.setProperty('--toph', tp.offsetHeight + 'px'); }); ['#bar', '#top'].forEach(q => $(q) && ro.observe($(q))); }
   window.onresize = () => { G.fitted = false; renderMap(); };
   loop();
 }

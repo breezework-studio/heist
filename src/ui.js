@@ -1277,6 +1277,8 @@ function startScreen(fresh) {
   // fresh: start tiles appear first
   if (fresh) { G.S.cells.forEach((c, i) => { if (c && (c.tile === 'S1' || c.tile === 'S2')) G.VS.cells[i] = E.clone(c); }); }
   bindPanZoom(); renderAll();
+  // in the narrow layout the side panel floats: keep it between the top bar and the bottom bar (which changes height)
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => { const b = $('#bar'), tp = $('#top'); if (b) document.documentElement.style.setProperty('--barh', b.offsetHeight + 'px'); if (tp) document.documentElement.style.setProperty('--toph', tp.offsetHeight + 'px'); }); ['#bar', '#top'].forEach(q => $(q) && ro.observe($(q))); }
   window.onresize = () => { G.fitted = false; renderMap(); };
   loop();
 }
