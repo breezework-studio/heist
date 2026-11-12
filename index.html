@@ -4071,7 +4071,7 @@ function startScreen(fresh) {
   G.screen = 'game'; G.fitted = false; G.vbKey = null; G.zoom = { k: 1, x: 0, y: 0 }; G.sel = {}; G.tab = 'me';
   const app = $('#app');
   app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg><button id="bCenter" class="mapctr" data-h="ui:center">⌖</button></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
-  if (fresh) { G.VS = E.clone(G.S); G.VS.events = []; G.VS.cells = G.VS.cells.map(() => null); G.VS.display = []; G.VS.day = 1; G.VS.part = 0; }
+  if (fresh) { G.VS = E.clone(G.S); G.VS.events = []; G.VS.cells = G.VS.cells.map(() => null); G.VS.display = []; G.VS.day = 1; G.VS.part = 0; G.VS.patrolSpaces = { 1: 0, 2: 0, 3: 0 }; }
   else { G.VS = E.clone(G.S); G.S.events = []; }
   // fresh: start tiles appear first
   if (fresh) { G.S.cells.forEach((c, i) => { if (c && (c.tile === 'S1' || c.tile === 'S2')) G.VS.cells[i] = E.clone(c); }); }
