@@ -235,6 +235,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .pop button.pri{background:var(--red);color:#fff}
 .loclabel{cursor:pointer}.mpb{pointer-events:none}.mpb circle{fill:#f2c629;stroke:#1a1a1a;stroke-width:2.5}.mpb text{font:700 13px 'Barlow Condensed',sans-serif;text-anchor:middle;fill:#1a1a1a}
 .abgrp{margin:6px 0 8px}.abh{font-family:var(--ff-ui);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#5a4a2a;margin-bottom:4px;display:flex;align-items:center;gap:5px}.abh .ic{width:15px;height:15px}
+.savemode{margin-top:14px;text-align:center}.smt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.smb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.smb button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:150px;padding:8px 12px;background:#20242c;border:2px solid #343a46;color:#e8e2d4;border-radius:10px;font-size:15px}.smb button small{font-size:11.5px;color:var(--muted)}.smb button.on{border-color:#f2c629;background:#2a2a1e}.smb .ic{width:20px;height:20px}.priv{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
 .filebtns{display:flex;gap:8px;justify-content:center;margin-top:4px}.filebtns button{font-size:14px;padding:6px 12px}.filebtns .ic{width:16px;height:16px;vertical-align:-3px}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1c2028;color:#fff;border:1px solid #f2c629;border-radius:8px;padding:8px 14px;z-index:99;font-size:14px}
 .avtile{border:1px solid #0002;border-radius:8px;padding:4px 8px;margin:6px 0;background:#fff5}.avh{font-family:var(--ff-ui);font-weight:700;font-size:13px;color:#5a4a2a;margin-bottom:2px}.off-row.tilewide{background:#f2c62922;border-radius:6px}.opt-btn .ic{width:15px;height:15px;vertical-align:-3px}.opt-btn small{font-weight:400;opacity:.85}.noopt{color:#8a5a3a;font-size:13px}
 .tip{position:fixed;z-index:50;width:max-content;max-width:280px;background:#0b0d12f2;color:#eee;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;pointer-events:none;box-shadow:0 8px 20px #000a}
@@ -1857,7 +1858,8 @@ en: {
   setHelpBiz: 'At the end of the turn in which you have visited all 3 Businesses of this group, choose: take an Extra Action disc, OR unlock an asset and lose 1 notoriety. Once per group per game.', setHelpSh: 'At the end of the turn in which you have visited all 3 Safe Houses, choose: take an Extra Action disc, OR unlock an asset and receive income. Once per game.',
   slotReplace: 'goes to the box',
   incomeLbl: 'Income',
-  driveConnect: 'Connect Google Drive', driveOn: 'Google Drive: on', driveOffQ: 'Stop saving to Google Drive on this device?', driveDone: 'Google Drive connected — your games are saved there too', driveFail: 'Could not connect to Google Drive', cloudLook: 'Looking for your game on Google Drive…', cloudGot: 'Using the newer game from Google Drive', noSave: 'No saved game found', cloudLast: 'Last copy on Drive:',
+  saveWhere: 'Where to save your games', smLocal: 'This device', smLocalH: 'works offline, only here', smCloud: 'Google account', smCloudH: 'continue on any device', privacy: 'Privacy',
+  driveConnect: 'Connect Google Drive', driveOn: 'Google Drive: on', driveOffQ: 'Save only on this device from now on (sign out of Google here)?', driveDone: 'Google Drive connected — your games are saved there too', driveFail: 'Could not connect to Google Drive', cloudLook: 'Looking for your game on Google Drive…', cloudGot: 'Using the newer game from Google Drive', noSave: 'No saved game found', cloudLast: 'Last copy on Drive:',
   cloudSt: { ok: 'Your game is saved on Drive.', pending: 'Saving… (tap anywhere if it waits — Google may need to confirm your sign-in).', offline: 'No internet: saved on this device; it will go to Drive when the connection is back.', error: 'Could not reach Drive; saved on this device and it will try again.', off: 'Off.' },
   saveFile: 'Save to file', loadFile: 'Load from file', savedFile: 'Game saved to a file', badFile: 'This file is not a Heist game.', saveFileH: 'Download this game as a file. Open it later with “Load from file” in the main menu — on this or any other device (send it to your phone, Drive, e-mail…).',
   fullT: 'Full screen', fullH: 'Hide the browser bars to see more of the city. Press again (or Esc) to leave.',
@@ -1922,7 +1924,8 @@ pt: {
   setHelpBiz: 'No fim do turno em que visitaste os 3 Businesses deste grupo, escolhes: um disco de Ação Extra, OU desbloquear um ativo e perder 1 de notoriedade. Uma vez por grupo em todo o jogo.', setHelpSh: 'No fim do turno em que visitaste as 3 Casas Seguras, escolhes: um disco de Ação Extra, OU desbloquear um ativo e receber rendimento. Uma vez em todo o jogo.',
   slotReplace: 'vai para a caixa',
   incomeLbl: 'Rendimento',
-  driveConnect: 'Ligar ao Google Drive', driveOn: 'Google Drive: ligado', driveOffQ: 'Deixar de guardar no Google Drive neste dispositivo?', driveDone: 'Google Drive ligado — os teus jogos ficam também guardados lá', driveFail: 'Não foi possível ligar ao Google Drive', cloudLook: 'A procurar o teu jogo no Google Drive…', cloudGot: 'A usar o jogo mais recente do Google Drive', noSave: 'Não há nenhum jogo guardado', cloudLast: 'Última cópia no Drive:',
+  saveWhere: 'Onde guardar os teus jogos', smLocal: 'Neste dispositivo', smLocalH: 'funciona offline, só aqui', smCloud: 'Conta Google', smCloudH: 'continua em qualquer dispositivo', privacy: 'Privacidade',
+  driveConnect: 'Ligar ao Google Drive', driveOn: 'Google Drive: ligado', driveOffQ: 'Passar a guardar só neste dispositivo (sair da conta Google aqui)?', driveDone: 'Google Drive ligado — os teus jogos ficam também guardados lá', driveFail: 'Não foi possível ligar ao Google Drive', cloudLook: 'A procurar o teu jogo no Google Drive…', cloudGot: 'A usar o jogo mais recente do Google Drive', noSave: 'Não há nenhum jogo guardado', cloudLast: 'Última cópia no Drive:',
   cloudSt: { ok: 'O teu jogo está guardado no Drive.', pending: 'A guardar… (se ficar à espera, toca em qualquer sítio — o Google pode precisar de confirmar a sessão).', offline: 'Sem internet: guardado neste dispositivo; vai para o Drive quando a ligação voltar.', error: 'Não foi possível chegar ao Drive; está guardado neste dispositivo e vai tentar outra vez.', off: 'Desligado.' },
   saveFile: 'Guardar em ficheiro', loadFile: 'Carregar ficheiro', savedFile: 'Jogo guardado num ficheiro', badFile: 'Este ficheiro não é um jogo do Heist.', saveFileH: 'Descarrega este jogo como ficheiro. Abre-o depois com “Carregar ficheiro” no menu principal — neste ou noutro dispositivo (envia-o para o telemóvel, Drive, e-mail…).',
   fullT: 'Ecrã inteiro', fullH: 'Esconde as barras do navegador para veres mais da cidade. Carrega outra vez (ou Esc) para sair.',
@@ -2471,6 +2474,7 @@ const P = {
   ferry: '<path d="M3 14h18l-3 5H6z"/><path d="M7 14V9h8l2 5" /><rect x="11" y="5" width="2" height="4"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M11 10h2v8h-2zM11 6h2v2h-2z" fill="#fff"/>',
   check: '<path d="M4 12.5l5 5L20 6.5l-2-2-9 9-3-3z"/>',
+  device: '<path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v13h10V5zm4 14.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z"/>',
   cloud: '<path d="M7 19a5 5 0 0 1-.7-9.95A6.5 6.5 0 0 1 18.8 9.6 4.75 4.75 0 0 1 18 19z"/>',
   cloudUp: '<path d="M7 19a5 5 0 0 1-.7-9.95A6.5 6.5 0 0 1 18.8 9.6 4.75 4.75 0 0 1 18 19h-5v-4h2.5L12 11l-3.5 4H11v4z"/>',
   cloudOff: '<path d="M3.3 2.3 2 3.6l3.1 3.1A5 5 0 0 0 7 19h11l2.4 2.4 1.3-1.3zM18.8 9.6A6.5 6.5 0 0 0 9 5.1l9.8 9.8A4.75 4.75 0 0 0 18.8 9.6z"/>',
@@ -2519,8 +2523,7 @@ const setCfg = o => { try { localStorage.setItem('heist.cloud', JSON.stringify(O
 const online = () => navigator.onLine !== false;
 function set(state, err) { C.state = state; C.err = err || ''; C.listeners.forEach(f => { try { f(state); } catch (e) { } }); }
 const H = {
-  // the Drive option only shows on devices where it was turned on with the private link (…/heist/?drive)
-  enabled: () => !!C.id && (location.protocol === 'https:' || location.hostname === 'localhost') && (!!cfg().allowed || /[?&#]drive\b/.test(location.href)),
+  enabled: () => !!C.id && (location.protocol === 'https:' || location.hostname === 'localhost'),
   isOn: () => H.enabled() && !!cfg().on,
   state: () => (!H.isOn() ? 'off' : C.pending ? (online() ? 'pending' : 'offline') : C.state),
   lastSync: () => cfg().last || 0,
@@ -2605,7 +2608,6 @@ H.tap = () => { if (!H.isOn() || !C.pending || !online() || tokenOK() || C.wait)
 root.addEventListener && root.addEventListener('online', () => { if (H.isOn()) { loadGis().catch(() => {}); flush(); } });
 root.addEventListener && root.addEventListener('offline', () => set(H.state()));
 if (typeof document !== 'undefined') document.addEventListener('pointerdown', H.tap, true);
-if (/[?&#]drive\b/.test(location.href)) setCfg({ allowed: true });
 if (H.isOn() && online()) loadGis().catch(() => {});
 root.HeistCloud = H;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -3656,12 +3658,13 @@ function showMenu() {
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
-  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="filebtns"><button id="mDrive" class="ghost">${ic(CLOUD.isOn() ? 'cloud' : 'cloudOff', '', CLOUD.isOn() ? '#7fd67f' : '')} ${CLOUD.isOn() ? t('driveOn') : t('driveConnect')}</button></div>` : ''}</div>
+  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="savemode"><div class="smt">${t('saveWhere')}</div><div class="smb"><button data-sm="local" class="${CLOUD.isOn() ? '' : 'on'}">${ic('device')} ${t('smLocal')}<small>${t('smLocalH')}</small></button><button data-sm="cloud" class="${CLOUD.isOn() ? 'on' : ''}">${ic('cloud')} ${t('smCloud')}<small>${t('smCloudH')}</small></button></div><a class="priv" href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}</div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
   $('#mCont') && ($('#mCont').onclick = continueGame);
-  $('#mDrive') && ($('#mDrive').onclick = async () => {
-    if (CLOUD.isOn()) { if (confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
+  $$('.savemode [data-sm]').forEach(b => b.onclick = async () => {
+    if (b.dataset.sm === 'local') { if (CLOUD.isOn() && confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
+    if (CLOUD.isOn()) return;
     try { await CLOUD.connect(); toast(t('driveDone')); const local = localStorage.getItem('heist.save'); if (local) CLOUD.push(local); showMenu(); } catch (e) { toast(t('driveFail')); }
   });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });

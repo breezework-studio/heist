@@ -52,6 +52,7 @@ const P = {
   ferry: '<path d="M3 14h18l-3 5H6z"/><path d="M7 14V9h8l2 5" /><rect x="11" y="5" width="2" height="4"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M11 10h2v8h-2zM11 6h2v2h-2z" fill="#fff"/>',
   check: '<path d="M4 12.5l5 5L20 6.5l-2-2-9 9-3-3z"/>',
+  device: '<path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v13h10V5zm4 14.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z"/>',
   cloud: '<path d="M7 19a5 5 0 0 1-.7-9.95A6.5 6.5 0 0 1 18.8 9.6 4.75 4.75 0 0 1 18 19z"/>',
   cloudUp: '<path d="M7 19a5 5 0 0 1-.7-9.95A6.5 6.5 0 0 1 18.8 9.6 4.75 4.75 0 0 1 18 19h-5v-4h2.5L12 11l-3.5 4H11v4z"/>',
   cloudOff: '<path d="M3.3 2.3 2 3.6l3.1 3.1A5 5 0 0 0 7 19h11l2.4 2.4 1.3-1.3zM18.8 9.6A6.5 6.5 0 0 0 9 5.1l9.8 9.8A4.75 4.75 0 0 0 18.8 9.6z"/>',

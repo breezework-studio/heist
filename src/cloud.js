@@ -13,8 +13,7 @@ const setCfg = o => { try { localStorage.setItem('heist.cloud', JSON.stringify(O
 const online = () => navigator.onLine !== false;
 function set(state, err) { C.state = state; C.err = err || ''; C.listeners.forEach(f => { try { f(state); } catch (e) { } }); }
 const H = {
-  // the Drive option only shows on devices where it was turned on with the private link (…/heist/?drive)
-  enabled: () => !!C.id && (location.protocol === 'https:' || location.hostname === 'localhost') && (!!cfg().allowed || /[?&#]drive\b/.test(location.href)),
+  enabled: () => !!C.id && (location.protocol === 'https:' || location.hostname === 'localhost'),
   isOn: () => H.enabled() && !!cfg().on,
   state: () => (!H.isOn() ? 'off' : C.pending ? (online() ? 'pending' : 'offline') : C.state),
   lastSync: () => cfg().last || 0,
@@ -99,7 +98,6 @@ H.tap = () => { if (!H.isOn() || !C.pending || !online() || tokenOK() || C.wait)
 root.addEventListener && root.addEventListener('online', () => { if (H.isOn()) { loadGis().catch(() => {}); flush(); } });
 root.addEventListener && root.addEventListener('offline', () => set(H.state()));
 if (typeof document !== 'undefined') document.addEventListener('pointerdown', H.tap, true);
-if (/[?&#]drive\b/.test(location.href)) setCfg({ allowed: true });
 if (H.isOn() && online()) loadGis().catch(() => {});
 root.HeistCloud = H;
 })(typeof window !== 'undefined' ? window : globalThis);

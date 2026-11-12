@@ -1044,12 +1044,13 @@ function showMenu() {
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
-  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="filebtns"><button id="mDrive" class="ghost">${ic(CLOUD.isOn() ? 'cloud' : 'cloudOff', '', CLOUD.isOn() ? '#7fd67f' : '')} ${CLOUD.isOn() ? t('driveOn') : t('driveConnect')}</button></div>` : ''}</div>
+  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="savemode"><div class="smt">${t('saveWhere')}</div><div class="smb"><button data-sm="local" class="${CLOUD.isOn() ? '' : 'on'}">${ic('device')} ${t('smLocal')}<small>${t('smLocalH')}</small></button><button data-sm="cloud" class="${CLOUD.isOn() ? 'on' : ''}">${ic('cloud')} ${t('smCloud')}<small>${t('smCloudH')}</small></button></div><a class="priv" href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}</div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
   $('#mCont') && ($('#mCont').onclick = continueGame);
-  $('#mDrive') && ($('#mDrive').onclick = async () => {
-    if (CLOUD.isOn()) { if (confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
+  $$('.savemode [data-sm]').forEach(b => b.onclick = async () => {
+    if (b.dataset.sm === 'local') { if (CLOUD.isOn() && confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
+    if (CLOUD.isOn()) return;
     try { await CLOUD.connect(); toast(t('driveDone')); const local = localStorage.getItem('heist.save'); if (local) CLOUD.push(local); showMenu(); } catch (e) { toast(t('driveFail')); }
   });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
