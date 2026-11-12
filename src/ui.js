@@ -1068,7 +1068,7 @@ function showMenu() {
     const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
     const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
     return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;
-  })()}<button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}</div>
+  })()}<button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}<div class="credits">${t('credits')}</div></div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mRules').onclick = () => openRules();
   $('#mCont') && ($('#mCont').onclick = continueLocal); $('#mContC') && ($('#mContC').onclick = continueCloud); $('#mNewC') && ($('#mNewC').onclick = newCloudGame);
