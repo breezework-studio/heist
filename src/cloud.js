@@ -3,7 +3,7 @@
    Drive folder (appDataFolder). Offline, the upload waits and is sent when the connection returns. */
 (function (root) {
 'use strict';
-const CLIENT_ID = ''; // Google OAuth client ID (Web application) — set in tools/cloud-config or here
+const CLIENT_ID = '586922713786-h6vbu6h1sib6ifto790rhr5v8pe9imm1.apps.googleusercontent.com'; // Google OAuth client ID (Web application, origin https://breezework-studio.github.io)
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const NAME = 'heist-save.json';
 const API = 'https://www.googleapis.com/drive/v3/files', UP = 'https://www.googleapis.com/upload/drive/v3/files';
