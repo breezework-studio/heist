@@ -24,7 +24,25 @@ const savePrefs = () => { try { localStorage.setItem('heist.prefs', JSON.stringi
 const spd = () => G.skip ? 0 : SPEEDS[G.prefs.speed] || 1;
 document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]);
 const wait = (ms) => { const k = spd(); return k ? sleep(ms * k) : Promise.resolve(); };
-function saveGame() { try { if (G.S && !G.S.over) localStorage.setItem('heist.save', JSON.stringify({ S: G.S, log: G.logLines.slice(-400) })); else localStorage.removeItem('heist.save'); } catch (e) { } }
+const CLOUD = window.HeistCloud;
+function saveGame() {
+  try {
+    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem('heist.save', j); CLOUD && CLOUD.push(j); }
+    else { localStorage.removeItem('heist.save'); CLOUD && CLOUD.remove(); }
+  } catch (e) { }
+}
+function loadSaveText(txt) { const sv = JSON.parse(txt); if (!sv.S || !sv.S.players) throw new Error('bad save'); G.S = sv.S; E.resume(G.S); G.logLines = sv.log || []; startScreen(); }
+// Continue: use the newest save between this device and Google Drive
+async function continueGame() {
+  const local = localStorage.getItem('heist.save'); let txt = local;
+  if (CLOUD && CLOUD.isOn() && navigator.onLine !== false) {
+    toast(t('cloudLook')); const remote = await CLOUD.pull();
+    if (remote) { const ta = (() => { try { return JSON.parse(local).savedAt || 0; } catch (e) { return -1; } })(); const tb = (() => { try { return JSON.parse(remote).savedAt || 0; } catch (e) { return -1; } })(); if (tb > ta) { txt = remote; try { localStorage.setItem('heist.save', remote); } catch (e) { } toast(t('cloudGot')); } }
+  }
+  if (!txt) { toast(t('noSave')); return; }
+  try { loadSaveText(txt); } catch (e) { showSetup(); }
+}
+function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
 function hasSave() { try { return !!localStorage.getItem('heist.save'); } catch (e) { return false; } }
 
 // ---------------- names / helpers ----------------
@@ -301,7 +319,7 @@ function renderTop() {
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
   el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
-  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}<button class="tbtn" id="bSaveF" data-h="ui:savef">${ic('download')}</button><button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
+  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bSaveF" data-h="ui:savef">${ic('download')}</button><button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
   $('#bSpeed').onclick = () => { const o = ['slow', 'normal', 'fast']; G.prefs.speed = o[(o.indexOf(G.prefs.speed) + 1) % 3]; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); renderTop(); };
@@ -792,7 +810,7 @@ function helpHTML(key) {
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
-    case 'ui': if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -1019,16 +1037,21 @@ function importSave() {
     r.readAsText(f); };
   inp.click();
 }
+if (window.HeistCloud) HeistCloud.onChange(() => { const b = document.getElementById('bCloud'); if (b) { const [n, c] = cloudIcon(); b.innerHTML = ic(n, '', c); } });
 function toast(msg) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 function showMenu() {
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
-  <div class="menu-btns">${hasSave() ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button><div class="filebtns">${hasSave() ? `<button id="mExp" class="ghost">${ic('download')} ${t('saveFile')}</button>` : ''}<button id="mImp" class="ghost">${ic('upload')} ${t('loadFile')}</button></div></div>
+  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button><div class="filebtns">${hasSave() ? `<button id="mExp" class="ghost">${ic('download')} ${t('saveFile')}</button>` : ''}<button id="mImp" class="ghost">${ic('upload')} ${t('loadFile')}</button></div>${CLOUD && CLOUD.enabled() ? `<div class="filebtns"><button id="mDrive" class="ghost">${ic(CLOUD.isOn() ? 'cloud' : 'cloudOff', '', CLOUD.isOn() ? '#7fd67f' : '')} ${CLOUD.isOn() ? t('driveOn') : t('driveConnect')}</button></div>` : ''}</div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
   $('#mExp') && ($('#mExp').onclick = exportSave); $('#mImp').onclick = importSave;
-  $('#mCont') && ($('#mCont').onclick = () => { try { const sv = JSON.parse(localStorage.getItem('heist.save')); G.S = sv.S; E.resume(G.S); G.logLines = (sv.log || []); startScreen(); } catch (e) { showSetup(); } });
+  $('#mCont') && ($('#mCont').onclick = continueGame);
+  $('#mDrive') && ($('#mDrive').onclick = async () => {
+    if (CLOUD.isOn()) { if (confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
+    try { await CLOUD.connect(); toast(t('driveDone')); const local = localStorage.getItem('heist.save'); if (local) CLOUD.push(local); showMenu(); } catch (e) { toast(t('driveFail')); }
+  });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
 }
 const SEATS = ['orange', 'purple', 'pink', 'yellow', 'green'];
