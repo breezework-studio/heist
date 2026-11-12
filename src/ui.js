@@ -1080,15 +1080,19 @@ function tutDecision(pd) {
     }
     tu.logMark = G.logLines.length;
   }
-  const fresh = entry && !tu.seen[key];
-  if (!fresh && !mean) return;
-  if (fresh) tu.seen[key] = true;
+  let fresh = entry && !tu.seen[key];
+  // a second tile to place in the same City phase gets its own explanation
+  let ent = entry; if (pd.type === 'place' && tu.seen[key] && !tu.seen['dec.place2']) { ent = X.dec.place2; fresh = true; tu.seen['dec.place2'] = true; }
+  // during Day 1 every decision of yours gets a card (with the suggestion), so the game never seems to stop
+  const again = !fresh && G.S.day === 1;
+  if (!fresh && !mean && !again) return;
+  if (fresh && ent === entry) tu.seen[key] = true;
   let a = null; try { a = AI.decide(E, G.S); } catch (e) { }
   let sug = '';
   if (a && pd.type === 'action') { if (a.type === 'move' && a.dest) { sug = `${U.goTo} <b>${locName(a.dest)}</b>`; tu.hlLoc = a.dest; } else if (a.type === 'rest') sug = `<b>${U.rest}</b>`; else if (a.type === 'escapeHere') sug = `<b>${U.escape}</b>`; }
   if (a && pd.type === 'contact' && a.card != null) sug = `${U.cardFor} <b>${cardName(a.card)}</b>`;
-  const body = fresh ? entry : { t: U.meanwhile, b: '' };
-  coach(fresh ? body : { t: U.meanwhile, b: '', h: null }, { decision: true, doIt: a ? () => human(a) : null, extra: (fresh ? mean : mean.replace(/<b>[^<]*<\/b>/, '')) + (sug ? `<div class="tsug">💡 ${U.suggest}: ${sug}</div>` : '') });
+  const title = fresh ? ent : again ? { t: (entry ? entry.t : X.dec.again.t), b: '' } : { t: U.meanwhile, b: '' };
+  coach(title, { decision: true, doIt: a ? () => human(a) : null, extra: (fresh || again ? mean : mean.replace(/<b>[^<]*<\/b>/, '')) + (sug ? `<div class="tsug">💡 ${U.suggest}: ${sug}</div>` : '') });
 }
 
 // ---------------- game loop ----------------

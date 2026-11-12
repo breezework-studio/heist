@@ -2655,7 +2655,7 @@ en: {
     day2: { t: 'Day 2', b: '<p>A new day starts with <b>income</b>: everyone receives the amount shown as “Income +$Nk” on their board. Then more exits close and more of the city appears.</p>' },
     day3: { t: 'Day 3 — escape!', b: '<p>Only <b>one exit</b> is still open. Plan your route there: reaching it lets you <b>escape</b> (pay the exit cost; the first one out pays nothing). Once someone escapes, everyone still in the city pays $1k before each turn.</p>', h: '.exitb.last' },
     patrol: { t: 'Patrol', b: '<p>Patrol cards go to the exits. The <b>second card</b> on an exit <b>closes</b> it. On Day 3 only one exit will remain open — that is where everyone must escape.</p><p>Closed exits can still be visited: you may take an Exit tile (a bag of money).</p>', h: '.exits' },
-    city: { t: 'The city grows', b: '<p>In turn order, players place the 4 tiles from the display. A tile must touch <b>2 tiles</b> and continue at least one land type. New tiles bring police with them.</p>' },
+    city: { t: 'The city grows', b: '<p>In turn order, players place the 4 tiles from the display (with fewer than 4 players the order starts again until all 4 are placed). A tile must touch <b>2 tiles</b> and continue at least one land type. New tiles bring police with them.</p>' },
     order: { t: 'Turn order', b: '<p>The player with the <b>highest notoriety</b> plays first. Ties swap their previous order. The dots in the top bar show the order.</p>', h: '.topord' },
     part1: { t: 'Actions', b: '<p>Now everyone takes one action per part of the day, in turn order. On your turn you <b>Move</b> (travel → avoid police → visit the location) or <b>Rest</b>.</p>' },
     part4: { t: 'Night', b: '<p>At <b>Night</b> and <b>Dawn</b> only players who spend an <b>Extra Action</b> disc may act. You get discs from assets, fixers, cards and bonuses.</p>' },
@@ -2672,6 +2672,8 @@ en: {
     done: { t: 'You know the basics', b: '<p>That was a full day! From here the tutorial only appears when something new happens. Keep playing until Day 3 and try to escape with the most money.</p><p>The full rules (with examples and FAQ) are always in the menu.</p>' },
   },
   dec: {
+    place2: { t: 'Place another tile', b: '<p>There are always 4 tiles to place. With fewer than 4 players the turn order starts again, so the first players place a second tile (with 3 players: the 1st player places the 4th tile).</p>' },
+    again: { t: 'Your turn again', b: '' },
     place: { t: 'Place a city tile', b: '<p>Pick a tile from the display, then one of the highlighted spaces on the map. Use the rotate button to try other rotations — only legal ones are shown.</p>' },
     action: { t: 'Your turn', b: '<p>The highlighted locations are the ones you can reach this turn; the labels show the <b>MP</b> (movement points, 3 per turn) and how many officers you’ll have to avoid.</p><p>Tap a destination to see the route and what each MP is spent on, then press <b>Move</b>. Or <b>Rest</b> to stay and refresh your cards (once per day).</p><p>Good first targets: Businesses and Safe Houses with high values on your Getaway Plan.</p>', h: '#prompt' },
     avoid: { t: 'Avoid the police', b: '<p>For each officer on the tiles you left, use something that avoids it (equipment, cards, assets, a gang biker…) or accept a <b>wound</b>.</p>' },
@@ -2708,7 +2710,7 @@ pt: {
     day2: { t: 'Dia 2', b: '<p>Um novo dia começa com o <b>rendimento</b>: todos recebem o valor “Rendimento +$Nk” do seu tabuleiro. Depois fecham mais saídas e aparece mais cidade.</p>' },
     day3: { t: 'Dia 3 — foge!', b: '<p>Só <b>uma saída</b> continua aberta. Planeia o caminho até lá: ao chegar podes <b>fugir</b> (pagando o custo de saída; o primeiro não paga). Assim que alguém foge, quem ainda está na cidade paga $1k antes de cada turno.</p>', h: '.exitb.last' },
     patrol: { t: 'Patrulha', b: '<p>As cartas de patrulha vão para as saídas. A <b>segunda carta</b> numa saída <b>fecha-a</b>. No Dia 3 só fica uma saída aberta — é por lá que todos têm de fugir.</p><p>As saídas fechadas continuam a poder ser visitadas: podes tirar uma peça de saída (um saco de dinheiro).</p>', h: '.exits' },
-    city: { t: 'A cidade cresce', b: '<p>Por ordem de turno, os jogadores colocam as 4 peças da mostra. Uma peça tem de tocar em <b>2 peças</b> e continuar pelo menos um tipo de terreno. As peças novas trazem polícia.</p>' },
+    city: { t: 'A cidade cresce', b: '<p>Por ordem de turno, os jogadores colocam as 4 peças da mostra (com menos de 4 jogadores a ordem recomeça até estarem as 4 colocadas). Uma peça tem de tocar em <b>2 peças</b> e continuar pelo menos um tipo de terreno. As peças novas trazem polícia.</p>' },
     order: { t: 'Ordem de turno', b: '<p>Joga primeiro quem tem <b>mais notoriedade</b>. Os empatados trocam a ordem que tinham. As bolinhas na barra de cima mostram a ordem.</p>', h: '.topord' },
     part1: { t: 'Ações', b: '<p>Agora cada jogador faz uma ação em cada parte do dia, por ordem de turno. No teu turno <b>Moves-te</b> (viajar → evitar polícia → visitar o local) ou <b>Descansas</b>.</p>' },
     part4: { t: 'Noite', b: '<p>À <b>Noite</b> e de <b>Madrugada</b> só joga quem gastar um disco de <b>Ação Extra</b>. Ganhas discos com ativos, fixers, cartas e bónus.</p>' },
@@ -2725,6 +2727,8 @@ pt: {
     done: { t: 'Já sabes o essencial', b: '<p>Foi um dia completo! Daqui em diante o tutorial só aparece quando acontece algo novo. Continua até ao Dia 3 e tenta fugir com mais dinheiro.</p><p>As regras completas (com exemplos e perguntas frequentes) estão sempre no menu.</p>' },
   },
   dec: {
+    place2: { t: 'Coloca outra peça', b: '<p>Há sempre 4 peças para colocar. Com menos de 4 jogadores a ordem de turno recomeça, por isso os primeiros jogadores colocam uma segunda peça (com 3 jogadores: o 1.º jogador coloca a 4.ª peça).</p>' },
+    again: { t: 'É outra vez contigo', b: '' },
     place: { t: 'Coloca uma peça da cidade', b: '<p>Escolhe uma peça da mostra e depois um dos espaços destacados no mapa. Usa o botão de rodar para ver outras rotações — só aparecem as permitidas.</p>' },
     action: { t: 'É a tua vez', b: '<p>Os locais destacados são os que consegues alcançar neste turno; as etiquetas mostram os <b>MP</b> (pontos de movimento, 3 por turno) e quantos polícias vais ter de evitar.</p><p>Toca num destino para veres o caminho e em que se gasta cada MP, e carrega em <b>Mover</b>. Ou <b>Descansa</b> para ficares e recuperares as cartas (1 vez por dia).</p><p>Bons primeiros alvos: Businesses e Casas Seguras com valores altos no teu Plano de Fuga.</p>', h: '#prompt' },
     avoid: { t: 'Evitar a polícia', b: '<p>Para cada polícia das peças que deixaste, usa algo que o evite (equipamento, cartas, ativos, um motard do gang…) ou aceita um <b>ferimento</b>.</p>' },
@@ -3835,15 +3839,19 @@ function tutDecision(pd) {
     }
     tu.logMark = G.logLines.length;
   }
-  const fresh = entry && !tu.seen[key];
-  if (!fresh && !mean) return;
-  if (fresh) tu.seen[key] = true;
+  let fresh = entry && !tu.seen[key];
+  // a second tile to place in the same City phase gets its own explanation
+  let ent = entry; if (pd.type === 'place' && tu.seen[key] && !tu.seen['dec.place2']) { ent = X.dec.place2; fresh = true; tu.seen['dec.place2'] = true; }
+  // during Day 1 every decision of yours gets a card (with the suggestion), so the game never seems to stop
+  const again = !fresh && G.S.day === 1;
+  if (!fresh && !mean && !again) return;
+  if (fresh && ent === entry) tu.seen[key] = true;
   let a = null; try { a = AI.decide(E, G.S); } catch (e) { }
   let sug = '';
   if (a && pd.type === 'action') { if (a.type === 'move' && a.dest) { sug = `${U.goTo} <b>${locName(a.dest)}</b>`; tu.hlLoc = a.dest; } else if (a.type === 'rest') sug = `<b>${U.rest}</b>`; else if (a.type === 'escapeHere') sug = `<b>${U.escape}</b>`; }
   if (a && pd.type === 'contact' && a.card != null) sug = `${U.cardFor} <b>${cardName(a.card)}</b>`;
-  const body = fresh ? entry : { t: U.meanwhile, b: '' };
-  coach(fresh ? body : { t: U.meanwhile, b: '', h: null }, { decision: true, doIt: a ? () => human(a) : null, extra: (fresh ? mean : mean.replace(/<b>[^<]*<\/b>/, '')) + (sug ? `<div class="tsug">💡 ${U.suggest}: ${sug}</div>` : '') });
+  const title = fresh ? ent : again ? { t: (entry ? entry.t : X.dec.again.t), b: '' } : { t: U.meanwhile, b: '' };
+  coach(title, { decision: true, doIt: a ? () => human(a) : null, extra: (fresh || again ? mean : mean.replace(/<b>[^<]*<\/b>/, '')) + (sug ? `<div class="tsug">💡 ${U.suggest}: ${sug}</div>` : '') });
 }
 
 // ---------------- game loop ----------------
