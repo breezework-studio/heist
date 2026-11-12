@@ -6,7 +6,7 @@ Personal, non-commercial adaptation; original art and code.
 **Play:** https://breezework-studio.github.io/heist/
 
 ## Features
-- Base game for 3–5 players, 2-player mode (Inspector Sandra) and solo (Lt. Costa, with easy variant)
+- Base game for 3–5 players, 2-player mode (Inspector Vega) and solo (Lt. Moreno, with easy variant)
 - Upgrade Pack: Gas Can card, 3 extra Fixers, Player Powers (free / random / by colour) and Missions
 - Every seat can be human or computer; hot-seat for several humans
 - Animated actions with narration, log, speed control and skip
@@ -22,6 +22,8 @@ Personal, non-commercial adaptation; original art and code.
 - `tools/build.py` — builds `index.html` (single offline file)
 - `tests/sim.js` — bot-only games (`node tests/sim.js 50 0 base|powers|missions|both`)
 - `tests/uitest.js` — full browser playthrough with Playwright (`node tests/uitest.js humans shotsDir|- mode seats`)
-- `notes/` — transcription notes, photos and open questions
 
 After changing `src/` or `data/`: `python3 tools/build.py`, then run the tests.
+
+## Credits
+Heist is an unofficial, non-commercial fan project inspired by *Escape Plan* by Vital Lacerda (Eagle-Gryphon Games). All code, texts and art here are our own; no original components, artwork or rulebook text are included. Not affiliated with or endorsed by the designer or publisher.

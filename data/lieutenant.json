@@ -1,5 +1,5 @@
 {
- "_comment": "16 Lt. Costa cards (solo). Green + = Costa TAKES (places next to/on his board, face down); red X = discard to box (Safe Houses, as Sandra). Travel: draw until a location on same or adjacent tile to the player. Rules: rulebook 2022 p.23. Back: Costa portrait. Per official FAQ: stores A/B/C and closed exits = 2 topmost tiles (cards' '1x' = optional easy variant: easy_take_1). Store D = 1 of each colour, scores only highest. Max 5 stacks.",
+ "_comment": "16 Lt. Moreno cards (solo). Green + = Moreno TAKES (places next to/on his board, face down); red X = discard to box (Safe Houses, as Vega). Travel: draw until a location on same or adjacent tile to the player. Rules: rulebook 2022 p.23. Back: Moreno portrait. Per official FAQ: stores A/B/C and closed exits = 2 topmost tiles (cards' '1x' = optional easy variant: easy_take_1). Store D = 1 of each colour, scores only highest. Max 5 stacks.",
  "cards": [
   {
    "loc": "casino",

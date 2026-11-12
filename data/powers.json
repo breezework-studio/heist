@@ -1,15 +1,75 @@
 {
-  "_comment": "10 Player Power cards (Upgrade Pack). Coloured = the 5 base characters matching player-board colours; grey = 5 extra characters usable with any colour. Back side = flavour story only. Text verbatim from cards.",
-  "powers": [
-    {"id": "bones", "name": "Mr. Bones", "title": "The Boss", "colour": "purple", "text": "You start with 1 Gas Can. You treat all City tiles as if they had Helipads. You only have 2 MP each turn."},
-    {"id": "ruby", "name": "Ruby", "title": "Hacker", "colour": "orange", "text": "You can enter a closed Business without using a key. Gain 2 Notoriety each time you do this."},
-    {"id": "vinnie", "name": "Vinnie", "title": "Explosives", "colour": "pink", "text": "You can open Lockers without using a key. Gain 1 Notoriety each time you take a Locker tile."},
-    {"id": "claws", "name": "Claws", "title": "Safe Expert", "colour": "yellow", "text": "When you draw Exit or Locker tiles, you may draw 1 or 2 extra tiles to choose from. For each extra tile you draw, you must pay $2k."},
-    {"id": "scar", "name": "Scar", "title": "Driver", "colour": "green", "text": "During the Avoid step, you may pay $2k and discard a Gas Can to avoid 1 Police Officer of any type."},
-    {"id": "shadow", "name": "Shadow", "title": "The Muscle", "colour": "grey", "text": "You may stack up 2 Locker or Exit tiles on a single Item space. You may not replace any tiles."},
-    {"id": "dasilva", "name": "Da Silva", "title": "The Inside Man", "colour": "grey", "text": "Each time you get income, gain an additional $3k. All costs are increased by $1k."},
-    {"id": "ladyt", "name": "Lady T.", "title": "The Fixer", "colour": "grey", "text": "You can refresh Fixer tiles as if they were Equipment tiles. Each time you do this, pay $1k plus the cost of the Fixer tile."},
-    {"id": "mrv", "name": "Mr. V", "title": "The Mastermind", "colour": "grey", "text": "When you visit a Safe House, instead of losing 1 Notoriety, you may choose to gain 1 Notoriety, or not lose any. If you do any of the above, take a Wound."},
-    {"id": "kitty", "name": "Kitty", "title": "Gang Member", "colour": "grey", "text": "You begin the game in control of the Gangs from the starting City tile and $3k less. You may not hire Gangs."}
-  ]
+ "_comment": "10 Player Powers (Upgrade Pack). Coloured = matches a player colour; grey = any colour. Texts are our own summaries.",
+ "powers": [
+  {
+   "id": "bones",
+   "name": "Mr. Ash",
+   "title": "The Boss",
+   "colour": "purple",
+   "text": "Start with 1 Gas Can. Every City tile counts as having Helipads. You only get 2 MP per turn."
+  },
+  {
+   "id": "ruby",
+   "name": "Pixel",
+   "title": "Hacker",
+   "colour": "orange",
+   "text": "You may visit a closed Business without a key; each time, gain 2 Notoriety."
+  },
+  {
+   "id": "vinnie",
+   "name": "Dynamo",
+   "title": "Explosives",
+   "colour": "pink",
+   "text": "You may open Lockers without a key; gain 1 Notoriety whenever you keep a Locker tile."
+  },
+  {
+   "id": "claws",
+   "name": "Tumbler",
+   "title": "Safe Expert",
+   "colour": "yellow",
+   "text": "When drawing Exit or Locker tiles, you may pay $2k per tile to draw 1 or 2 more to choose from."
+  },
+  {
+   "id": "scar",
+   "name": "Wheels",
+   "title": "Driver",
+   "colour": "green",
+   "text": "In the Avoid step, pay $2k and return a Gas Can to avoid 1 officer of any type."
+  },
+  {
+   "id": "shadow",
+   "name": "Brick",
+   "title": "The Muscle",
+   "colour": "grey",
+   "text": "One Item space can hold 2 Locker/Exit tiles. You can never replace tiles."
+  },
+  {
+   "id": "dasilva",
+   "name": "Mole",
+   "title": "The Inside Man",
+   "colour": "grey",
+   "text": "+$3k whenever you receive income, but everything you pay costs $1k more."
+  },
+  {
+   "id": "ladyt",
+   "name": "Madame Q.",
+   "title": "The Fixer",
+   "colour": "grey",
+   "text": "You may flip used Fixers back like Equipment, paying $1k plus the Fixer's price each time."
+  },
+  {
+   "id": "mrv",
+   "name": "Professor",
+   "title": "The Mastermind",
+   "colour": "grey",
+   "text": "At a Safe House you may gain 1 Notoriety or lose none instead of losing 1; if you do, take a Wound."
+  },
+  {
+   "id": "kitty",
+   "name": "Viper",
+   "title": "Gang Member",
+   "colour": "grey",
+   "text": "Start controlling the starting tile's Gang, with $3k less. You can't hire Gangs."
+  }
+ ]
 }

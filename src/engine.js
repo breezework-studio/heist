@@ -125,8 +125,8 @@ E.newGame = function (opts) {
   s.npcs = [];
   const used = new Set(s.players.map(p => p.color)); const freeCol = () => { const c = COLORS.find(x => !used.has(x)); used.add(c); return c; };
   const mkNpc = (id, kind, name) => ({ id, npc: kind, name, color: freeCol(), loc: 'hospital', notor: 1, red: 0, blue: 0, discs: 0, visited: {}, bonus: {}, escaped: false, arrested: false, wounds: 0, contacts: [], stacks: [], debt: 0, escapeOrder: 0 });
-  if (n <= 2) { const sd = mkNpc(100, 'sandra', 'Sandra'); sd.deck = shuffle(s, D.inspector.cards.map((c, i) => i)); s.npcs.push(sd); }
-  if (n === 1) { const co = mkNpc(101, 'costa', 'Lt. Costa'); co.deck = shuffle(s, D.lieutenant.cards.map((c, i) => i)); co.plan = plans[1]; co.easy = !!opts.easyCosta; s.npcs.push(co); }
+  if (n <= 2) { const sd = mkNpc(100, 'sandra', 'Vega'); sd.deck = shuffle(s, D.inspector.cards.map((c, i) => i)); s.npcs.push(sd); }
+  if (n === 1) { const co = mkNpc(101, 'costa', 'Lt. Moreno'); co.deck = shuffle(s, D.lieutenant.cards.map((c, i) => i)); co.plan = plans[1]; co.easy = !!opts.easyCosta; s.npcs.push(co); }
   if (n === 2) order.push(100);
   if (n === 1) order.push(101, 100);
   s.order = order; // turn order (pids)
@@ -1172,7 +1172,7 @@ function policeMoveOptions(s, target) {
 E.policeMoveOptions = policeMoveOptions;
 
 
-// ---------- NPCs: Inspector Sandra (2p & solo) and Lt. Costa (solo) ----------
+// ---------- NPCs: Inspector Vega (2p & solo) and Lt. Moreno (solo) ----------
 function cardLoc(s, key) {
   if (/^exit\d$/.test(key) || /^store[A-D]$/.test(key)) return mapHasLoc(s, key) ? key : null;
   for (const [slot, id] of Object.entries(s.bizSlots)) if (id === key) return mapHasLoc(s, slot) ? slot : null;

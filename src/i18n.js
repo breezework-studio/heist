@@ -7,8 +7,8 @@ en: {
   newGame: 'New game', continue: 'Continue', rules: 'Rules', language: 'Language', players: 'Players', human: 'Human', computer: 'Computer', off: 'Off',
   start: 'Start the heist', setupTitle: 'Set up the game', mode: 'Mode', modeBase: 'Base game', modePowers: 'Player Powers', modeMissions: 'Missions',
   powerPick: 'Power assignment', pickFree: 'Free choice', pickRandom: 'Random', pickColor: 'By colour', upgradeGas: 'Upgrade Pack: Gas Can card', upgradeFix: 'Upgrade Pack: 3 extra Fixers',
-  easyCosta: 'Easy Lt. Costa (takes 1 tile)', both: 'Powers + Missions (not recommended)', speed: 'Animation speed', slow: 'Slow', normal: 'Normal', fast: 'Fast',
-  seatHint: 'Choose who plays each colour. 1 human = solo game vs Lt. Costa; 2 = with Inspector Sandra.',
+  easyCosta: 'Easy Lt. Moreno (takes 1 tile)', both: 'Powers + Missions (not recommended)', speed: 'Animation speed', slow: 'Slow', normal: 'Normal', fast: 'Fast',
+  seatHint: 'Choose who plays each colour. 1 human = solo game vs Lt. Moreno; 2 = with Inspector Vega.',
   day: 'Day', parts: ['Morning', 'Afternoon', 'Evening', 'Night', 'Dawn'],
   phases: { income: 'Income', patrol: 'Patrol', city: 'City', order: 'Turn order' },
   yourTurn: 'Your turn', waiting: 'is thinking…', money: 'Money', income: 'Income', notoriety: 'Notoriety', wounds: 'Wounds',
@@ -27,7 +27,7 @@ en: {
     incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
     key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', slotPick: 'No empty item space — which tile do you replace? (+1 notoriety)', exitPick: 'Choose an exit tile to keep',
-    clawsExtra: 'Claws: draw extra tiles ($2k each)?', mrv: 'Mr. V at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Lady T.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
+    clawsExtra: 'Tumbler: draw extra tiles ($2k each)?', mrv: 'Professor at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Madame Q.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
   },
   mrvOpt: { lose: 'Lose 1 notoriety (normal)', none: "Don't lose notoriety (take a wound)", gain: 'Gain 1 notoriety (take a wound)' },
   power: 'Power', mission: 'Mission', secret: 'secret', missionDone: 'Mission complete', tokenOn: 'available today', tokenOff: 'used today', keepFaceUp: 'Pay $2k to keep cards face up',
@@ -53,12 +53,12 @@ en: {
   incomeNow: 'income now', endMoney: 'end of game', noKeys: 'no keys left',
   bizLegend: n => `Each business closes after ${n} visits (squares). After that you can still enter with a key. Each player visits a business only once.`,
   shLegend: 'Safe Houses never close and have no visit limit; each player visits each one once. Keys left shown on the right.',
-  incHelp: 'Players whose Escape Plan shows $ for this place: they received income right away.', endHelp: 'Players whose Escape Plan shows money here: they score it at the end of the game (secret value).',
+  incHelp: 'Players whose Getaway Plan shows $ for this place: they received income right away.', endHelp: 'Players whose Getaway Plan shows money here: they score it at the end of the game (secret value).',
   turnOrder: 'Turn order', thGain: ['line 1: unlock 1 asset · lower players move police toward you', 'line 2: unlock 2 assets · lower players move police toward you', 'line 3: unlock 1 asset + Extra Action · lower players move police toward you'],
   modeBoth: 'Both', extraN: n => n ? `Draw ${n} extra ($${2 * n}k)` : 'No extra tiles', choosePower: 'Power for each player', randomPower: 'Random',
   opt: { disc: 'Extra Action disc', unlock: 'Unlock an asset', unlockBiz: 'Unlock an asset & lose 1 notoriety', unlockSh: 'Unlock an asset & gain income', income: 'Receive income', tile: 'Take an Exit tile', heal: n => n ? `Heal ${n} ($${[0, 1, 3, 6][n]}k)` : 'No healing' },
   cards: 'Contacts', items: 'Items', assets: 'Unlocked assets', locked: 'locked', keys: 'Keys', gang: 'Gang', discs: 'Extra actions', gas: 'Gas',
-  market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Escape plan', patrols: 'Exits',
+  market: 'City', log: 'Log', me: 'Me', opponents: 'Rivals', hidden: 'hidden', plan: 'Getaway plan', patrols: 'Exits',
   open: 'open', closed: 'closed', business: 'Business', businesses: 'Businesses', safehouses: 'Safe Houses', fixers: 'Fixers', equipment: 'Equipment', lockers: 'Lockers', display: 'Contact display',
   gameOver: 'Game over', winner: 'Winner', winners: 'Winners', arrested: 'Arrested', escaped: 'Escaped', playAgain: 'Play again', total: 'Total',
   score: { g1: 'Purple businesses', g2: 'Blue businesses', sh: 'Safe Houses', cash: 'Cash', assets: 'Used assets', contacts: 'Contact cards', bags: 'Locker & exit bags', notor: 'Notoriety', wounds: 'Wounds' },
@@ -66,17 +66,17 @@ en: {
   tapHelp: 'Tip: long-press or hover anything to see what it does.', confirmQuit: 'Abandon this game and go to the menu?',
   you: 'You', bot: 'Bot', mp: 'MP', police: 'police', cost: 'cost', free: 'free', variant: { walk: 'Walk', jetski: 'Jet Ski', sewer: 'Sewer', chopper: 'Chopper card', heliFixer: 'Helicopter', gangHeli: 'Gang biker', gangCardHeli: 'Gang card', motorcycleHeli: 'Motorcycle', medevac: 'Medevac' },
   extraMp: n => `+${n} gas`, escapeHere: 'Leave the city from here',
-  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspector Sandra', costa: 'Lt. Costa' },
+  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspector Vega', costa: 'Lt. Moreno' },
   colors: { orange: 'Orange', purple: 'Purple', pink: 'Pink', yellow: 'Yellow', green: 'Green' },
-  costaScore: 'Lt. Costa', npcSandra: 'Inspector Sandra', npcCosta: 'Lt. Costa', beatCosta: 'You beat Lt. Costa!', lostCosta: 'Lt. Costa wins this time.',
+  costaScore: 'Lt. Moreno', npcSandra: 'Inspector Vega', npcCosta: 'Lt. Moreno', beatCosta: 'You beat Lt. Moreno!', lostCosta: 'Lt. Moreno wins this time.',
 },
 pt: {
   title: 'Heist', subtitle: 'Foge da cidade antes que a fechem',
   newGame: 'Novo jogo', continue: 'Continuar', rules: 'Regras', language: 'Língua', players: 'Jogadores', human: 'Humano', computer: 'Computador', off: 'Fora',
   start: 'Começar o golpe', setupTitle: 'Preparar o jogo', mode: 'Modo', modeBase: 'Jogo base', modePowers: 'Poderes', modeMissions: 'Missões',
   powerPick: 'Atribuição de poderes', pickFree: 'Escolha livre', pickRandom: 'Sorteio', pickColor: 'Por cor', upgradeGas: 'Upgrade Pack: carta Gas Can', upgradeFix: 'Upgrade Pack: 3 Fixers extra',
-  easyCosta: 'Tenente Costa fácil (tira 1 peça)', both: 'Poderes + Missões (não recomendado)', speed: 'Velocidade das animações', slow: 'Lenta', normal: 'Normal', fast: 'Rápida',
-  seatHint: 'Escolhe quem joga cada cor. 1 humano = modo solo contra o Tenente Costa; 2 = com a Inspetora Sandra.',
+  easyCosta: 'Tenente Moreno fácil (tira 1 peça)', both: 'Poderes + Missões (não recomendado)', speed: 'Velocidade das animações', slow: 'Lenta', normal: 'Normal', fast: 'Rápida',
+  seatHint: 'Escolhe quem joga cada cor. 1 humano = modo solo contra o Tenente Moreno; 2 = com a Inspetora Vega.',
   day: 'Dia', parts: ['Manhã', 'Tarde', 'Fim de tarde', 'Noite', 'Madrugada'],
   phases: { income: 'Rendimento', patrol: 'Patrulha', city: 'Cidade', order: 'Ordem de turno' },
   yourTurn: 'A tua vez', waiting: 'está a pensar…', money: 'Dinheiro', income: 'Rendimento', notoriety: 'Notoriedade', wounds: 'Ferimentos',
@@ -95,7 +95,7 @@ pt: {
     incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
     key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', slotPick: 'Não há espaço de item livre — que peça substituis? (+1 de notoriedade)', exitPick: 'Escolhe a peça de saída a guardar',
-    clawsExtra: 'Claws: tirar peças extra ($2k cada)?', mrv: 'Mr. V na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Lady T.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
+    clawsExtra: 'Tumbler: tirar peças extra ($2k cada)?', mrv: 'Professor na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Madame Q.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
   },
   mrvOpt: { lose: 'Perder 1 de notoriedade (normal)', none: 'Não perder notoriedade (levas um ferimento)', gain: 'Ganhar 1 de notoriedade (levas um ferimento)' },
   power: 'Poder', mission: 'Missão', secret: 'secreta', missionDone: 'Missão cumprida', tokenOn: 'disponível hoje', tokenOff: 'usado hoje', keepFaceUp: 'Pagar $2k para manter as cartas viradas para cima',
@@ -134,9 +134,9 @@ pt: {
   tapHelp: 'Dica: mantém o dedo (ou o rato) sobre qualquer coisa para ver o que faz.', confirmQuit: 'Abandonar este jogo e voltar ao menu?',
   you: 'Tu', bot: 'Bot', mp: 'mov.', police: 'polícias', cost: 'custo', free: 'grátis', variant: { walk: 'A pé', jetski: 'Jet Ski', sewer: 'Esgoto', chopper: 'Carta Chopper', heliFixer: 'Helicóptero', gangHeli: 'Motard do gang', gangCardHeli: 'Carta Gang', motorcycleHeli: 'Mota', medevac: 'Medevac' },
   extraMp: n => `+${n} gasolina`, escapeHere: 'Sair da cidade por aqui',
-  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspetora Sandra', costa: 'Tenente Costa' },
+  types: { county: 'County', federal: 'Federal', swat: 'SWAT', sandra: 'Inspetora Vega', costa: 'Tenente Moreno' },
   colors: { orange: 'Laranja', purple: 'Roxo', pink: 'Rosa', yellow: 'Amarelo', green: 'Verde' },
-  costaScore: 'Tenente Costa', npcSandra: 'Inspetora Sandra', npcCosta: 'Tenente Costa', beatCosta: 'Venceste o Tenente Costa!', lostCosta: 'Desta vez ganhou o Tenente Costa.',
+  costaScore: 'Tenente Moreno', npcSandra: 'Inspetora Vega', npcCosta: 'Tenente Moreno', beatCosta: 'Venceste o Tenente Moreno!', lostCosta: 'Desta vez ganhou o Tenente Moreno.',
 }};
 
 const NAMES = {
@@ -222,7 +222,7 @@ I.narrate = function (e, ctx) {
     case 'npcMoved': return pt ? `${N(e.p)} afasta ${N(e.npc)}` : `${N(e.p)} sends ${N(e.npc)} away`;
     case 'avoided': return pt ? `🛡 ${N(e.p)} evita a polícia` : `🛡 ${N(e.p)} avoids the police`;
     case 'avoidDone': return e.wounds ? null : null;
-    case 'bribe': return pt ? `${N(e.p)} suborna o Tenente Costa ($3k)` : `${N(e.p)} bribes Lt. Costa ($3k)`;
+    case 'bribe': return pt ? `${N(e.p)} suborna o Tenente Moreno ($3k)` : `${N(e.p)} bribes Lt. Moreno ($3k)`;
     case 'visit': return pt ? `${N(e.p)} visita ${loc(e.loc)}` : `${N(e.p)} visits ${loc(e.loc)}`;
     case 'cantVisit': return pt ? `${N(e.p)} não consegue visitar ${loc(e.loc)}` : `${N(e.p)} can't visit ${loc(e.loc)}`;
     case 'cube': return pt ? `${N(e.p)} recupera o dinheiro em ${I.name(e.at)}${e.income ? ' (rendimento imediato)' : ''}` : `${N(e.p)} recovers the money at ${I.name(e.at)}${e.income ? ' (instant income)' : ''}`;
@@ -276,7 +276,7 @@ I.whyText = function (why) {
   const pt = I.lang === 'pt';
   const m = { income: pt ? 'rendimento' : 'income', business: pt ? 'rendimento do Business' : 'business income', safehouse: pt ? 'rendimento da Casa Segura' : 'safe house income', exit: pt ? 'rendimento na saída' : 'exit income', shVisit: pt ? 'visita à Casa Segura' : 'Safe House visit',
     crowd: pt ? 'local com outros jogadores' : 'crowded location', contactStar: pt ? 'carta com estrela' : 'starred card', replace: pt ? 'substituição' : 'replacing', hospital: pt ? 'hospital' : 'hospital', safehouseN: '', church: pt ? 'igreja' : 'church',
-    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Costa' };
+    lateFee: pt ? 'taxa por cada turno depois da 1.ª fuga' : 'fee after the first escape', exitCost: pt ? 'custo de saída' : 'exit cost', gang: 'gang', buyEquip: pt ? 'equipamento' : 'equipment', buyFixer: 'Fixer', asset: pt ? 'ativo' : 'asset', contact: pt ? 'carta' : 'card', fixer: 'Fixer', buyUnlock: pt ? 'desbloquear ativo' : 'unlock', bonus: pt ? 'bónus' : 'bonus', bribe: pt ? 'suborno' : 'bribe', card: pt ? 'carta' : 'card', power: pt ? 'poder' : 'power', mission: pt ? 'missão' : 'mission', notorietyMax: pt ? 'notoriedade no máximo' : 'notoriety maxed', costa: 'Moreno' };
   if (!why) return '';
   if (why.startsWith('police:')) return ' (' + I.t('types.' + why.slice(7)) + ')';
   const w = m[why]; return w ? ` (${w})` : '';

@@ -1,5 +1,5 @@
 {
-  "_comment": "9 Escape Plan cards. Order: casino, bar, restaurant, gym, nightclub, gallery, sh1, sh2, sh3. Number = $k value; \"$\" = the money icon (special, see rules).",
+  "_comment": "9 Getaway Plan cards. Order: casino, bar, restaurant, gym, nightclub, gallery, sh1, sh2, sh3. Number = $k value; \"$\" = the money icon (special, see rules).",
   "keys": ["casino","bar","restaurant","gym","nightclub","gallery","sh1","sh2","sh3"],
   "cards": [
     [50, 100, "$", "$", 90, 60, 70, "$", 80],

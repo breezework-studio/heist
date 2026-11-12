@@ -1,5 +1,5 @@
 {
-  "_comment": "Mission cards (Upgrade Pack). Secret, one per player. Complete EITHER mission -> reveal, choose 1 of 3 ongoing abilities (mark with cube). 'Once per day' abilities use a Power token (flip to X; reset each day). 'cards' = Contact cards on player board. Back: 'Mission'. Text verbatim.",
+  "_comment": "Mission cards (Upgrade Pack). Secret, one per player. Complete EITHER mission -> reveal, choose 1 of 3 ongoing abilities (mark with cube). 'Once per day' abilities use a Power token (flip to X; reset each day). 'cards' = Contact cards on player board. Back: 'Mission'. Texts summarised.",
   "missions": [
     {"id": 1, "goals": ["Control 2 Gangs", "Have 3 cards not including any Bribes or Snitches"],
      "abilities": ["You may cross water.", "Once per day, you may use a Helipad as if you had a helicopter.", "Once per day, avoid one Federal Police Officer."]},

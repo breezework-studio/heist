@@ -1,5 +1,5 @@
 {
-  "_comment": "16 Inspector (Sandra) cards, 2-player mode: one per location in the city (6 businesses, 3 safe houses, 4 stores, 3 exits). notoriety: +1/-1 for Sandra. cube: place Sandra cube on location. discard: what Sandra removes from the game (contacts = 2 rightmost contact cards). Back: Sandra portrait. Rules: rulebook 2022 p.22.",
+  "_comment": "16 Inspector (Vega) cards, 2-player mode: one per location in the city (6 businesses, 3 safe houses, 4 stores, 3 exits). notoriety: +1/-1 for Vega. cube: place Vega cube on location. discard: what Vega removes from the game (contacts = 2 rightmost contact cards). Back: Vega portrait. Rules: rulebook 2022 p.22.",
   "cards": [
     {"loc": "casino", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
     {"loc": "bar", "notoriety": 1, "cube": true, "discard": {"contacts": 2}},
