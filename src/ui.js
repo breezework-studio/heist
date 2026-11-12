@@ -351,7 +351,14 @@ function renderTop() {
   $('#bMenu').onclick = () => { if (confirm(t('confirmQuit'))) { saveGame(); showMenu(); } };
   $('#bFull') && ($('#bFull').onclick = toggleFull);
   $('#sideToggle').onclick = () => $('#side').classList.toggle('open');
+  fitTop();
 }
+// make the top bar fit: hide less important bits step by step until nothing overflows (the buttons must always be visible)
+function fitTop() {
+  const el = $('#top'); if (!el) return; el.classList.remove('f1', 'f2', 'f3', 'f4');
+  for (const c of ['f1', 'f2', 'f3', 'f4']) { if (el.scrollWidth <= el.clientWidth + 1) return; el.classList.add(c); }
+}
+addEventListener('resize', () => fitTop()); document.fonts && document.fonts.ready.then(() => fitTop());
 
 // ---------------- side panel ----------------
 function slotHTML(p, x, i, kind, viewer) {
