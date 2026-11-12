@@ -67,7 +67,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .tl.past{opacity:.45}.tl.opt{border:1px dashed #fff3}
 .exits{display:flex;gap:6px;margin-left:auto}
 .exitb{display:flex;align-items:center;gap:4px;white-space:nowrap;padding:4px 8px;border-radius:6px;background:#f6d64a;color:#2a2205;font-family:var(--ff-type);font-size:14px;box-shadow:0 2px 0 #b89d2a;transform:rotate(-1.5deg)}
-.exitb .pc{display:flex;gap:2px}.exitb .pc i{width:8px;height:12px;border-radius:2px;background:#0003}.exitb .pc i.on{background:var(--red)}
+.exitb .pc{display:flex;gap:2px}.exitb .pc i{width:8px;height:12px;border-radius:2px;background:#0003}.exitb .pc i.on{background:#e07b00}.exitb.closed .pc i.on{background:var(--red)}
 .exitb.closed{background:#7a7a7a;color:#eee;box-shadow:0 2px 0 #555;text-decoration:line-through}
 .exitb.last{outline:2px solid #fff;animation:pulse 1.4s infinite}
 .tbtn{padding:7px 9px;background:transparent;border:1px solid var(--line)}
@@ -3148,7 +3148,7 @@ function renderTop() {
   const parts = t('parts');
   const tl = [0, 1, 2, 3, 4].map(i => `<div class="tl ${S.part === i ? 'on' : ''} ${i < S.part ? 'past' : ''} ${i >= 3 ? 'opt' : ''}" data-h="part:${i}">${ic(i === 0 ? 'sun' : i === 3 || i === 4 ? 'moon' : i === 2 ? 'sun' : 'sun', '', i >= 3 ? '#9fb3d9' : undefined)}</div>`).join('');
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
-  const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
+  const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}">${closed ? '🔒 ' : ''}<span class="xl">EXIT </span>${n}<span class="pc" title="${c}/2"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
   el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
   <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${G.mode === 'cloud' && CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
