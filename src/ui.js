@@ -539,7 +539,7 @@ function renderBar() {
       $('#bAb').onclick = () => abilitiesSheet(pd.exec, 'end'); $('#bEnd').onclick = () => human(null);
       break;
     }
-    case 'place': placeBar(el, pd, head); break;
+    case 'place': { const sd = $('#side'); if (sd && sd.classList.contains('open') && G.placeSideShut !== G.S.day + '/' + G.S.display.length) { sd.classList.remove('open'); G.placeSideShut = G.S.day + '/' + G.S.display.length; } } placeBar(el, pd, head); break;
     case 'policeMove': {
       const tgt = pd.target === p.id ? t('policeSelf') : t('policeHint', pname(pd.target));
       el.innerHTML = `<div class="msg">${head} — ${t('policeTitle')}<small>${tgt} ${t('pickOfficer')}</small></div>` + (G.sel.from != null ? `<button id="bBack">${t('cancel')}</button>` : '');
