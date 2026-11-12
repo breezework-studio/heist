@@ -52,6 +52,8 @@ const P = {
   ferry: '<path d="M3 14h18l-3 5H6z"/><path d="M7 14V9h8l2 5" /><rect x="11" y="5" width="2" height="4"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M11 10h2v8h-2zM11 6h2v2h-2z" fill="#fff"/>',
   check: '<path d="M4 12.5l5 5L20 6.5l-2-2-9 9-3-3z"/>',
+  download: '<path d="M11 3h2v9l3.5-3.5 1.4 1.4L12 15.8 6.1 9.9l1.4-1.4L11 12zM4 17h2v2h12v-2h2v4H4z"/>',
+  upload: '<path d="M11 16h2V7l3.5 3.5 1.4-1.4L12 3.2 6.1 9.1l1.4 1.4L11 7zM4 17h2v2h12v-2h2v4H4z"/>',
   full: '<path d="M3 3h7v2.5H5.5V10H3zM14 3h7v7h-2.5V5.5H14zM3 14h2.5v4.5H10V21H3zM18.5 14H21v7h-7v-2.5h4.5z"/>',
   unfull: '<path d="M7.5 3H10v7H3V7.5h4.5zM14 3h2.5v4.5H21V10h-7zM3 14h7v7H7.5v-4.5H3zM14 14h7v2.5h-4.5V21H14z"/>',
   x: '<path d="M5 7l2-2 5 5 5-5 2 2-5 5 5 5-2 2-5-5-5 5-2-2 5-5z"/>',
