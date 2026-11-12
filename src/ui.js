@@ -319,12 +319,12 @@ function renderTop() {
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
   el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
-  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bSaveF" data-h="ui:savef">${ic('download')}</button><button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
+  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
   $('#bSpeed').onclick = () => { const o = ['slow', 'normal', 'fast']; G.prefs.speed = o[(o.indexOf(G.prefs.speed) + 1) % 3]; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); renderTop(); };
   $('#bMenu').onclick = () => { if (confirm(t('confirmQuit'))) { saveGame(); showMenu(); } };
-  $('#bFull') && ($('#bFull').onclick = toggleFull); $('#bSaveF').onclick = exportSave;
+  $('#bFull') && ($('#bFull').onclick = toggleFull);
   $('#sideToggle').onclick = () => $('#side').classList.toggle('open');
 }
 
@@ -1040,13 +1040,13 @@ function importSave() {
 if (window.HeistCloud) HeistCloud.onChange(() => { const b = document.getElementById('bCloud'); if (b) { const [n, c] = cloudIcon(); b.innerHTML = ic(n, '', c); } });
 function toast(msg) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 function showMenu() {
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) { }
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
-  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button><div class="filebtns">${hasSave() ? `<button id="mExp" class="ghost">${ic('download')} ${t('saveFile')}</button>` : ''}<button id="mImp" class="ghost">${ic('upload')} ${t('loadFile')}</button></div>${CLOUD && CLOUD.enabled() ? `<div class="filebtns"><button id="mDrive" class="ghost">${ic(CLOUD.isOn() ? 'cloud' : 'cloudOff', '', CLOUD.isOn() ? '#7fd67f' : '')} ${CLOUD.isOn() ? t('driveOn') : t('driveConnect')}</button></div>` : ''}</div>
+  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="filebtns"><button id="mDrive" class="ghost">${ic(CLOUD.isOn() ? 'cloud' : 'cloudOff', '', CLOUD.isOn() ? '#7fd67f' : '')} ${CLOUD.isOn() ? t('driveOn') : t('driveConnect')}</button></div>` : ''}</div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
   $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
-  $('#mExp') && ($('#mExp').onclick = exportSave); $('#mImp').onclick = importSave;
   $('#mCont') && ($('#mCont').onclick = continueGame);
   $('#mDrive') && ($('#mDrive').onclick = async () => {
     if (CLOUD.isOn()) { if (confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
