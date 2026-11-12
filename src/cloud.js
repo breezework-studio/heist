@@ -90,7 +90,7 @@ H.pull = async () => {
   catch (e) { set(online() ? 'error' : 'offline', e.message); return null; }
 };
 H.connect = async () => {
-  await loadGis(); await getToken(true); setCfg({ on: true }); set('ok'); return true;
+  await loadGis(); await getToken(!cfg().on); setCfg({ on: true }); set('ok'); return true;
 };
 H.disconnect = () => { try { if (C.token && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(C.token, () => {}); } catch (e) { } C.token = null; C.pending = null; setCfg({ on: false, fileId: null }); set('off'); };
 // any tap while a save is waiting refreshes the sign-in (silently when already granted) and sends it

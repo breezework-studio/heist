@@ -25,25 +25,36 @@ const spd = () => G.skip ? 0 : SPEEDS[G.prefs.speed] || 1;
 document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]);
 const wait = (ms) => { const k = spd(); return k ? sleep(ms * k) : Promise.resolve(); };
 const CLOUD = window.HeistCloud;
+// two kinds of game: 'local' (saved only on this device) and 'cloud' (saved on this device + the player's Google Drive)
+const SAVEKEY = { local: 'heist.save', cloud: 'heist.cloudsave' };
 function saveGame() {
+  const mode = G.mode || 'local';
   try {
-    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem('heist.save', j); CLOUD && CLOUD.push(j); }
-    else { localStorage.removeItem('heist.save'); CLOUD && CLOUD.remove(); }
+    if (G.S && !G.S.over) { const j = JSON.stringify({ app: 'heist', v: 1, mode, savedAt: Date.now(), S: G.S, log: G.logLines.slice(-400) }); localStorage.setItem(SAVEKEY[mode], j); if (mode === 'cloud' && CLOUD) CLOUD.push(j); }
+    else { localStorage.removeItem(SAVEKEY[mode]); if (mode === 'cloud' && CLOUD) CLOUD.remove(); }
   } catch (e) { }
 }
-function loadSaveText(txt) { const sv = JSON.parse(txt); if (!sv.S || !sv.S.players) throw new Error('bad save'); G.S = sv.S; E.resume(G.S); G.logLines = sv.log || []; startScreen(); }
-// Continue: use the newest save between this device and Google Drive
-async function continueGame() {
-  const local = localStorage.getItem('heist.save'); let txt = local;
-  if (CLOUD && CLOUD.isOn() && navigator.onLine !== false) {
+function loadSaveText(txt, mode) { const sv = JSON.parse(txt); if (!sv.S || !sv.S.players) throw new Error('bad save'); G.mode = mode; G.S = sv.S; E.resume(G.S); G.logLines = sv.log || []; startScreen(); }
+const savedAt = txt => { try { return JSON.parse(txt).savedAt || 0; } catch (e) { return -1; } };
+function continueLocal() { const txt = localStorage.getItem(SAVEKEY.local); if (!txt) { toast(t('noSave')); return; } try { loadSaveText(txt, 'local'); } catch (e) { toast(t('noSave')); } }
+// online: sign in if needed, then the newest between Drive and this device's copy
+async function continueCloud() {
+  const cache = localStorage.getItem(SAVEKEY.cloud); let txt = cache;
+  if (navigator.onLine !== false) {
+    try { await CLOUD.connect(); } catch (e) { if (!cache) { toast(t('driveFail')); return; } }
     toast(t('cloudLook')); const remote = await CLOUD.pull();
-    if (remote) { const ta = (() => { try { return JSON.parse(local).savedAt || 0; } catch (e) { return -1; } })(); const tb = (() => { try { return JSON.parse(remote).savedAt || 0; } catch (e) { return -1; } })(); if (tb > ta) { txt = remote; try { localStorage.setItem('heist.save', remote); } catch (e) { } toast(t('cloudGot')); } }
-  }
-  if (!txt) { toast(t('noSave')); return; }
-  try { loadSaveText(txt); } catch (e) { showSetup(); }
+    if (remote && savedAt(remote) > savedAt(cache)) { txt = remote; try { localStorage.setItem(SAVEKEY.cloud, remote); } catch (e) { } }
+  } else if (cache) toast(t('cloudOfflineCont'));
+  if (!txt) { toast(t('noSaveCloud')); return; }
+  try { loadSaveText(txt, 'cloud'); } catch (e) { toast(t('noSaveCloud')); }
+}
+async function newCloudGame() {
+  if (navigator.onLine === false) { toast(t('needNet')); return; }
+  try { await CLOUD.connect(); } catch (e) { toast(t('driveFail')); return; }
+  G.mode = 'cloud'; showSetup();
 }
 function cloudIcon() { const st = CLOUD ? CLOUD.state() : 'off'; return { off: ['cloudOff', '#8a8f9a'], ok: ['cloud', '#7fd67f'], pending: ['cloudUp', '#f2c629'], offline: ['cloudOff', '#f2c629'], error: ['cloudOff', '#ff7a6e'] }[st] || ['cloud', '#ccc']; }
-function hasSave() { try { return !!localStorage.getItem('heist.save'); } catch (e) { return false; } }
+function hasSave(k = 'heist.save') { try { return !!localStorage.getItem(k); } catch (e) { return false; } }
 
 // ---------------- names / helpers ----------------
 function who(id) { const S = G.VS || G.S; if (id >= 100) return E.P(S, id); return S.players[id]; }
@@ -319,7 +330,7 @@ function renderTop() {
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}"><span class="xl">EXIT </span>${n}<span class="pc"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
   el.innerHTML = `<button class="tbtn" id="sideToggle">${ic('menu')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
-  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
+  <button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${G.mode === 'cloud' && CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
   $('#bSpeed').onclick = () => { const o = ['slow', 'normal', 'fast']; G.prefs.speed = o[(o.indexOf(G.prefs.speed) + 1) % 3]; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); renderTop(); };
@@ -1044,15 +1055,16 @@ function showMenu() {
   G.screen = 'menu'; const app = $('#app');
   app.innerHTML = `<div class="screen"><div class="tape" style="top:8%;left:-40px;transform:rotate(-8deg)">POLICE LINE · DO NOT CROSS · POLICE LINE · DO NOT CROSS</div><div class="tape" style="bottom:10%;right:-40px;transform:rotate(6deg)">POLICE LINE · DO NOT CROSS · POLICE LINE</div>
   <div class="logo">H<span>E</span>IST</div><div class="tag">${t('subtitle')}</div>
-  <div class="menu-btns">${hasSave() || (CLOUD && CLOUD.isOn()) ? `<button class="pri" id="mCont">${ic('play')} ${t('continue')}</button>` : ''}<button class="${hasSave() || (CLOUD && CLOUD.isOn()) ? '' : 'pri'}" id="mNew">${t('newGame')}</button><button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="savemode"><div class="smt">${t('saveWhere')}</div><div class="smb"><button data-sm="local" class="${CLOUD.isOn() ? '' : 'on'}">${ic('device')} ${t('smLocal')}<small>${t('smLocalH')}</small></button><button data-sm="cloud" class="${CLOUD.isOn() ? 'on' : ''}">${ic('cloud')} ${t('smCloud')}<small>${t('smCloudH')}</small></button></div><a class="priv" href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}</div>
+  <div class="menu-btns">${(() => {
+    const cl = CLOUD && CLOUD.enabled(); const hl = hasSave(); const hc = cl && (CLOUD.isOn() || hasSave('heist.cloudsave'));
+    const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
+    const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
+    return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;
+  })()}<button id="mRules">${ic('book')} ${t('rules')}</button>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}</div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
-  $('#mNew').onclick = showSetup; $('#mRules').onclick = () => openRules();
-  $('#mCont') && ($('#mCont').onclick = continueGame);
-  $$('.savemode [data-sm]').forEach(b => b.onclick = async () => {
-    if (b.dataset.sm === 'local') { if (CLOUD.isOn() && confirm(t('driveOffQ'))) { CLOUD.disconnect(); showMenu(); } return; }
-    if (CLOUD.isOn()) return;
-    try { await CLOUD.connect(); toast(t('driveDone')); const local = localStorage.getItem('heist.save'); if (local) CLOUD.push(local); showMenu(); } catch (e) { toast(t('driveFail')); }
-  });
+  $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mRules').onclick = () => openRules();
+  $('#mCont') && ($('#mCont').onclick = continueLocal); $('#mContC') && ($('#mContC').onclick = continueCloud); $('#mNewC') && ($('#mNewC').onclick = newCloudGame);
+  $('#mOut') && ($('#mOut').onclick = e => { e.preventDefault(); if (confirm(t('signOutQ'))) { CLOUD.disconnect(); showMenu(); } });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
 }
 const SEATS = ['orange', 'purple', 'pink', 'yellow', 'green'];
