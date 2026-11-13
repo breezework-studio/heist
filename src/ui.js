@@ -273,7 +273,7 @@ function pawnSpots(S) {
 function renderMap(view) {
   const S = G.VS; const svg = $('#map'); if (!svg) return;
   view = view || mapView();
-  let s = svgDefs() + `<g id="world" transform="translate(${G.zoom.x},${G.zoom.y}) scale(${G.zoom.k})">`;
+  let s = '';
   // empty slots
   E.CELLS.forEach((c, i) => { if (S.cells[i]) return; const o = cellXY(i); const legal = view.legalCells && view.legalCells.has(i); s += `<polygon class="cell-slot ${legal ? 'legal' : ''}" data-cell="${i}" points="${hexPts(o.x, o.y, 0.96)}"/>`; });
   // tiles
@@ -307,12 +307,16 @@ function renderMap(view) {
   S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); const g = tileGeo(c.tile, c.rot); E.TILE[c.tile].locs.forEach(l => { const p = g.locs[l.id]; allLocs.push({ x: o.x + p.x, y: o.y + p.y }); s += locSVG(S, l, o.x + p.x, o.y + p.y, view); }); });
   const copsAt = []; S.cells.forEach((c, i) => { if (c) E.PTYPES.forEach(ty => { if (c.police[ty]) copsAt.push(copXY(i, ty)); }); });
   const labelsSVG = placeLabels(view._labels, allLocs, copsAt);
+  const stat = s; s = '';
   // police
   S.cells.forEach((c, i) => { if (!c) return; E.PTYPES.forEach(ty => { if (c.police[ty]) s += copSVG(i, ty, '', view.pickCops && view.pickCops.has(i + ':' + ty)); }); });
   // pawns
   const spots = pawnSpots(S); S.players.concat(S.npcs || []).forEach(q => { const p = spots[q.id]; if (p) s += pawnSVG(S, q, p.x, p.y); });
-  s += labelsSVG + badges + '</g>';
-  svg.innerHTML = s;
+  // only rebuild the layers that changed: rebuilding everything on every bot action made the map flicker
+  if (!svg.querySelector('#world')) { svg.innerHTML = svgDefs() + '<g id="world"><g id="lyS"></g><g id="lyD"></g><g id="lyL"></g></g>'; }
+  $('#world').setAttribute('transform', `translate(${G.zoom.x},${G.zoom.y}) scale(${G.zoom.k})`);
+  const upd = (id, h) => { const g = svg.querySelector('#' + id); if (g._h !== h) { g.innerHTML = h; g._h = h; } };
+  upd('lyS', stat); upd('lyD', s); upd('lyL', labelsSVG + badges);
   fitMap(); if (G.tut) coachHL();
 }
 function fitMap() {
