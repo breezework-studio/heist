@@ -583,7 +583,7 @@ function placeBar(el, pd, head) {
     $('#bPlace').onclick = () => { const a = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot, biz: ($('#selBiz') || {}).value, sh: ($('#selSh') || {}).value }; human(a); };
   }
 }
-function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
+function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
   const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Wheels ⛽' : x.src === 'mission' ? t('mission') : x.src === 'equip' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src;

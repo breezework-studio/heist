@@ -90,6 +90,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
   #game{grid-template-columns:minmax(0,1fr);grid-template-rows:46px minmax(0,1fr) auto;grid-template-areas:"top" "map" "bar"}
   #side{position:fixed;right:0;top:var(--toph,46px);bottom:var(--barh,0px);width:min(300px,82vw);transform:translateX(105%);transition:transform .25s;box-shadow:-10px 0 30px #0008}
   #side.open{transform:none}
+  /* wide enough: the open panel takes its own column so nothing on the map (choices, popups) goes under or over it */
+  @media (min-width:600px){ #game:has(#side.open){grid-template-columns:minmax(0,1fr) min(300px,45vw);grid-template-areas:"top top" "map side" "bar bar"} #game:has(#side.open) #side{position:relative;top:auto;bottom:auto;right:auto;width:auto;transition:none;box-shadow:none} }
   #top .daybox{font-size:16px}.tl{width:22px;height:22px}
   .exitb{font-size:12px;padding:3px 6px}
   #bSpeed span{display:none}
@@ -3433,7 +3435,7 @@ function placeBar(el, pd, head) {
     $('#bPlace').onclick = () => { const a = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot, biz: ($('#selBiz') || {}).value, sh: ($('#selSh') || {}).value }; human(a); };
   }
 }
-function sheet(html, bind) { const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
+function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
   const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Wheels ⛽' : x.src === 'mission' ? t('mission') : x.src === 'equip' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src;
