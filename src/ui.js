@@ -964,8 +964,12 @@ function flyToSpot(html, target, hold = 900) {
 function spotlight(sel, tries) {
   $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = (sel.startsWith('sec:') ? secEls(sel.slice(4)) : $$(sel)).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
   if (sel.startsWith('sec:') && !tries) { const sp = $('#sidepanel'); if (sp) { const a = els[0].getBoundingClientRect(), z = els[els.length - 1].getBoundingClientRect(), pr = sp.getBoundingClientRect(); if (a.top < pr.top || z.bottom > pr.bottom) { sp.scrollTop += a.top - pr.top - 30; const tok = spotlight.tok = (spotlight.tok || 0) + 1; return requestAnimationFrame(() => { if (spotlight.tok === tok) spotlight(sel, 1); }); } } }
-  const rs = els.map(e => e.getBoundingClientRect()); const L = Math.max(4, Math.min(...rs.map(r => r.left))), T = Math.max(4, Math.min(...rs.map(r => r.top))), R = Math.min(innerWidth - 4, Math.max(...rs.map(r => r.right))), B = Math.min(innerHeight - 4, Math.max(...rs.map(r => r.bottom)));
-  const d = document.createElement('div'); d.className = 'spot'; Object.assign(d.style, { left: Math.max(2, L - 8) + 'px', top: Math.max(2, T - 8) + 'px', width: Math.min(innerWidth - 4, R - L + 16) + 'px', height: Math.min(innerHeight - 4, B - T + 16) + 'px' }); document.body.appendChild(d);
+  const box = (list) => { const rs = list.map(e => e.getBoundingClientRect()).filter(r => r.width); if (!rs.length) return null; return { L: Math.max(4, Math.min(...rs.map(r => r.left))), T: Math.max(4, Math.min(...rs.map(r => r.top))), R: Math.min(innerWidth - 4, Math.max(...rs.map(r => r.right))), B: Math.min(innerHeight - 4, Math.max(...rs.map(r => r.bottom))) }; };
+  const put = (d, b) => Object.assign(d.style, { left: Math.max(2, b.L - 8) + 'px', top: Math.max(2, b.T - 8) + 'px', width: Math.min(innerWidth - 4, b.R - b.L + 16) + 'px', height: Math.min(innerHeight - 4, b.B - b.T + 16) + 'px' });
+  const { L, T, R, B } = box(els);
+  const d = document.createElement('div'); d.className = 'spot'; put(d, { L, T, R, B }); document.body.appendChild(d);
+  // follow the element if the screen re-renders or moves (e.g. the top bar changes width)
+  const iv = setInterval(() => { if (!d.isConnected) return clearInterval(iv); const cur = (sel.startsWith('sec:') ? secEls(sel.slice(4)) : $$(sel)); const b = box(cur); if (b) put(d, b); }, 200);
   const c = document.getElementById('coach'); if (c && !c._moved) { c.style.top = ''; c.style.bottom = ''; const cr = c.getBoundingClientRect(); if (cr.left < R && cr.right > L && cr.top < B && cr.bottom > T) { if ((T + B) / 2 > innerHeight / 2) { c.style.top = '56px'; c.style.bottom = 'auto'; } else { c.style.top = 'auto'; c.style.bottom = '12px'; } } }
 }
 // "?" button on each section header of the boards
@@ -1069,8 +1073,13 @@ async function playEvent(e) {
     case 'place': G.dropCell = e.cell; patchVS(VS, S, e); redraw(); { const el = $('#tile-' + e.cell); if (el && k) { el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center'; el.animate([{ transform: el.getAttribute('transform') + ' scale(1.5)', opacity: 0 }, { transform: el.getAttribute('transform') + ' scale(1)', opacity: 1 }], { duration: 600 * k, easing: 'cubic-bezier(.3,1.4,.6,1)' }); } } G.dropCell = null; await wait(650); return;
     case 'display': patchVS(VS, S, e); redraw(); return;
     case 'order': {
-      patchVS(VS, S, e); const pt = G.prefs.lang === 'pt';
-      await flyToSpot(`<div class="ordcard"><small>${pt ? 'Ordem de turno' : 'Turn order'}</small>${VS.order.map((id, i) => { const q = E.P(VS, id); return `<div><i style="background:${pcolor(id)}"></i>${i + 1}. ${pname(id)} <em>★${q ? q.notor : ''}</em></div>`; }).join('')}</div>`, '.topord', 1300);
+      const prev = (VS.order || []).slice(); patchVS(VS, S, e); const pt = G.prefs.lang === 'pt'; const now = VS.order; const RH = 30;
+      const changed = prev.length === now.length && prev.some((id, i) => now[i] !== id);
+      // the card first shows the current order, then the rows slide into the new one
+      const row = (id) => { const q = E.P(VS, id); return `<div class="orow" data-id="${id}" style="top:${(changed ? prev : now).indexOf(id) * RH}px"><i style="background:${pcolor(id)}"></i><span class="n">${(changed ? prev : now).indexOf(id) + 1}.</span> ${pname(id)} <em>★${q ? q.notor : ''}</em></div>`; };
+      const html = `<div class="ordcard"><small>${pt ? 'Ordem de turno' : 'Turn order'}</small><div class="orows" style="height:${now.length * RH}px">${now.map(row).join('')}</div>${changed ? `<div class="onote">${pt ? 'Maior notoriedade joga primeiro' : 'Highest notoriety plays first'}</div>` : ''}</div>`;
+      if (changed && spd()) setTimeout(() => $$('.bigcard .orow').forEach(r => { const i = now.indexOf(+r.dataset.id); r.style.top = i * RH + 'px'; r.classList.toggle('up', i < prev.indexOf(+r.dataset.id)); $('.n', r).textContent = i + 1 + '.'; }), 900 * spd());
+      await flyToSpot(html, '.topord', changed ? 2300 : 1300);
       redraw(); ring('.topord'); await wait(300); return;
     }
     case 'turn': redraw(); if (isHuman(e.p)) { banner(t('yourTurn'), pname(e.p)); await wait(900); } else await wait(350); return;
