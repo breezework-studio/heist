@@ -104,7 +104,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .loc{cursor:default}
 .loc .ring{transition:all .2s}
 .loc.dest{cursor:pointer}
-.loc.dest .halo{fill:none;stroke:#fff;stroke-width:5;animation:halo 1.1s infinite;transform-box:fill-box;transform-origin:center}
+.loc.dest .halo{display:none}
 @keyframes halo{0%{stroke-opacity:.95;transform:scale(1)}100%{stroke-opacity:0;transform:scale(1.6)}}
 .loc.dest.esc .halo{stroke:var(--mustard)}
 .loc.sel .ring{stroke:var(--mustard)!important;stroke-width:6!important}

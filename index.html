@@ -111,7 +111,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .loc{cursor:default}
 .loc .ring{transition:all .2s}
 .loc.dest{cursor:pointer}
-.loc.dest .halo{fill:none;stroke:#fff;stroke-width:5;animation:halo 1.1s infinite;transform-box:fill-box;transform-origin:center}
+.loc.dest .halo{display:none}
 @keyframes halo{0%{stroke-opacity:.95;transform:scale(1)}100%{stroke-opacity:0;transform:scale(1.6)}}
 .loc.dest.esc .halo{stroke:var(--mustard)}
 .loc.sel .ring{stroke:var(--mustard)!important;stroke-width:6!important}
@@ -2749,7 +2749,7 @@ en: {
     place2: { t: 'Place another tile', b: '<p>There are always 4 tiles to place. With fewer than 4 players the turn order starts again, so the first players place a second tile (with 3 players: the 1st player places the 4th tile).</p>' },
     again: { t: 'Your turn again', b: '' },
     place: { t: 'Place a city tile', b: '<p>Pick a tile from the display, then one of the highlighted spaces on the map. Use the rotate button to try other rotations — only legal ones are shown.</p><p>A tile with a <b>briefcase</b> space is a Business still to be chosen: after you confirm, a window lets you pick <b>which</b> Business goes there (each exists only once). Same for a Safe House space.</p>' },
-    action: { t: 'Your turn', b: '<p>The highlighted locations are the ones you can reach this turn; the labels show the <b>MP</b> (movement points, 3 per turn) and how many officers you’ll have to avoid.</p><p>Tap a destination to see the route and what each MP is spent on, then press <b>Move</b>. Or <b>Rest</b> to stay and refresh your cards (once per day).</p><p>Good first targets: Businesses and Safe Houses with high values on your Getaway Plan.</p>', h: '#prompt' },
+    action: { t: 'Your turn', b: '<p>The locations with a label are the ones you can reach this turn; the label shows the <b>MP</b> (movement points, 3 per turn) and how many officers you’ll have to avoid.</p><p>Tap a destination to see the route and what each MP is spent on, then press <b>Move</b>. Or <b>Rest</b> to stay and refresh your cards (once per day).</p><p>Good first targets: Businesses and Safe Houses with high values on your Getaway Plan.</p>', h: '#prompt' },
     avoid: { t: 'Avoid the police', b: '<p>For each officer on the tiles you left, use something that avoids it (equipment, cards, assets, a gang biker…) or accept a <b>wound</b>.</p>' },
     contact: { t: 'Take a Contact card', b: '<p>Choose a card from the display, then: <b>keep</b> it in an empty Contact space, <b>replace</b> one of yours (+1 notoriety) or <b>discard</b> it.</p>' },
     end: { t: 'End of your turn', b: '<p>You can still use abilities (cards, equipment, assets…) or end your turn.</p>', h: '#prompt' },
@@ -2825,7 +2825,7 @@ pt: {
     place2: { t: 'Coloca outra peça', b: '<p>Há sempre 4 peças para colocar. Com menos de 4 jogadores a ordem de turno recomeça, por isso os primeiros jogadores colocam uma segunda peça (com 3 jogadores: o 1.º jogador coloca a 4.ª peça).</p>' },
     again: { t: 'É outra vez contigo', b: '' },
     place: { t: 'Coloca uma peça da cidade', b: '<p>Escolhe uma peça da mostra e depois um dos espaços destacados no mapa. Usa o botão de rodar para ver outras rotações — só aparecem as permitidas.</p><p>Uma peça com uma <b>pasta</b> é um Business ainda por escolher: depois de confirmares, aparece uma janela para escolheres <b>qual</b> Business lá fica (cada um só existe uma vez). O mesmo para um espaço de Casa Segura.</p>' },
-    action: { t: 'É a tua vez', b: '<p>Os locais destacados são os que consegues alcançar neste turno; as etiquetas mostram os <b>MP</b> (pontos de movimento, 3 por turno) e quantos polícias vais ter de evitar.</p><p>Toca num destino para veres o caminho e em que se gasta cada MP, e carrega em <b>Mover</b>. Ou <b>Descansa</b> para ficares e recuperares as cartas (1 vez por dia).</p><p>Bons primeiros alvos: Businesses e Casas Seguras com valores altos no teu Plano de Fuga.</p>', h: '#prompt' },
+    action: { t: 'É a tua vez', b: '<p>Os locais com etiqueta são os que consegues alcançar neste turno; a etiqueta mostra os <b>MP</b> (pontos de movimento, 3 por turno) e quantos polícias vais ter de evitar.</p><p>Toca num destino para veres o caminho e em que se gasta cada MP, e carrega em <b>Mover</b>. Ou <b>Descansa</b> para ficares e recuperares as cartas (1 vez por dia).</p><p>Bons primeiros alvos: Businesses e Casas Seguras com valores altos no teu Plano de Fuga.</p>', h: '#prompt' },
     avoid: { t: 'Evitar a polícia', b: '<p>Para cada polícia das peças que deixaste, usa algo que o evite (equipamento, cartas, ativos, um motard do gang…) ou aceita um <b>ferimento</b>.</p>' },
     contact: { t: 'Tirar uma carta de Contacto', b: '<p>Escolhe uma carta da mostra e depois: <b>ficar</b> com ela num espaço de Contacto vazio, <b>substituir</b> uma das tuas (+1 de notoriedade) ou <b>descartá-la</b>.</p>' },
     end: { t: 'Fim do teu turno', b: '<p>Ainda podes usar habilidades (cartas, equipamento, ativos…) ou terminar o turno.</p>', h: '#prompt' },
