@@ -43,6 +43,8 @@ const P = {
   biker: '<circle cx="6" cy="17" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="17" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 17l4-6h5l3 6M10 11l-1-3h3"  fill="none" stroke="currentColor" stroke-width="2"/><circle cx="13" cy="4.5" r="2.5"/>',
   book: '<path d="M3 4h7a3 3 0 013 3v14a2 2 0 00-2-2H3zM21 4h-7a3 3 0 00-3 3v14a2 2 0 012-2h8z"/>',
   globe: '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 12h20M12 2c3 3 4 6.5 4 10s-1 7-4 10M12 2c-3 3-4 6.5-4 10s1 7 4 10" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  steps: '<path d="M7.5 3.5c1.7 0 2.8 2 2.8 4.6S9.3 12 7.6 12 4.8 10.6 4.8 8.1 5.8 3.5 7.5 3.5zM6 13.2h3.3v1.6a1.65 1.65 0 0 1-3.3 0zM16.5 8c1.7 0 2.7 2 2.7 4.5s-1 3.9-2.7 3.9-2.8-1.4-2.8-3.9S14.8 8 16.5 8zM15 17.7h3.3v1.6a1.65 1.65 0 0 1-3.3 0z"/>',
+  clock: '<path fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 2.2a7.8 7.8 0 1 0 0 15.6 7.8 7.8 0 0 0 0-15.6zM11 6h2v5.6l3.6 2.1-1 1.7L11 12.8z"/>',
   biz: '<path fill-rule="evenodd" d="M9 3h6a2 2 0 0 1 2 2v2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3V5a2 2 0 0 1 2-2zm0 4h6V5H9z"/>',
   city: '<path fill-rule="evenodd" d="M2 21V10h5v11zM8 21V3h7v18zM16 21V8h6v13zM10 6h1.5v1.5H10zM12.5 6H14v1.5h-1.5zM10 9.5h1.5V11H10zM12.5 9.5H14V11h-1.5zM10 13h1.5v1.5H10zM12.5 13H14v1.5h-1.5zM18 11h2v1.5h-2zM18 14h2v1.5h-2zM3.5 13h2v1.5h-2zM3.5 16h2v1.5h-2z"/>',
   menu: '<path d="M3 5h18v2.5H3zM3 10.75h18v2.5H3zM3 16.5h18V19H3z"/>',
