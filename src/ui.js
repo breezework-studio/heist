@@ -759,9 +759,12 @@ function bindPanZoom() {
   svg.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, zx: G.zoom.x, zy: G.zoom.y }; G.panMoved = false; });
   window.addEventListener('pointermove', (e) => { if (!drag || pinch) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 8) G.panMoved = true; if (!G.panMoved) return; const sc = svgScale(); G.zoom.x = drag.zx + dx / sc; G.zoom.y = drag.zy + dy / sc; apply(); });
   window.addEventListener('pointerup', () => { drag = null; setTimeout(() => G.panMoved = false, 0); });
-  svg.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); pinch = { d, k: G.zoom.k }; } }, { passive: true });
-  svg.addEventListener('touchmove', (e) => { if (pinch && e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); G.zoom.k = Math.max(0.6, Math.min(3, pinch.k * d / pinch.d)); G.panMoved = true; apply(); } }, { passive: true });
-  svg.addEventListener('touchend', () => { if (pinch) setTimeout(() => pinch = null, 50); });
+  // pinch: zoom around the point between the two fingers (and follow them, so it also pans)
+  const mid = (e) => toSvg((e.touches[0].clientX + e.touches[1].clientX) / 2, (e.touches[0].clientY + e.touches[1].clientY) / 2);
+  const dist = (e) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  svg.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { const m = mid(e); pinch = { d: dist(e), k: G.zoom.k, wx: (m.x - G.zoom.x) / G.zoom.k, wy: (m.y - G.zoom.y) / G.zoom.k }; drag = null; } }, { passive: true });
+  svg.addEventListener('touchmove', (e) => { if (pinch && e.touches.length === 2) { const m = mid(e); const k = Math.max(0.6, Math.min(3, pinch.k * dist(e) / pinch.d)); G.zoom.k = k; G.zoom.x = m.x - pinch.wx * k; G.zoom.y = m.y - pinch.wy * k; G.panMoved = true; apply(); } }, { passive: true });
+  svg.addEventListener('touchend', (e) => { if (pinch && e.touches.length < 2) { drag = null; setTimeout(() => pinch = null, 50); } });
   svg.addEventListener('dblclick', () => { G.zoom = { k: 1, x: 0, y: 0 }; apply(); });
   const bc = document.getElementById('bCenter'); if (bc) bc.onclick = () => { G.zoom = { k: 1, x: 0, y: 0 }; G.vbKey = null; fitMap(); apply(); };
   svg.addEventListener('click', onMapClick);
