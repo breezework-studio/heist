@@ -974,7 +974,7 @@ async function animCop(from, to, type) {
   el.parentNode.appendChild(el);
   await animate(650, (k) => { const e = ease(k); el.setAttribute('transform', `translate(${a.x + (b.x - a.x) * e},${a.y + (b.y - a.y) * e - Math.sin(Math.PI * e) * 70}) scale(${1 + Math.sin(Math.PI * e) * .4})`); if (to < 0) el.setAttribute('opacity', 1 - e); });
 }
-function flashPanel(pid, cls) { const el = $('#pc-' + pid); if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function flashPanel(pid, cls) { if (!isHuman(pid)) return; const el = $('#pc-' + pid); if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 
 // ---------------- event playback (visual state replay) ----------------
 function addLog(e) {
@@ -1025,9 +1025,9 @@ async function playEvent(e) {
   addLog(e);
   const redraw = () => { renderMap(); renderTop(); renderSide(); setTicker(); };
   switch (e.t) {
-    case 'day': patchVS(VS, S, e); redraw(); ring('.daybox'); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
-    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); ring('.daybox.ph'); if (e.ph === 'patrol') ring('.exits'); if (e.ph === 'income') ring('.stat.money'); await wait(900); } return;
-    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); ring('.timeline .tl.on'); await wait(900); return;
+    case 'day': patchVS(VS, S, e); redraw(); banner(`${t('day')} ${e.day}`, G.prefs.lang === 'pt' ? 'novo dia' : 'a new day'); await wait(1300); return;
+    case 'phase': VS.uiPhase = e.ph; redraw(); if (e.ph !== 'order') { banner(t('phases.' + e.ph)); await wait(900); } return;
+    case 'part': VS.uiPhase = null; patchVS(VS, S, e); redraw(); banner(t('parts')[e.part], `${t('day')} ${VS.day}`); await wait(900); return;
     case 'patrol': {
       const pt = G.prefs.lang === 'pt';
       await flyToSpot(`<div class="patcard"><small>${pt ? 'Carta de patrulha' : 'Patrol card'}</small><b>EXIT ${e.exit}</b><span>${e.count === 2 ? (pt ? '2.ª carta — a saída fecha!' : '2nd card — the exit closes!') : (pt ? '1.ª carta nesta saída' : '1st card on this exit')}</span></div>`, $$('.exitb')[e.exit - 1], 1000);
@@ -1051,7 +1051,7 @@ async function playEvent(e) {
     case 'police': { redraw(); await animCop(e.from, e.to, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'policeRemove': { redraw(); await animCop(e.from, -1, e.type); patchVS(VS, S, e); redraw(); return; }
     case 'money': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, `${e.d > 0 ? '+' : '−'}$${Math.abs(e.d)}k`, e.d > 0 ? '#7fe08a' : '#ff8a7a'); await wait(380); return; }
-    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); const nb = document.getElementById('nb-' + e.p); if (nb) { nb.classList.remove('pulse'); void nb.offsetWidth; nb.classList.add('pulse'); } await wait(320); return; }
+    case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); const nb = isHuman(e.p) && document.getElementById('nb-' + e.p); if (nb) { nb.classList.remove('pulse'); void nb.offsetWidth; nb.classList.add('pulse'); } await wait(320); return; }
     case 'level': { patchVS(VS, S, e); redraw(); flashPanel(e.p, 'flash'); await wait(280); return; }
     case 'threshold': { redraw(); banner(`⚠ ${pname(e.p)}`, G.prefs.lang === 'pt' ? `linha ${e.n} de notoriedade` : `notoriety line ${e.n}`); await wait(1000); return; }
     case 'wound': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '🩸', '#ff4a3a'); flashPanel(e.p, 'flashred'); await wait(450); return; }
