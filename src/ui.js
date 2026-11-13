@@ -447,7 +447,7 @@ function renderSide() {
   else if (G.tab === 'opponents') { G.expanded = G.expanded || {}; body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, !!G.expanded[p.id], viewer)).join(''); }
   else if (G.tab === 'market') body = marketHTML(S);
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
-  el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${body}</div>`;
+  el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${copColor(body)}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
   $$('[data-exp]', el).forEach(b => b.onclick = () => { const id = +b.dataset.exp; G.expanded[id] = !G.expanded[id]; const sc = $('#sidepanel').scrollTop; renderSide(); $('#sidepanel').scrollTop = sc; });
   const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
@@ -611,12 +611,17 @@ function pickSpot(type, ids) {
     $('#spX', el).onclick = () => { closeSheet(); res(null); };
   }));
 }
-function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
+// police names and icons always in the officers' colours
+const copCol = ty => ty === 'swat' ? '#c9ccd3' : COP[ty];
+function assetIc(id, cls) { return ic(IC.ASSET[id], cls || '', id === 'move_county' ? COP.county : id === 'move_federal' ? COP.federal : id === 'move_swat' ? '#c9ccd3' : undefined); }
+const COPRX = /\b(County|Federal|SWAT)\b/g; const COPK = { County: 'county', Federal: 'federal', SWAT: 'swat' };
+function copColor(html) { return String(html).split(/(<[^>]*>)/).map(part => part[0] === '<' ? part : part.replace(COPRX, m => `<span class="copw cw-${COPK[m]}">${m}</span>`)).join(''); }
+function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = copColor(html); bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
   const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Wheels ⛽' : x.src === 'mission' ? t('mission') : x.src === 'equip' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src;
   const iconN = x.src === 'contact' ? IC.EFF[x.eff] : x.src === 'fixer' ? IC.FIX[G.S.players[G.S.pending.pid].items[x.i].id] : x.src === 'asset' ? IC.ASSET[G.S.players[G.S.pending.pid].unlocked[x.i].id] : x.src === 'gang' ? 'biker' : x.src === 'scar' ? 'gas' : x.src === 'mission' ? 'check' : x.src === 'equip' ? IC.EQUIP[G.S.players[G.S.pending.pid].items[x.i].id] : 'bandage';
-  return { src, icon: iconN, eff: T.effect(x.eff, x.type ? [x.type] : x.types) };
+  const tys = x.type ? [x.type] : x.types; return { src, icon: iconN, col: tys && tys.length === 1 && COP[tys[0]] ? copCol(tys[0]) : (x.src === 'equip' && eqTypes(G.S.players[G.S.pending.pid].items[x.i].id).length === 1 ? copCol(eqTypes(G.S.players[G.S.pending.pid].items[x.i].id)[0]) : undefined), eff: T.effect(x.eff, tys) };
 }
 // abilities grouped by where they come from (cards, equipment, fixers, assets, gang, other)
 function abilityGroups(ex) {
@@ -625,7 +630,7 @@ function abilityGroups(ex) {
   const key = x => GR.some(g => g[0] === x.src) ? x.src : 'other';
   return GR.map(([k, title, icn]) => {
     const items = ex.map((x, i) => ({ x, i })).filter(({ x }) => key(x) === k); if (!items.length) return '';
-    return `<div class="abgrp"><div class="abh">${ic(icn)} ${title}</div><div class="choices">${items.map(({ x, i }) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div></div>`;
+    return `<div class="abgrp"><div class="abh">${ic(icn)} ${title}</div><div class="choices">${items.map(({ x, i }) => { const L = exLabel(x); return `<button class="choice" data-i="${i}">${ic(L.icon, "", L.col)}<span><b>${L.src}</b><br>${L.eff}${x.cost ? ` — $${x.cost}k` : ` — ${t('free')}`}</span></button>`; }).join('')}</div></div>`;
   }).join('');
 }
 function abilitiesSheet(ex, when) {
@@ -638,7 +643,7 @@ function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
     case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
-    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${ic(IC.ASSET[a.id])}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
+    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;
     case 'choose': chooseSheet(pd, p); break;
@@ -658,7 +663,7 @@ function contactSheet(pd, p) {
 }
 function avoidSheet(pd, p) {
   const offs = pd.officers; const pt = G.prefs.lang === 'pt';
-  const btn = ({ x, i }, wide) => { const L = exLabel(x); return `<button class="opt-btn" data-i="${i}" title="${L.eff}">${ic(L.icon)} ${L.src}${x.cost ? ' $' + x.cost + 'k' : ''}${wide ? ' <small>— ' + wide + '</small>' : ''}</button>`; };
+  const btn = ({ x, i }, wide) => { const L = exLabel(x); return `<button class="opt-btn" data-i="${i}" title="${L.eff}">${ic(L.icon, '', L.col)} ${L.src}${x.cost ? ' $' + x.cost + 'k' : ''}${wide ? ' <small>— ' + wide + '</small>' : ''}</button>`; };
   const who = o => o.type === 'sandra' || o.type === 'costa' ? ic('cop', '', o.type === 'sandra' ? '#a8956a' : '#2b3f6b') : ic('shield', '', COP[o.type]);
   const cells = [...new Set(offs.map(o => o.cell))];
   const rows = cells.map((cell, ci) => {
@@ -884,7 +889,7 @@ function helpHTML(key) {
   return '';
 }
 function bindTips() {
-  const showTip = (el, x, y) => { const h = helpHTML(el.dataset.h); if (!h) return; let tip = $('.tip'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip); } tip.innerHTML = h; const w = 280; tip.style.left = Math.min(window.innerWidth - w - 8, x + 14) + 'px'; tip.style.top = Math.min(window.innerHeight - tip.offsetHeight - 8, y + 14) + 'px'; };
+  const showTip = (el, x, y) => { const h = helpHTML(el.dataset.h); if (!h) return; let tip = $('.tip'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip); } tip.innerHTML = copColor(h); const w = 280; tip.style.left = Math.min(window.innerWidth - w - 8, x + 14) + 'px'; tip.style.top = Math.min(window.innerHeight - tip.offsetHeight - 8, y + 14) + 'px'; };
   const hideTip = () => { const tip = $('.tip'); tip && tip.remove(); };
   let timer = null, lp = null;
   let lastTouch = 0; document.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
@@ -914,7 +919,7 @@ function openRules(topicId) {
     const res = q ? R.search(q, lang) : null;
     const list = (res || R.topics).map(tp => `<button class="${tp.id === cur ? 'on' : ''}" data-t="${tp.id}">${tp.icon} ${tp.title[lang]}</button>`).join('') || `<div style="padding:8px;color:var(--ink2)">${t('noResults')}</div>`;
     const tp = R.topics.find(x => x.id === cur);
-    host.innerHTML = `<div class="box paper" style="position:relative"><nav><input id="rq" placeholder="${t('search')}" value="${q.replace(/"/g, '&quot;')}">${list}</nav><article><h2>${tp.icon} ${tp.title[lang]}</h2>${tp.body[lang]}${refHTML(cur)}</article><button class="close ghost" id="rX" style="color:var(--ink)">✕</button></div>`;
+    host.innerHTML = `<div class="box paper" style="position:relative"><nav><input id="rq" placeholder="${t('search')}" value="${q.replace(/"/g, '&quot;')}">${list}</nav><article><h2>${tp.icon} ${tp.title[lang]}</h2>${copColor(tp.body[lang] + refHTML(cur))}</article><button class="close ghost" id="rX" style="color:var(--ink)">✕</button></div>`;
     $('nav', host).scrollTop = navY; // keep the topic list where it was
     $$('nav button', host).forEach(b => b.onclick = () => { cur = b.dataset.t; draw(); const a = $('article', host); if (a) a.scrollTop = 0; });
     const inp = $('#rq', host); inp.oninput = () => { q = inp.value; const r = q ? R.search(q, lang) : null; if (r && r.length) cur = r[0].id; draw(); const i2 = $('#rq', host); i2.focus(); i2.setSelectionRange(q.length, q.length); };
@@ -927,7 +932,7 @@ function refHTML(id) {
   const pt = G.prefs.lang === 'pt';
   if (id === 'contacts') { const seen = {}; return `<h3 style="font-family:var(--ff-type)">${pt ? 'Todas as cartas' : 'All cards'}</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${window.HEIST_DATA.contacts.cards.filter(c => { const k = c.name + c.cost + c.effect + (c.type || '') + (c.types || []).join(); if (seen[k]) return false; seen[k] = 1; return true; }).map(c => `<div style="display:flex;gap:8px;align-items:center;width:270px">${contactCardHTML(c.id)}<span style="font-size:13px">${T.effect(c.effect, c.types || (c.type ? [c.type] : null))}</span></div>`).join('')}</div>`; }
   if (id === 'safehouse') return `<h3 style="font-family:var(--ff-type)">Fixers</h3>${window.HEIST_DATA.fixers.fixers.map(f => `<div class="kv"><span>${ic(IC.FIX[f.id])} ${nm(f.id)} — $${f.cost}k</span><span style="font-size:13px">${T.effect(f.effect)}</span></div>`).join('')}`;
-  if (id === 'assets') return `<h3 style="font-family:var(--ff-type)">${pt ? 'Ativos' : 'Assets'}</h3>${window.HEIST_DATA.assets.assets.map(a => `<div class="kv"><span>${ic(IC.ASSET[a.id])} ${nm(a.id)}</span><span style="font-size:13px">${assetEff(a.id)}</span></div>`).join('')}`;
+  if (id === 'assets') return `<h3 style="font-family:var(--ff-type)">${pt ? 'Ativos' : 'Assets'}</h3>${window.HEIST_DATA.assets.assets.map(a => `<div class="kv"><span>${assetIc(a.id)} ${nm(a.id)}</span><span style="font-size:13px">${assetEff(a.id)}</span></div>`).join('')}`;
   if (id === 'police') return `<h3 style="font-family:var(--ff-type)">${pt ? 'Equipamento' : 'Equipment'}</h3>${window.HEIST_DATA.equipment.equipment.map(q => `<div class="kv"><span>${ic(IC.EQUIP[q.id])} ${nm(q.id)} — $${q.cost}k</span><span>${(q.avoids || q.avoids_one_of).map(x => t('types.' + x)).join(' / ')}</span></div>`).join('')}`;
   return '';
 }
@@ -973,7 +978,7 @@ function secEls(key) {
 function secHelp(key, btn) {
   $$('.secpop').forEach(x => x.remove()); const x = TUT().sec[key]; if (!x) return;
   const d = document.createElement('div'); d.className = 'secpop paper';
-  d.innerHTML = `<h4>${x.t}<button class="x" aria-label="close">✕</button></h4>${x.b}${x.r ? `<a class="more">${G.prefs.lang === 'pt' ? 'Ver nas regras →' : 'More in the rules →'}</a>` : ''}`;
+  d.innerHTML = `<h4>${x.t}<button class="x" aria-label="close">✕</button></h4>${copColor(x.b)}${x.r ? `<a class="more">${G.prefs.lang === 'pt' ? 'Ver nas regras →' : 'More in the rules →'}</a>` : ''}`;
   document.body.appendChild(d); const r = btn.getBoundingClientRect(), b = d.getBoundingClientRect();
   d.style.left = Math.max(8, Math.min(innerWidth - b.width - 8, r.right - b.width)) + 'px'; d.style.top = (r.bottom + 6 + b.height < innerHeight ? r.bottom + 6 : Math.max(8, r.top - b.height - 6)) + 'px';
   $('.x', d).onclick = () => d.remove(); const mo = $('.more', d); if (mo) mo.onclick = () => { d.remove(); openRules(x.r); };
@@ -1008,7 +1013,7 @@ function flashPanel(pid, cls) { if (!isHuman(pid)) return; const el = $('#pc-' +
 function addLog(e) {
   const txt = T.narrate(e, narrCtx); if (!txt) return;
   const cls = e.t === 'turn' ? 'turnline' : (e.t === 'phase' || e.t === 'day' || e.t === 'part') ? 'phase' : '';
-  G.logLines.push({ html: txt, cls, e }); if (G.logLines.length > 600) G.logLines.splice(0, 100);
+  G.logLines.push({ html: copColor(txt), cls, e }); if (G.logLines.length > 600) G.logLines.splice(0, 100);
 }
 function refreshLogLang() { const evs = G.logLines.map(x => x.e); G.logLines = []; evs.forEach(e => e && addLog(e)); }
 function patchVS(VS, S, e) {
