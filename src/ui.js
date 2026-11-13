@@ -226,7 +226,7 @@ function locSVG(S, l, x, y, view) {
     const cubes = S.bizCubes[b] || []; cubes.forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'safehouse') {
     const sh = k.id; const keys = S.shKeys[sh] || [];
-    body = `<polygon class="ring" points="${hexPts(0, 0, 0.33)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/><g transform="translate(0,${keys.length ? 5 : 0})">${icn('house', '#fff', keys.length ? 18 : 22)}</g><text x="${keys.length ? 11 : 13}" y="${keys.length ? 0 : -9}" font-family="Barlow Condensed,Arial" font-weight="700" font-size="16" fill="#fff">${sh.slice(2)}</text>`;
+    body = `<polygon class="ring" points="${hexPts(0, 0, 0.33)}" fill="#d63a33" stroke="#7c1712" stroke-width="3"/><g transform="translate(0,${keys.length ? 6 : 1})">${icn('house', '#fff', keys.length ? 24 : 28)}<text y="${keys.length ? 7.5 : 9}" text-anchor="middle" font-family="Barlow Condensed,Arial" font-weight="800" font-size="${keys.length ? 12 : 14}" fill="#d63a33">${sh.slice(2)}</text></g>`; // the Safe House number sits inside the house, clear of the keys
     keys.forEach((c, i) => body += `<g transform="translate(${(i - (keys.length - 1) / 2) * 15},-14)"><circle r="7" fill="#fff"/><g transform="translate(-6,-6) scale(.5)" fill="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}" color="${{ green: '#2f9e41', black: '#111', brown: '#8a4a1c' }[c]}">${IC.raw('key')}</g></g>`);
     (S.shCubes[sh] || []).forEach((c, i) => body += `<rect x="${-16 + i * 11}" y="22" width="9" height="9" rx="2" fill="${pcolor(c.pid)}" stroke="#000" stroke-width="1"/>`);
   } else if (k.type === 'exit') {
