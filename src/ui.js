@@ -769,12 +769,27 @@ function routeSteps(S, path, pl) {
   else if (water) out.push(`${ic('wave')} Jet Ski`);
   return out.join(' · ');
 }
+// what a route spends (gang biker, card, fixer, gas…), highlighted so it is never a surprise
+function usesStrip(S, pl) {
+  const pt = G.prefs.lang === 'pt'; const p = S.players[S.pending.pid]; const out = [];
+  const src = ref => typeof ref === 'string' && ref[0] === 'f' ? nm(p.items[+ref.slice(1)].id) : (p.contacts[ref] ? E.CONTACT[p.contacts[ref].card].name : '');
+  (pl.uses || []).forEach(u => {
+    if (u.r === 'gangHeli') out.push(`${ic('biker')} ${pt ? `1 motard do gang (tens ${p.gangMembers.length})` : `1 gang biker (you have ${p.gangMembers.length})`}`);
+    else if (u.r === 'heliFixer' || u.r === 'motorcycleHeli') out.push(`${ic(IC.FIX[p.items[u.ref].id] || 'heli')} ${pt ? 'Fixer' : 'Fixer'} ${nm(p.items[u.ref].id)}`);
+    else if (u.r === 'm1b') out.push(pt ? 'marcador da missão' : 'mission token');
+    else out.push(`${ic('card')} ${typeof u.ref === 'string' && u.ref[0] === 'f' ? 'Fixer ' : (pt ? 'carta ' : 'card ')}${src(u.ref)}`);
+  });
+  if (pl.extraMp) { let ex = pl.extraMp; const gc = p.contacts.findIndex(c => c && c.kind === 'contact' && !c.used && E.CONTACT[c.card].effect === 'plus_mp');
+    if (gc >= 0) { out.push(`${ic('card')} ${pt ? 'carta' : 'card'} ${E.CONTACT[p.contacts[gc].card].name} (+1 MP)`); ex--; }
+    if (ex > 0) out.push(`${ic('gas')} ${ex} ${pt ? (ex > 1 ? 'latas de gasolina' : 'lata de gasolina') : (ex > 1 ? 'gas cans' : 'gas can')} (+${ex} MP)`); }
+  return out.length ? `<div class="usestrip">${pt ? 'Gasta' : 'Spends'}: ${out.join(' + ')}</div>` : '';
+}
 function destPopover(locId) {
   const S = G.S; const pd = S.pending; const plans = pd.moves[locId]; if (!plans) return;
   const pp = $('.pop'); pp && pp.remove();
   const el = document.createElement('div'); el.className = 'pop paper';
   el.innerHTML = `<h3 class="draggable" style="margin:0 0 6px;font-family:var(--ff-type)"><span class="grip">⠿</span> ${locName(locId)}</h3><div class="planlist">${plans.map((pl, i) => `<div class="choice" data-i="${i}" style="flex-direction:column;align-items:stretch">
-    <div style="display:flex;justify-content:space-between;gap:8px"><b>${t('variant.' + pl.variant)}</b><span>${pl.mp} ${t('mp')}${pl.extraMp ? ' · ' + t('extraMp', pl.extraMp) : ''} · ${pl.police} ${ic('shield', '', '#d23b33')}</span></div><div class="rsteps">${routeSteps(S, bestPath(S, pl.path, pl.alts), pl)}</div>
+    <div style="display:flex;justify-content:space-between;gap:8px"><b>${t('variant.' + pl.variant)}</b><span>${pl.mp} ${t('mp')}${pl.extraMp ? ' · ' + t('extraMp', pl.extraMp) : ''} · ${pl.police} ${ic('shield', '', '#d23b33')}</span></div>${usesStrip(S, pl)}<div class="rsteps">${routeSteps(S, bestPath(S, pl.path, pl.alts), pl)}</div>
     <div class="row" style="margin-top:4px">${pl.escape ? `<button class="gold" data-esc="1" data-i="${i}">${ic('car')} ${t('escape')}</button>` : ''}<button class="pri" data-i="${i}">${t('move')}</button></div></div>`).join('')}</div><div class="row" style="margin-top:8px"><button class="ghost" id="bX">${t('cancel')}</button></div>`;
   $('#mapwrap').appendChild(el);
   placePop(el, S, plans[G.sel.plan || 0]); makeDraggable(el, $('h3', el));
@@ -1132,7 +1147,7 @@ async function playEvent(e) {
     case 'heal': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '✚' + e.n, '#7fe08a'); await wait(380); return; }
     case 'contact': case 'npcContact': { patchVS(VS, S, e); redraw(); flyCard(e.card, e.p); await wait(700); return; }
     case 'contactDiscard': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y - 10, '🃏✕ ' + cardName(e.card), '#ccc'); await wait(450); return; }
-    case 'useContact': case 'useFixer': case 'useEquip': case 'useAsset': case 'firstAid': case 'useGang': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); const label = e.t === 'useContact' ? cardName(e.card) : e.t === 'useFixer' || e.t === 'useEquip' || e.t === 'useAsset' ? nm(e.id) : e.t === 'useGang' ? '🏍' : '✚'; floatAt(a.x, a.y - 24, '⚡ ' + label, '#e8b546'); await wait(500); return; }
+    case 'useContact': case 'useFixer': case 'useEquip': case 'useAsset': case 'firstAid': case 'useGang': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); const label = e.t === 'useContact' ? cardName(e.card) : e.t === 'useFixer' || e.t === 'useEquip' || e.t === 'useAsset' ? nm(e.id) : e.t === 'useGang' ? (G.prefs.lang === 'pt' ? '🏍 motard do gang' : '🏍 gang biker') : '✚'; floatAt(a.x, a.y - 24, '⚡ ' + label, '#e8b546'); await wait(500); return; }
     case 'avoided': { redraw(); const p = copXY(e.cell, e.type || 'federal'); const sc = screenOf(p); sc && floatAt(sc.x, sc.y - 10, '🛡', '#8fe0ff'); await wait(380); return; }
     case 'visit': { redraw(); const p = locXY(VS, e.loc); const sc = p && screenOf(p); sc && floatAt(sc.x, sc.y - 30, locName(e.loc), '#fff'); await wait(450); return; }
     case 'cube': case 'closed': { patchVS(VS, S, e); redraw(); if (e.t === 'closed') { const sl = Object.keys(VS.bizSlots).find(k2 => VS.bizSlots[k2] === e.biz); const p = sl && locXY(VS, sl); const sc = p && screenOf(p); sc && floatAt(sc.x, sc.y, '🔒', '#f2c629'); } await wait(400); return; }
