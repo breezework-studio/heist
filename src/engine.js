@@ -535,7 +535,7 @@ function task(s, t) {
     case 'unlock': {
       const p = P(s, t.pid); const la = lockedAssets(p); if (!la.length) break;
       if (la.length === 1) { doUnlock(s, p, la[0]); break; }
-      ask(s, p.id, 'unlock', { assets: la }, { k: 'unlock', pid: p.id }); break;
+      ask(s, p.id, 'unlock', { assets: la, why: t.why || null }, { k: 'unlock', pid: p.id }); break;
     }
     case 'turnEnd': {
       const p = P(s, t.pid);
@@ -1144,7 +1144,8 @@ function adjustNotoriety(s, p) {
     const humans = s.players.filter(q => !q.arrested && !q.escaped);
     crossed.forEach(th => {
       const idx = s.cfg.th.indexOf(th);
-      ev(s, { t: 'threshold', p: p.id, n: idx + 1 });
+      const below = s.order.filter(qid => { const q = P(s, qid); return q.id !== p.id && !q.arrested && !q.escaped && q.notor < p.notor; });
+      ev(s, { t: 'threshold', p: p.id, n: idx + 1, level: th, below, unlock: p.npc ? 0 : (idx === 1 ? 2 : 1), disc: !p.npc && idx === 2 && s.discs > 0 });
       s.order.forEach(qid => {
         const q = P(s, qid); if (q.id === p.id || q.arrested || q.escaped || q.notor >= p.notor) return;
         let mover = q.id;
@@ -1152,7 +1153,7 @@ function adjustNotoriety(s, p) {
         if (mover != null) tasks.push({ k: 'policeMove', mover, target: p.id, onBehalf: q.npc ? q.id : null });
       });
       if (!p.npc) {
-        const un = idx === 1 ? 2 : 1; for (let u = 0; u < un; u++) tasks.push({ k: 'unlock', pid: p.id });
+        const un = idx === 1 ? 2 : 1; for (let u = 0; u < un; u++) tasks.push({ k: 'unlock', pid: p.id, why: 'threshold' });
         if (idx === 2) { if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: 'threshold' }); } }
       }
     });

@@ -658,7 +658,7 @@ function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
     case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
-    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
+    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${pd.why === 'threshold' ? `<b>${G.prefs.lang === 'pt' ? '⚠ Passaste uma linha de notoriedade.' : '⚠ You crossed a notoriety line.'}</b> ` : ''}${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;
     case 'choose': chooseSheet(pd, p); break;
@@ -978,6 +978,7 @@ function flyToSpot(html, target, hold = 900) {
   return new Promise(res => setTimeout(() => {
     const el = typeof target === 'string' ? $(target) : target; const r = el && el.getBoundingClientRect(); const b = d.getBoundingClientRect();
     if (r && r.width) { const dx = r.left + r.width / 2 - (b.left + b.width / 2), dy = r.top + r.height / 2 - (b.top + b.height / 2); d.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.15)`, opacity: .2 }], { duration: 600 * spd(), easing: 'ease-in', fill: 'forwards' }); }
+    else d.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500 * spd(), fill: 'forwards' });
     setTimeout(() => { d.remove(); if (el) ring(el); res(); }, 620 * spd());
   }, hold * spd()));
 }
@@ -1116,7 +1117,16 @@ async function playEvent(e) {
     case 'money': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, `${e.d > 0 ? '+' : '−'}$${Math.abs(e.d)}k`, e.d > 0 ? '#7fe08a' : '#ff8a7a'); await wait(380); return; }
     case 'notor': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x + 30, a.y + 10, `${e.d > 0 ? '+' : '−'}${Math.abs(e.d)}★`, e.d > 0 ? '#ff7a6e' : '#8fc7ff'); const nb = isHuman(e.p) && document.getElementById('nb-' + e.p); if (nb) { nb.classList.remove('pulse'); void nb.offsetWidth; nb.classList.add('pulse'); } await wait(320); return; }
     case 'level': { patchVS(VS, S, e); redraw(); flashPanel(e.p, 'flash'); await wait(280); return; }
-    case 'threshold': { redraw(); banner(`⚠ ${pname(e.p)}`, G.prefs.lang === 'pt' ? `linha ${e.n} de notoriedade` : `notoriety line ${e.n}`); await wait(1000); return; }
+    case 'threshold': {
+      redraw(); const pt = G.prefs.lang === 'pt'; const me = isHuman(e.p); const who = pname(e.p);
+      const lines = [];
+      if (e.unlock) lines.push(`🔓 ${pt ? (me ? `Desbloqueias ${e.unlock} ativo${e.unlock > 1 ? 's' : ''}` : `${who} desbloqueia ${e.unlock} ativo${e.unlock > 1 ? 's' : ''}`) : (me ? `You unlock ${e.unlock} asset${e.unlock > 1 ? 's' : ''}` : `${who} unlocks ${e.unlock} asset${e.unlock > 1 ? 's' : ''}`)}`);
+      if (e.disc) lines.push(`➕ ${pt ? '+1 disco de Ação Extra' : '+1 Extra Action disc'}`);
+      if (e.below && e.below.length) lines.push(`🚓 ${e.below.map(id => `<span style="color:${pcolor(id)}">●</span> ${pname(id)}`).join(', ')} ${pt ? `move${e.below.length > 1 ? 'm' : ''} um polícia na direção de ${me ? 'ti' : who}` : `move${e.below.length > 1 ? '' : 's'} a police officer toward ${me ? 'you' : who}`}`);
+      else lines.push(pt ? 'Ninguém está abaixo — nenhum polícia se move' : 'Nobody is below — no officer moves');
+      await flyToSpot(`<div class="thcard"><small>${pt ? 'Linha de notoriedade' : 'Notoriety line'} ${e.n}${e.level ? ` · ★${e.level}` : ''}</small><b><span style="color:${pcolor(e.p)}">●</span> ${me ? (pt ? 'Passaste a linha!' : 'You crossed the line!') : (pt ? `${who} passou a linha!` : `${who} crossed the line!`)}</b>${lines.map(l => `<div>${l}</div>`).join('')}</div>`, null, 2600);
+      return;
+    }
     case 'wound': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '🩸', '#ff4a3a'); flashPanel(e.p, 'flashred'); await wait(450); return; }
     case 'cuffs': { patchVS(VS, S, e); redraw(); banner('⛓', pname(e.p)); await wait(900); return; }
     case 'heal': { patchVS(VS, S, e); redraw(); const a = playerAnchor(e.p); floatAt(a.x, a.y, '✚' + e.n, '#7fe08a'); await wait(380); return; }
