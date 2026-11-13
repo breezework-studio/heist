@@ -234,7 +234,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .planlist{display:flex;flex-direction:column;gap:6px}
 .planlist .choice{justify-content:space-between}
 .draggable{cursor:move;touch-action:none;user-select:none}.grip{color:#0006;font-size:15px;margin-right:2px}.rsteps{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.6}.rsteps .lt,.tip .lt{padding:0 5px;border-radius:4px;color:#fff;font-size:12px}.lt.I{background:var(--I)}.lt.C{background:#a99668}.lt.R{background:var(--R)}.lt.W{background:var(--W)}.rsteps .ic{width:14px;height:14px;vertical-align:-2px}
-.pop{position:absolute;z-index:9;min-width:230px;max-width:300px;padding:10px 12px}
+.pop{position:absolute;z-index:9;min-width:230px;max-width:300px;padding:10px 12px;display:flex;flex-direction:column;max-height:calc(100% - 16px)}
+.pop>h3,.pop>.row{flex:none}.pop .planlist{overflow-y:auto;min-height:0;flex:1 1 auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:2px}
 .paper button.ghost{color:var(--ink);border:1px solid #0003}
 .pop button.pri{background:var(--red);color:#fff}
 .loclabel{cursor:pointer}.mpb{pointer-events:none}.mpb circle{fill:#f2c629;stroke:#1a1a1a;stroke-width:2.5}.mpb text{font:700 13px 'Barlow Condensed',sans-serif;text-anchor:middle;fill:#1a1a1a}
@@ -3547,7 +3548,7 @@ function placePop(el, S, plan) {
 function makeDraggable(el, handle) {
   if (!handle) return; handle.classList.add('draggable'); let d = null;
   handle.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; const r = el.getBoundingClientRect(), hr = el.parentElement.getBoundingClientRect(); d = { dx: e.clientX - r.left, dy: e.clientY - r.top, hr }; el.style.transform = 'none'; el.style.left = (r.left - hr.left) + 'px'; el.style.top = (r.top - hr.top) + 'px'; el.style.bottom = 'auto'; handle.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
-  handle.addEventListener('pointermove', e => { if (!d) return; const x = Math.max(0, Math.min(d.hr.width - 60, e.clientX - d.hr.left - d.dx)), y = Math.max(0, Math.min(d.hr.height - 30, e.clientY - d.hr.top - d.dy)); el.style.left = x + 'px'; el.style.top = y + 'px'; });
+  handle.addEventListener('pointermove', e => { if (!d) return; const x = Math.max(0, Math.min(d.hr.width - 60, e.clientX - d.hr.left - d.dx)), y = Math.max(0, Math.min(d.hr.height - 30, e.clientY - d.hr.top - d.dy)); el.style.left = x + 'px'; el.style.top = y + 'px'; if (el.classList.contains('pop')) el.style.maxHeight = Math.max(120, d.hr.height - y - 8) + 'px'; });
   const up = () => { d = null; }; handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
 }
 // readable list of what each movement point is spent on
