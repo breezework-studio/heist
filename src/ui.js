@@ -899,7 +899,7 @@ function helpHTML(key) {
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
-    case 'ui': if (id === 'center') return `<b>${t('centerT')}</b>${t('centerH')}`; if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'side') return `<b>${t('sideT')}</b>${t('sideH')}`; if (id === 'cityp') return `<b>${t('cityT')}</b>${t('cityH')}`; if (id.startsWith('step-')) { const pt = G.prefs.lang === 'pt'; return { 'step-tr': pt ? '<b>👣 Viagem</b>Usa-se no passo Viajar do teu turno.' : '<b>👣 Travel</b>Used during the Travel step of your turn.', 'step-av': pt ? '<b>🛡 Evitar</b>Usa-se no passo Evitar, ao sair de uma peça com polícias.' : '<b>🛡 Avoid</b>Used during the Avoid step, when leaving a tile with officers.', 'step-any': pt ? '<b>🕒 Qualquer momento</b>Usa-se em qualquer altura do teu turno.' : '<b>🕒 Any time</b>Can be used at any moment of your turn.' }[id]; } if (id === 'undo') return G.prefs.lang === 'pt' ? '<b>Desfazer</b>Volta atrás na tua jogada, até ao início do teu turno. Deixa de ser possível depois de se revelar algo escondido ou ao acaso (cartas, cacifos, peças) ou de terminares o turno.' : '<b>Undo</b>Take back your move, up to the start of your turn. Not possible once something hidden or random was revealed (cards, lockers, tiles) or after you end your turn.'; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'center') return `<b>${t('centerT')}</b>${t('centerH')}`; if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'side') return `<b>${t('sideT')}</b>${t('sideH')}`; if (id === 'cityp') return `<b>${t('cityT')}</b>${t('cityH')}`; if (id.startsWith('step-')) { const pt = G.prefs.lang === 'pt'; return { 'step-tr': pt ? '<b>👣 Viagem</b>Usa-se no passo Viajar do teu turno.' : '<b>👣 Travel</b>Used during the Travel step of your turn.', 'step-av': pt ? '<b>🛡 Evitar</b>Usa-se no passo Evitar, ao sair de uma peça com polícias.' : '<b>🛡 Avoid</b>Used during the Avoid step, when leaving a tile with officers.', 'step-any': pt ? '<b>🕒 Qualquer momento</b>Usa-se em qualquer altura do teu turno.' : '<b>🕒 Any time</b>Can be used at any moment of your turn.' }[id]; } if (id === 'undoNo') return G.prefs.lang === 'pt' ? '<b>Não dá para desfazer</b>Depois da tua última jogada saiu algo escondido ou ao acaso (uma carta nova no mostruário, uma peça de cacifo ou de saída…). Como já o viste, não se pode voltar atrás. Podes desfazer de novo a partir da próxima jogada.' : '<b>Can’t undo</b>Your last move revealed something hidden or random (a new card in the display, a locker or exit tile…). Since you have seen it, you can’t go back. You can undo again from your next move.'; if (id === 'undo') return G.prefs.lang === 'pt' ? '<b>Desfazer</b>Volta atrás na tua jogada, até ao início do teu turno. Deixa de ser possível depois de se revelar algo escondido ou ao acaso (cartas, cacifos, peças) ou de terminares o turno.' : '<b>Undo</b>Take back your move, up to the start of your turn. Not possible once something hidden or random was revealed (cards, lockers, tiles) or after you end your turn.'; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -1270,7 +1270,9 @@ function human(a) {
   try { E.act(S, a); } catch (err) { console.error(err); Object.keys(S).forEach(k => delete S[k]); Object.assign(S, snap); showError(err); loop(); return; }
   G.undo = G.undo || [];
   const sameTurn = S.pending && S.pending.pid === pd0.pid && isHuman(S.pending.pid) && !(pd0.type === 'end' && !(a && a.exec)) && pd0.type !== 'place';
-  if (hiddenSig(S) !== hiddenSig(snap) || !sameTurn) G.undo = []; else G.undo.push({ S: snap, log: logLen });
+  if (!sameTurn) { G.undo = []; G.undoBlocked = false; }
+  else if (hiddenSig(S) !== hiddenSig(snap)) { G.undo = []; G.undoBlocked = true; } // something hidden/random came out: no going back past it
+  else { G.undo.push({ S: snap, log: logLen }); G.undoBlocked = false; }
   loop();
 }
 function doUndo() {
@@ -1281,10 +1283,12 @@ function doUndo() {
   renderAll(); saveGame(); toast(G.prefs.lang === 'pt' ? '↶ Jogada desfeita' : '↶ Move undone');
 }
 function updUndo() {
-  const S = G.S; let b = document.getElementById('bUndo'); const ok = G.screen === 'game' && S && !G.busy && S.pending && isHuman(S.pending.pid) && G.undo && G.undo.length && !G.tut;
-  if (!ok) { b && b.remove(); return; }
+  const S = G.S; let b = document.getElementById('bUndo'); const mine = G.screen === 'game' && S && !G.busy && S.pending && isHuman(S.pending.pid) && !G.tut;
+  const can = mine && G.undo && G.undo.length; const blocked = mine && !can && G.undoBlocked;
+  if (!can && !blocked) { b && b.remove(); return; }
   if (!b) { b = document.createElement('button'); b.id = 'bUndo'; b.className = 'undob'; b.onclick = doUndo; $('#mapwrap').appendChild(b); }
-  b.innerHTML = `↶ ${G.prefs.lang === 'pt' ? 'Desfazer' : 'Undo'}`; b.dataset.h = 'ui:undo';
+  b.disabled = !can; b.classList.toggle('off', !can);
+  b.innerHTML = `↶ ${G.prefs.lang === 'pt' ? 'Desfazer' : 'Undo'}${can ? '' : ` <small>${G.prefs.lang === 'pt' ? '— saiu informação nova' : '— new information revealed'}</small>`}`; b.dataset.h = can ? 'ui:undo' : 'ui:undoNo';
 }
 function showError(err) { const d = document.createElement('div'); d.className = 'tip'; d.style.cssText = 'left:10px;top:60px;max-width:90vw;pointer-events:auto;background:#5a1212'; d.innerHTML = `<b>Oops</b>${String(err && err.message || err)}<br><button onclick="this.parentNode.remove()">OK</button>`; document.body.appendChild(d); }
 
@@ -1367,7 +1371,7 @@ function showSetup() {
     G.logLines = []; startScreen(true);
   };
 }
-function startScreen(fresh) { G.undo = [];
+function startScreen(fresh) { G.undo = []; G.undoBlocked = false;
   G.screen = 'game'; G.fitted = false; G.vbKey = null; G.zoom = { k: 1, x: 0, y: 0 }; G.sel = {}; G.tab = 'me';
   const app = $('#app');
   app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg><button id="bCenter" class="mapctr" data-h="ui:center">⌖</button></div><div id="cside"></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
