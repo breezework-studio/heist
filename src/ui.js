@@ -279,7 +279,7 @@ function renderMap(view) {
   // tiles
   S.cells.forEach((c, i) => { if (!c) return; const o = cellXY(i); s += tileSVG(c.tile, c.rot, o.x, o.y, { id: 'tile-' + i, cls: G.dropCell === i ? 'dropin' : '' }); });
   // ghost placement
-  if (view.ghost) { const o = cellXY(view.ghost.cell); const gd = (G.S.display || []).find(x => x.tile === view.ghost.tile); s += `<g opacity=".85">${tileSVG(view.ghost.tile, view.ghost.rot, o.x, o.y, { id: 'ghost' })}${gd ? E.PTYPES.filter(ty => gd.police[ty]).map(ty => copSVG(view.ghost.cell, ty)).join('') : ''}</g><polygon points="${hexPts(o.x, o.y)}" fill="none" stroke="#e8b546" stroke-width="5"/>`; }
+  if (view.ghost) { const o = cellXY(view.ghost.cell); const gd = (G.S.display || []).find(x => x.tile === view.ghost.tile); s += `<g opacity=".9">${tileSVG(view.ghost.tile, view.ghost.rot, o.x, o.y, { id: 'ghost' })}${ghostLocs(view.ghost.tile, view.ghost.rot, o)}${gd ? E.PTYPES.filter(ty => gd.police[ty]).map(ty => copSVG(view.ghost.cell, ty)).join('') : ''}</g><polygon points="${hexPts(o.x, o.y)}" fill="none" stroke="#e8b546" stroke-width="5"/>`; }
   // dest cells (police move)
   if (view.cellDests) view.cellDests.forEach(i => { const o = cellXY(i); s += `<polygon class="cell-dest" data-celldest="${i}" points="${hexPts(o.x, o.y, 0.92)}"/>`; });
   // path preview
@@ -566,22 +566,42 @@ function displayCops(tl) {
   const d = (G.S.display || []).find(x => x.tile === tl); if (!d) return '';
   return E.PTYPES.filter(ty => d.police[ty]).map(ty => { const q = tileGeo(tl, 0).cops[ty]; return `<g transform="translate(${q.x},${q.y})"><circle r="19" fill="#000a"/><g transform="translate(-17,-18) scale(1.42)" fill="${COP[ty]}" stroke="#fff" stroke-width="1.2">${IC.raw('shield')}</g></g>`; }).join('');
 }
+const LOCIC = { business: 'biz', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' };
+function ghostLocs(tl, rot, o) {
+  const g = tileGeo(tl, rot);
+  return E.TILE[tl].locs.map(l => { const p = g.locs[l.id]; if (!p) return ''; const x = o.x + p.x, y = o.y + p.y; const r = l.type === 'gang' ? 30 : 34;
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${l.type === 'business' || l.type === 'safehouse' ? '#f2c629' : '#fff'}" stroke="#000" stroke-width="3"/><g transform="translate(${x - 22},${y - 22}) scale(1.83)" fill="#222">${IC.raw(LOCIC[l.type])}</g>${l.type === 'business' || l.type === 'safehouse' ? `<text x="${x}" y="${y + r + 22}" text-anchor="middle" font-size="26" font-weight="700" fill="#f2c629" stroke="#000" stroke-width="5" paint-order="stroke">?</text>` : ''}`; }).join('');
+}
 function placeBar(el, pd, head) {
   const S = G.S;
   const tiles = pd.display.map(tl => `<span class="hextile ${G.sel.tile === tl ? 'sel' : ''}" data-tile="${tl}"><svg width="78" height="68" viewBox="-104 -90 208 180">${svgDefs()}${tileSVG(tl, 0, 0, 0, { id: 'pv' + tl })}${E.TILE[tl].locs.map(l => { const g = tileGeo(tl, 0); const p = g.locs[l.id]; const nmI = { business: 'biz', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' }[l.type]; return `<circle cx="${p.x}" cy="${p.y}" r="24" fill="#fff" stroke="#000" stroke-width="3"/><g transform="translate(${p.x - 16},${p.y - 16}) scale(1.33)" fill="#222">${IC.raw(nmI)}</g>`; }).join('')}${displayCops(tl)}</svg></span>`).join('');
   const canConfirm = G.sel.tile && G.sel.cell != null;
   const TL = G.sel.tile ? E.TILE[G.sel.tile] : null;
   let extra = '';
-  if (TL && TL.locs.some(l => l.type === 'business')) extra += `<label class="selb">${t('bizHere')}<select id="selBiz">${E.freeBiz(S).map(b => `<option value="${b}" ${G.sel.biz === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select></label>`;
-  if (TL && TL.locs.some(l => l.type === 'safehouse')) extra += `<label class="selb">${t('shHere')}<select id="selSh">${E.freeSh(S).map(b => `<option value="${b}" ${G.sel.sh === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select></label>`;
   el.innerHTML = `<div class="msg">${head} — ${t('placeTitle')}<small>${t('placeHint')}</small></div>${tiles}${extra}${canConfirm ? `<button id="bRot">${ic('rotate')} ${t('rotate')}</button><button class="pri" id="bPlace">${t('confirm')}</button>` : ''}`;
   $$('.hextile', el).forEach(b => b.onclick = () => { G.sel = { tile: b.dataset.tile }; renderMap(); renderBar(); });
-  $('#selBiz') && ($('#selBiz').onchange = (e) => { G.sel.biz = e.target.value; });
-  $('#selSh') && ($('#selSh').onchange = (e) => { G.sel.sh = e.target.value; });
   if (canConfirm) {
     $('#bRot').onclick = () => { const rots = E.legalPlacements(S, G.sel.tile).filter(x => x.cell === G.sel.cell).map(x => x.rot); const i = rots.indexOf(G.sel.rot); G.sel.rot = rots[(i + 1) % rots.length]; renderMap(); };
-    $('#bPlace').onclick = () => { const a = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot, biz: ($('#selBiz') || {}).value, sh: ($('#selSh') || {}).value }; human(a); };
+    $('#bPlace').onclick = async () => {
+      const a = { tile: G.sel.tile, cell: G.sel.cell, rot: G.sel.rot };
+      if (TL.locs.some(l => l.type === 'business')) { a.biz = await pickSpot('business', E.freeBiz(S)); if (!a.biz) return; }
+      if (TL.locs.some(l => l.type === 'safehouse')) { a.sh = await pickSpot('safehouse', E.freeSh(S)); if (!a.sh) return; }
+      human(a);
+    };
   }
+}
+// after placing a tile with an empty Business / Safe House space: choose which one goes there
+function pickSpot(type, ids) {
+  if (ids.length === 1) return Promise.resolve(ids[0]);
+  const S = G.S; const p = S.players[viewerId()]; const plan = window.HEIST_DATA.escapePlans.cards[p.plan]; const pt = G.prefs.lang === 'pt';
+  const grp = id => E.GROUPS.purple.includes(id) ? 'purple' : E.GROUPS.blue.includes(id) ? 'blue' : 'red';
+  const val = id => { const v = plan[E.PLAN_KEYS.indexOf(id)]; return v === '$' ? (pt ? 'Rendimento ao visitar' : 'Income when you visit') : (pt ? `+$${v}k no fim` : `+$${v}k at the end`); };
+  return new Promise(res => sheet(`<h3>${t(type === 'business' ? 'bizHere' : 'shHere').replace(':', '')}</h3><div class="sub">${pt ? 'Escolhe qual fica neste espaço. O valor é o do <b>teu</b> Plano de Fuga.' : 'Choose which one goes in this space. The value is from <b>your</b> Getaway Plan.'}</div>
+    <div class="spotpick">${ids.map(id => `<button class="choice sp-${grp(id)}" data-id="${id}">${ic(type === 'business' ? IC.BIZ[id] : 'house')}<b>${nm(id)}</b><small>${val(id)}</small></button>`).join('')}</div>
+    <div class="row"><button class="ghost" id="spX">${t('cancel')}</button></div>`, el => {
+    $$('[data-id]', el).forEach(b => b.onclick = () => { closeSheet(); res(b.dataset.id); });
+    $('#spX', el).onclick = () => { closeSheet(); res(null); };
+  }));
 }
 function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = html; bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
