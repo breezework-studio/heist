@@ -648,7 +648,7 @@ function resolve(s, pd, a, c) {
     case 'mission': p.mission.ability = a; ev(s, { t: 'missionAbility', p: p.id, id: p.mission.id, ab: a }); break;
     case 'useDisc': if (a) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } break;
     case 'end': {
-      if (a && a.exec) { doExec(s, p, a.exec); push(s, { k: 'turnEnd', pid: p.id }); }
+      if (a && a.exec) { push(s, { k: 'turnEnd', pid: p.id }); doExec(s, p, a.exec); } // continuation first: doExec may queue a choice (unlock, take contact) that must come before it
       else push(s, { k: 'turnEnd', pid: p.id, skipExec: true });
       break;
     }
@@ -673,7 +673,7 @@ function freeSh(s) { const used = new Set(Object.values(s.shSlots)); return ['sh
 E.freeBiz = freeBiz; E.freeSh = freeSh;
 
 function doAction(s, p, a) {
-  if (a.exec) { doExec(s, p, a.exec); push(s, { k: 'actionChoice', pid: p.id }); return; }
+  if (a.exec) { push(s, { k: 'actionChoice', pid: p.id }); doExec(s, p, a.exec); return; }
   if (a.type === 'rest') {
     if (!p.rest) throw new Error('rested');
     p.rest = false; ev(s, { t: 'rest', p: p.id });
