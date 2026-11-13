@@ -3103,7 +3103,7 @@ function locSVG(S, l, x, y, view) {
   let label = '';
   if (dest) { const best = dest[0]; label = `<g><rect x="-34" y="-11" width="68" height="20" rx="10" fill="${esc ? '#e8b546' : '#111c'}" stroke="#fff3"/><text y="4" text-anchor="middle" font-family="Barlow Condensed,Arial" font-size="13" fill="${esc ? '#221a05' : '#fff'}">${best.mp}${t('mp')}${best.police ? ' · ' + best.police + '⚑' : ''}</text></g>`; }
   if (label && view._labels) view._labels.push({ id, x, y, r, html: label });
-  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" filter="url(#sh)">${dest ? `<circle class="halo" r="30"/>` : ''}${body}</g>`;
+  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" filter="url(#sh)"><circle r="40" fill="transparent"/>${body}</g>`;
 }
 function copSVG(ci, type, cls = '', pickable = false) {
   const p = copXY(ci, type);
@@ -3738,8 +3738,8 @@ function bindTips() {
   const hideTip = () => { const tip = $('.tip'); tip && tip.remove(); };
   let timer = null, lp = null;
   let lastTouch = 0; document.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
-  document.addEventListener('mouseover', (e) => { if (Date.now() - lastTouch < 1200) return; const el = e.target.closest && e.target.closest('[data-h]'); clearTimeout(timer); if (!el) { hideTip(); return; } timer = setTimeout(() => showTip(el, e.clientX, e.clientY), 380); });
-  document.addEventListener('mouseout', (e) => { if (!e.relatedTarget || !(e.relatedTarget.closest && e.relatedTarget.closest('[data-h]'))) { clearTimeout(timer); hideTip(); } });
+  let hovEl = null; document.addEventListener('mouseover', (e) => { if (Date.now() - lastTouch < 1200) return; const el = e.target.closest && e.target.closest('[data-h]'); if (el && el === hovEl) return; hovEl = el; clearTimeout(timer); if (!el) { hideTip(); return; } timer = setTimeout(() => showTip(el, e.clientX, e.clientY), 300); }); // moving between the parts of the same thing must not restart the delay
+  document.addEventListener('mouseout', (e) => { if (!e.relatedTarget || !(e.relatedTarget.closest && e.relatedTarget.closest('[data-h]'))) { hovEl = null; clearTimeout(timer); hideTip(); } });
   document.addEventListener('touchstart', (e) => { const el = e.target.closest && e.target.closest('[data-h]'); if (!el) return; const tch = e.touches[0]; lp = setTimeout(() => { showTip(el, tch.clientX, tch.clientY); }, 450); }, { passive: true });
   document.addEventListener('touchend', () => { clearTimeout(lp); setTimeout(hideTip, 1600); });
   document.addEventListener('touchmove', () => clearTimeout(lp), { passive: true });
