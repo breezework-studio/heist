@@ -568,12 +568,12 @@ function displayCops(tl) {
 }
 function placeBar(el, pd, head) {
   const S = G.S;
-  const tiles = pd.display.map(tl => `<span class="hextile ${G.sel.tile === tl ? 'sel' : ''}" data-tile="${tl}"><svg width="78" height="68" viewBox="-104 -90 208 180">${svgDefs()}${tileSVG(tl, 0, 0, 0, { id: 'pv' + tl })}${E.TILE[tl].locs.map(l => { const g = tileGeo(tl, 0); const p = g.locs[l.id]; const nmI = { business: 'dice', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' }[l.type]; return `<circle cx="${p.x}" cy="${p.y}" r="24" fill="#fff" stroke="#000" stroke-width="3"/><g transform="translate(${p.x - 16},${p.y - 16}) scale(1.33)" fill="#222">${IC.raw(nmI)}</g>`; }).join('')}${displayCops(tl)}</svg></span>`).join('');
+  const tiles = pd.display.map(tl => `<span class="hextile ${G.sel.tile === tl ? 'sel' : ''}" data-tile="${tl}"><svg width="78" height="68" viewBox="-104 -90 208 180">${svgDefs()}${tileSVG(tl, 0, 0, 0, { id: 'pv' + tl })}${E.TILE[tl].locs.map(l => { const g = tileGeo(tl, 0); const p = g.locs[l.id]; const nmI = { business: 'biz', safehouse: 'house', store: 'cart', exit: 'exit', clinic: 'medic', church: 'church', subway: 'train', heliport: 'heli', gang: 'skull', hospital: 'cross' }[l.type]; return `<circle cx="${p.x}" cy="${p.y}" r="24" fill="#fff" stroke="#000" stroke-width="3"/><g transform="translate(${p.x - 16},${p.y - 16}) scale(1.33)" fill="#222">${IC.raw(nmI)}</g>`; }).join('')}${displayCops(tl)}</svg></span>`).join('');
   const canConfirm = G.sel.tile && G.sel.cell != null;
   const TL = G.sel.tile ? E.TILE[G.sel.tile] : null;
   let extra = '';
-  if (TL && TL.locs.some(l => l.type === 'business')) extra += `<select id="selBiz">${E.freeBiz(S).map(b => `<option value="${b}" ${G.sel.biz === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select>`;
-  if (TL && TL.locs.some(l => l.type === 'safehouse')) extra += `<select id="selSh">${E.freeSh(S).map(b => `<option value="${b}" ${G.sel.sh === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select>`;
+  if (TL && TL.locs.some(l => l.type === 'business')) extra += `<label class="selb">${t('bizHere')}<select id="selBiz">${E.freeBiz(S).map(b => `<option value="${b}" ${G.sel.biz === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select></label>`;
+  if (TL && TL.locs.some(l => l.type === 'safehouse')) extra += `<label class="selb">${t('shHere')}<select id="selSh">${E.freeSh(S).map(b => `<option value="${b}" ${G.sel.sh === b ? 'selected' : ''}>${nm(b)}</option>`).join('')}</select></label>`;
   el.innerHTML = `<div class="msg">${head} — ${t('placeTitle')}<small>${t('placeHint')}</small></div>${tiles}${extra}${canConfirm ? `<button id="bRot">${ic('rotate')} ${t('rotate')}</button><button class="pri" id="bPlace">${t('confirm')}</button>` : ''}`;
   $$('.hextile', el).forEach(b => b.onclick = () => { G.sel = { tile: b.dataset.tile }; renderMap(); renderBar(); });
   $('#selBiz') && ($('#selBiz').onchange = (e) => { G.sel.biz = e.target.value; });
