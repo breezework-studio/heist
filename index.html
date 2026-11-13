@@ -274,6 +274,8 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .selb{display:inline-flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);margin-left:6px}.selb select{font-size:15px}
 .undob{position:absolute;left:10px;bottom:10px;z-index:3;padding:8px 14px;border-radius:20px;background:#1c2028ee;color:#e8e2d4;border:1px solid var(--mustard);font-size:15px;cursor:pointer}
 .spotpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}.spotpick .choice{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;text-align:center;border-left:6px solid #888}.spotpick .choice svg{width:30px;height:30px}.spotpick small{font-size:12px;opacity:.85}.spotpick .sp-purple{border-left-color:#9b5fd6}.spotpick .sp-blue{border-left-color:#3d7be0}.spotpick .sp-red{border-left-color:#d0453a}
+.eqav{display:flex;gap:3px;align-items:center;justify-content:center;margin:2px 0}.eqav i{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;display:inline-block}.eqav small{font-size:10px;opacity:.7}
+.slot.equip{border-width:2px;border-style:solid}
 .credits{font-size:11px;color:var(--muted);text-align:center;max-width:440px;margin:10px auto 0;line-height:1.4;opacity:.8}
 .mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.menu-btns .mrow button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.menu-btns .mrow button small{font-size:11.5px;font-weight:400;opacity:.8}.menu-btns .mrow .ic{display:none}.msmall{text-align:center;font-size:12.5px;margin-top:4px}.msmall a{color:var(--muted)}
 .savemode{margin-top:14px;text-align:center}.smt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.smb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.smb button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:150px;padding:8px 12px;background:#20242c;border:2px solid #343a46;color:#e8e2d4;border-radius:10px;font-size:15px}.smb button small{font-size:11.5px;color:var(--muted)}.smb button.on{border-color:#f2c629;background:#2a2a1e}.smb .ic{width:20px;height:20px}.priv{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
@@ -3219,12 +3221,16 @@ function fitTop() {
 addEventListener('resize', () => fitTop()); document.fonts && document.fonts.ready.then(() => fitTop());
 
 // ---------------- side panel ----------------
+// which police an equipment avoids, in the officers' colours
+function eqTypes(id) { const Q = E.EQUIP[id]; return Q.avoids || Q.avoids_one_of || []; }
+function eqAv(id) { const Q = E.EQUIP[id]; return `<span class="eqav">${eqTypes(id).map(x => `<i style="background:${COP[x]}"></i>`).join(Q.avoids_one_of ? '<small>/</small>' : '')}</span>`; }
+function eqBorder(id) { const ty = eqTypes(id); const c = ty.map(x => x === 'swat' ? '#6b6f78' : COP[x]); return c.length > 1 ? `border-color:${c[1]} ${c[0]} ${c[0]} ${c[1]}` : `border-color:${c[0]}`; }
 function slotHTML(p, x, i, kind, viewer) {
   if (kind === 'contacts' && i >= 5 - p.cuffs && (!x || x.kind !== 'contact')) return `<div class="slot cuffed"></div>`;
   if (!x) return `<div class="slot"></div>`;
   const cuffed = kind === 'contacts' && i >= 5 - p.cuffs ? 'cuffed' : '';
   if (x.kind === 'asset') return `<div class="slot asset ${x.locked ? 'locked' : ''} ${cuffed}" data-h="asset:${x.id}">${ic(IC.ASSET[x.id], '', x.id === 'move_county' ? COP.county : x.id === 'move_federal' ? COP.federal : x.id === 'move_swat' ? '#bbb' : undefined)}<span class="lbl">${ic('lock')}</span></div>`;
-  if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
+  if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}" style="${eqBorder(x.id)}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id], '', eqTypes(x.id).length === 1 ? (eqTypes(x.id)[0] === 'swat' ? '#c9ccd3' : COP[eqTypes(x.id)[0]]) : undefined)}${eqAv(x.id)}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'fixer') return `<div class="slot fixer ${x.used ? 'used' : ''}" data-h="fixer:${x.id}">${ic(IC.FIX[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'locker' || x.kind === 'exit') { const show = viewer === p.id; return `<div class="slot bag" data-h="bag:${x.kind}">${ic('bag', '', '#9be08f')}<span class="lbl">${show ? '$' + x.val + 'k' : '?'}</span></div>`; }
   if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}<span class="sart">${effArt(C.effect, C.type, C.types)}</span><span class="lbl">${C.name}</span><span class="sstep">${C.step.includes('travel') ? ic('pawn', '', '#2d7a2a') : ''}${C.step.includes('avoid') ? ic('shield', '', '#a33') : ''}</span></div>`; }
@@ -3548,7 +3554,7 @@ function chooseSheet(pd, p) {
     }));
   }
   if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
-    const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
+    const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') + eqAv(x.id) : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
     const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
     const state = x.kind === 'fixer' ? (x.used ? (pt ? 'já usado' : 'already used') : (pt ? 'ainda por usar' : 'not used yet')) : x.kind === 'equip' ? (x.used ? (pt ? 'virado (volta ao descansar)' : 'flipped (back on Rest)') : (pt ? 'pronto a usar' : 'ready')) : (pt ? 'dinheiro no fim' : 'money at the end');
     return { v: o, html: `${icn}<span><b>${name}</b><br><small>${x.kind === 'fixer' ? 'Fixer · ' : x.kind === 'equip' ? (pt ? 'Equipamento · ' : 'Equipment · ') : ''}${state}</small><br><small>→ ${t('slotReplace')}</small></span>` }; });

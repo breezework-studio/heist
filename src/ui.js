@@ -365,12 +365,16 @@ function fitTop() {
 addEventListener('resize', () => fitTop()); document.fonts && document.fonts.ready.then(() => fitTop());
 
 // ---------------- side panel ----------------
+// which police an equipment avoids, in the officers' colours
+function eqTypes(id) { const Q = E.EQUIP[id]; return Q.avoids || Q.avoids_one_of || []; }
+function eqAv(id) { const Q = E.EQUIP[id]; return `<span class="eqav">${eqTypes(id).map(x => `<i style="background:${COP[x]}"></i>`).join(Q.avoids_one_of ? '<small>/</small>' : '')}</span>`; }
+function eqBorder(id) { const ty = eqTypes(id); const c = ty.map(x => x === 'swat' ? '#6b6f78' : COP[x]); return c.length > 1 ? `border-color:${c[1]} ${c[0]} ${c[0]} ${c[1]}` : `border-color:${c[0]}`; }
 function slotHTML(p, x, i, kind, viewer) {
   if (kind === 'contacts' && i >= 5 - p.cuffs && (!x || x.kind !== 'contact')) return `<div class="slot cuffed"></div>`;
   if (!x) return `<div class="slot"></div>`;
   const cuffed = kind === 'contacts' && i >= 5 - p.cuffs ? 'cuffed' : '';
   if (x.kind === 'asset') return `<div class="slot asset ${x.locked ? 'locked' : ''} ${cuffed}" data-h="asset:${x.id}">${ic(IC.ASSET[x.id], '', x.id === 'move_county' ? COP.county : x.id === 'move_federal' ? COP.federal : x.id === 'move_swat' ? '#bbb' : undefined)}<span class="lbl">${ic('lock')}</span></div>`;
-  if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
+  if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}" style="${eqBorder(x.id)}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id], '', eqTypes(x.id).length === 1 ? (eqTypes(x.id)[0] === 'swat' ? '#c9ccd3' : COP[eqTypes(x.id)[0]]) : undefined)}${eqAv(x.id)}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'fixer') return `<div class="slot fixer ${x.used ? 'used' : ''}" data-h="fixer:${x.id}">${ic(IC.FIX[x.id])}<span class="lbl">${nm(x.id)}</span></div>`;
   if (x.kind === 'locker' || x.kind === 'exit') { const show = viewer === p.id; return `<div class="slot bag" data-h="bag:${x.kind}">${ic('bag', '', '#9be08f')}<span class="lbl">${show ? '$' + x.val + 'k' : '?'}</span></div>`; }
   if (x.kind === 'contact') { const C = E.CONTACT[x.card]; return `<div class="slot contact ${x.used ? 'used' : ''} ${cuffed}" data-h="contact:${x.card}"><span class="cost">$${C.cost}</span>${C.notoriety ? ic('star', 'star') : ''}<span class="sart">${effArt(C.effect, C.type, C.types)}</span><span class="lbl">${C.name}</span><span class="sstep">${C.step.includes('travel') ? ic('pawn', '', '#2d7a2a') : ''}${C.step.includes('avoid') ? ic('shield', '', '#a33') : ''}</span></div>`; }
@@ -694,7 +698,7 @@ function chooseSheet(pd, p) {
     }));
   }
   if (q === 'slotPick') opts = pd.opts.map(o => { const x = p.items[o]; const pt = G.prefs.lang === 'pt';
-    const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
+    const icn = x.kind === 'equip' ? ic(IC.EQUIP[x.id], 'big') + eqAv(x.id) : x.kind === 'fixer' ? ic(IC.FIX[x.id], 'big') : ic('bag', 'big', '#2d7a2a');
     const name = x.kind === 'equip' || x.kind === 'fixer' ? nm(x.id) : x.kind === 'locker' ? (pt ? 'Cacifo ' : 'Locker ') + nm(x.color) + ` ($${x.val}k)` : (pt ? 'Saída' : 'Exit') + ` ($${x.val}k)`;
     const state = x.kind === 'fixer' ? (x.used ? (pt ? 'já usado' : 'already used') : (pt ? 'ainda por usar' : 'not used yet')) : x.kind === 'equip' ? (x.used ? (pt ? 'virado (volta ao descansar)' : 'flipped (back on Rest)') : (pt ? 'pronto a usar' : 'ready')) : (pt ? 'dinheiro no fim' : 'money at the end');
     return { v: o, html: `${icn}<span><b>${name}</b><br><small>${x.kind === 'fixer' ? 'Fixer · ' : x.kind === 'equip' ? (pt ? 'Equipamento · ' : 'Equipment · ') : ''}${state}</small><br><small>→ ${t('slotReplace')}</small></span>` }; });
