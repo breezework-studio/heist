@@ -347,20 +347,21 @@ function renderTop() {
   const tl = [0, 1, 2, 3, 4].map(i => `<div class="tl ${S.part === i ? 'on' : ''} ${i < S.part ? 'past' : ''} ${i >= 3 ? 'opt' : ''}" data-h="part:${i}">${ic(i === 0 ? 'sun' : i === 3 || i === 4 ? 'moon' : i === 2 ? 'sun' : 'sun', '', i >= 3 ? '#9fb3d9' : undefined)}</div>`).join('');
   const lastOpen = S.day === 3 || (S.day === 2 && S.patrol.length <= 1);
   const exits = [1, 2, 3].map(n => { const c = S.patrolSpaces[n]; const closed = c >= 2; return `<div class="exitb ${closed ? 'closed' : ''} ${S.day === 3 && !closed ? 'last' : ''}" data-h="exit:${n}">${closed ? '🔒 ' : ''}<span class="xl">EXIT </span>${n}<span class="pc" title="${c}/2"><i class="${c >= 1 ? 'on' : ''}"></i><i class="${c >= 2 ? 'on' : ''}"></i></span></div>`; }).join('');
-  el.innerHTML = `<div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
-  <button class="tbtn" id="sideToggle" data-h="ui:side">${ic('city')}</button><button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${G.mode === 'cloud' && CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
+  el.innerHTML = `<button class="tbtn" id="cityToggle" data-h="ui:cityp">${ic('city')}</button><div class="daybox">${t('day')} ${S.day}</div><div class="timeline">${tl}</div><div class="daybox ph" style="font-size:15px;color:var(--mustard)">${S.uiPhase ? t('phases.' + S.uiPhase) : (parts[S.part] || '')}</div><div class="topord" data-h="ui:order">${S.order.map(id => { const q = E.P(S, id); return `<i class="${S.pending && S.pending.pid === id ? 'cur' : ''}" style="background:${pcolor(id)};${q && (q.escaped || q.arrested) ? 'opacity:.3' : ''}"></i>`; }).join('')}</div><div class="exits">${exits}</div>
+  <button class="tbtn" id="sideToggle" data-h="ui:side">${ic('people')}</button><button class="tbtn" id="bRules" data-h="ui:rules">${ic('book')}</button><button class="tbtn" id="bLang">${G.prefs.lang.toUpperCase()}</button><button class="tbtn" id="bSpeed" data-h="ui:speed">${ic("ff")}<span> ${t(G.prefs.speed)}</span></button>${document.fullscreenEnabled || document.webkitFullscreenEnabled ? `<button class="tbtn" id="bFull" data-h="ui:full">${ic(isFull() ? 'unfull' : 'full')}</button>` : ''}${G.mode === 'cloud' && CLOUD && CLOUD.isOn() ? `<button class="tbtn" id="bCloud" data-h="ui:cloud">${ic(cloudIcon()[0], '', cloudIcon()[1])}</button>` : ''}<button class="tbtn" id="bMenu" data-h="ui:quit">${ic('x')}</button>`;
   $('#bRules').onclick = () => openRules();
   $('#bLang').onclick = () => { G.prefs.lang = G.prefs.lang === 'en' ? 'pt' : 'en'; T.set(G.prefs.lang); savePrefs(); renderAll(); };
   $('#bSpeed').onclick = () => { const o = ['slow', 'normal', 'fast']; G.prefs.speed = o[(o.indexOf(G.prefs.speed) + 1) % 3]; document.documentElement.style.setProperty('--speed', SPEEDS[G.prefs.speed]); savePrefs(); renderTop(); };
   $('#bMenu').onclick = () => { if (confirm(t('confirmQuit'))) { saveGame(); showMenu(); } };
   $('#bFull') && ($('#bFull').onclick = toggleFull);
-  $('#sideToggle').onclick = () => $('#side').classList.toggle('open');
+  $('#sideToggle').onclick = () => togglePanel('#side');
+  $('#cityToggle').onclick = () => togglePanel('#cside');
   fitTop();
 }
 // make the top bar fit: hide less important bits step by step until nothing overflows (the buttons must always be visible)
 function fitTop() {
-  const el = $('#top'); if (!el) return; el.classList.remove('f1', 'f2', 'f3', 'f4');
-  for (const c of ['f1', 'f2', 'f3', 'f4']) { if (el.scrollWidth <= el.clientWidth + 1) return; el.classList.add(c); }
+  const el = $('#top'); if (!el) return; el.classList.remove('f1', 'f2', 'f3', 'f4', 'f5', 'f6');
+  for (const c of ['f1', 'f2', 'f3', 'f4', 'f5', 'f6']) { if (el.scrollWidth <= el.clientWidth + 1) return; el.classList.add(c); }
 }
 addEventListener('resize', () => fitTop()); document.fonts && document.fonts.ready.then(() => fitTop());
 
@@ -441,18 +442,32 @@ function playerCard(S, p, full, viewer) {
 function renderSide() {
   const S = G.VS; const el = $('#side'); if (!el) return;
   const viewer = viewerId();
-  const tabs = ['me', 'opponents', 'market', 'log'].map(k => `<button class="${G.tab === k ? 'on' : ''}" data-tab="${k}">${t(k)}</button>`).join('');
+  if (G.tab === 'market') G.tab = 'me';
+  const tabs = ['me', 'opponents', 'log'].map(k => `<button class="${G.tab === k ? 'on' : ''}" data-tab="${k}">${t(k)}</button>`).join('');
   let body = '';
   if (G.tab === 'me') { const p = S.players[viewer]; body = playerCard(S, p, true, viewer) + `<div style="font-size:12px;color:var(--muted);margin-top:4px">${t('tapHelp')}</div>`; }
   else if (G.tab === 'opponents') { G.expanded = G.expanded || {}; body = S.order.map(id => E.P(S, id)).filter(p => p && p.id !== viewer).map(p => playerCard(S, p, !!G.expanded[p.id], viewer)).join(''); }
-  else if (G.tab === 'market') body = marketHTML(S);
   else body = `<div class="log">${G.logLines.slice(-250).map(x => `<div class="${x.cls || ''}">${x.html}</div>`).join('')}</div>`;
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="panel" id="sidepanel">${copColor(body)}</div>`;
   $$('.tabs button', el).forEach(b => b.onclick = () => { G.tab = b.dataset.tab; renderSide(); });
   $$('[data-exp]', el).forEach(b => b.onclick = () => { const id = +b.dataset.exp; G.expanded[id] = !G.expanded[id]; const sc = $('#sidepanel').scrollTop; renderSide(); $('#sidepanel').scrollTop = sc; });
   const kfu = $('#kfu'); if (kfu) kfu.onchange = () => { G.S.players[viewer].keepFaceUp = kfu.checked; G.VS.players[viewer].keepFaceUp = kfu.checked; };
   if (G.tab === 'log') { const sp = $('#sidepanel'); sp.scrollTop = sp.scrollHeight; }
+  renderCity();
 }
+// the City (cards, notoriety track, Businesses, stores…) has its own panel on the left, so it can be seen together with your board
+function renderCity() {
+  const el = $('#cside'); if (!el) return; const cp = $('#citypanel'); const sc = cp ? cp.scrollTop : 0;
+  el.innerHTML = `<div class="tabs"><button class="on">${ic('city')} ${t('market')}</button></div><div class="panel" id="citypanel">${copColor(marketHTML(G.VS))}</div>`;
+  $('#citypanel').scrollTop = sc;
+}
+// narrow screens: the two panels slide in; only one at a time on a phone
+function togglePanel(id) {
+  const el = $(id); if (!el) return; const open = !el.classList.contains('open');
+  if (open && innerWidth < 760) $$('#side,#cside').forEach(x => x !== el && x.classList.remove('open'));
+  el.classList.toggle('open', open);
+}
+function closeFloatingPanels() { $$('#side,#cside').forEach(x => { if (x.classList.contains('open') && getComputedStyle(x).position === 'fixed') x.classList.remove('open'); }); }
 const TRAVEL_EFF = new Set(['sewer', 'jetski', 'chopper', 'medevac', 'plus_mp']);
 const AVOID_EFF = new Set(['avoid_types', 'avoid_all_tile', 'avoid_one_any']);
 function effArt(eff, type, types) {
@@ -559,7 +574,7 @@ function renderBar() {
       $('#bAb').onclick = () => abilitiesSheet(pd.exec, 'end'); $('#bEnd').onclick = () => human(null);
       break;
     }
-    case 'place': { const sd = $('#side'); if (sd && sd.classList.contains('open') && G.placeSideShut !== G.S.day + '/' + G.S.display.length) { sd.classList.remove('open'); G.placeSideShut = G.S.day + '/' + G.S.display.length; } } placeBar(el, pd, head); break;
+    case 'place': { const sd = $('#side'); if ($$('#side.open,#cside.open').length && G.placeSideShut !== G.S.day + '/' + G.S.display.length) { $$('#side,#cside').forEach(x => x.classList.remove('open')); G.placeSideShut = G.S.day + '/' + G.S.display.length; } } placeBar(el, pd, head); break;
     case 'policeMove': {
       const tgt = pd.target === p.id ? t('policeSelf') : t('policeHint', pname(pd.target));
       el.innerHTML = `<div class="msg">${head} — ${t('policeTitle')}<small>${tgt} ${t('pickOfficer')}</small></div>` + (G.sel.from != null ? `<button id="bBack">${t('cancel')}</button>` : '');
@@ -616,7 +631,7 @@ const copCol = ty => ty === 'swat' ? '#c9ccd3' : COP[ty];
 function assetIc(id, cls) { return ic(IC.ASSET[id], cls || '', id === 'move_county' ? COP.county : id === 'move_federal' ? COP.federal : id === 'move_swat' ? '#c9ccd3' : undefined); }
 const COPRX = /\b(County|Federal|SWAT)\b/g; const COPK = { County: 'county', Federal: 'federal', SWAT: 'swat' };
 function copColor(html) { return String(html).split(/(<[^>]*>)/).map(part => part[0] === '<' ? part : part.replace(COPRX, m => `<span class="copw cw-${COPK[m]}">${m}</span>`)).join(''); }
-function sheet(html, bind) { const sd = $('#side'); if (sd && sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') sd.classList.remove('open'); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = copColor(html); bind && bind(el); makeDraggable(el, $('h3', el)); }
+function sheet(html, bind) { closeFloatingPanels(); const host = $('#mapwrap'); let el = $('#sheet'); if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'paper'; host.appendChild(el); } el.innerHTML = copColor(html); bind && bind(el); makeDraggable(el, $('h3', el)); }
 function closeSheet() { const el = $('#sheet'); el && el.remove(); const pp = $('.pop'); pp && pp.remove(); }
 function exLabel(x) {
   const src = x.src === 'contact' ? E.CONTACT[G.S.players[G.S.pending.pid].contacts[x.i].card].name : x.src === 'fixer' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src === 'asset' ? nm(G.S.players[G.S.pending.pid].unlocked[x.i].id) : x.src === 'firstAid' ? (G.prefs.lang === 'pt' ? 'Primeiros socorros' : 'First aid') : x.src === 'gang' ? (G.prefs.lang === 'pt' ? 'Motard do gang' : 'Gang biker') : x.src === 'scar' ? 'Wheels ⛽' : x.src === 'mission' ? t('mission') : x.src === 'equip' ? nm(G.S.players[G.S.pending.pid].items[x.i].id) : x.src;
@@ -884,7 +899,7 @@ function helpHTML(key) {
     case 'pawn': return `<b>${pname(+id)}</b>`;
     case 'power': { const PW = window.HEIST_DATA.powers.powers.find(x => x.id === id); return `<b>${PW.name} — ${PW.title}</b>${T.powerText(PW)}`; }
     case 'lockno': { const w = E.lockerWhyNot(S, S.players[viewerId()], id); return `<b>${t('lockerNo')}</b>${w ? t('lockerWhy.' + w.r, w) : ''}`; }
-    case 'ui': if (id === 'center') return `<b>${t('centerT')}</b>${t('centerH')}`; if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'side') return `<b>${t('sideT')}</b>${t('sideH')}`; if (id.startsWith('step-')) { const pt = G.prefs.lang === 'pt'; return { 'step-tr': pt ? '<b>👣 Viagem</b>Usa-se no passo Viajar do teu turno.' : '<b>👣 Travel</b>Used during the Travel step of your turn.', 'step-av': pt ? '<b>🛡 Evitar</b>Usa-se no passo Evitar, ao sair de uma peça com polícias.' : '<b>🛡 Avoid</b>Used during the Avoid step, when leaving a tile with officers.', 'step-any': pt ? '<b>🕒 Qualquer momento</b>Usa-se em qualquer altura do teu turno.' : '<b>🕒 Any time</b>Can be used at any moment of your turn.' }[id]; } if (id === 'undo') return G.prefs.lang === 'pt' ? '<b>Desfazer</b>Volta atrás na tua jogada, até ao início do teu turno. Deixa de ser possível depois de se revelar algo escondido ou ao acaso (cartas, cacifos, peças) ou de terminares o turno.' : '<b>Undo</b>Take back your move, up to the start of your turn. Not possible once something hidden or random was revealed (cards, lockers, tiles) or after you end your turn.'; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
+    case 'ui': if (id === 'center') return `<b>${t('centerT')}</b>${t('centerH')}`; if (id === 'cloud') { const st = CLOUD.state(); const last = CLOUD.lastSync(); return `<b>Google Drive</b>${t('cloudSt.' + st)}${last ? '<br><small>' + t('cloudLast') + ' ' + new Date(last).toLocaleTimeString() + '</small>' : ''}`; } if (id === 'savef') return `<b>${t('saveFile')}</b>${t('saveFileH')}`; if (id === 'full') return `<b>${t('fullT')}</b>${t('fullH')}`; if (id === 'side') return `<b>${t('sideT')}</b>${t('sideH')}`; if (id === 'cityp') return `<b>${t('cityT')}</b>${t('cityH')}`; if (id.startsWith('step-')) { const pt = G.prefs.lang === 'pt'; return { 'step-tr': pt ? '<b>👣 Viagem</b>Usa-se no passo Viajar do teu turno.' : '<b>👣 Travel</b>Used during the Travel step of your turn.', 'step-av': pt ? '<b>🛡 Evitar</b>Usa-se no passo Evitar, ao sair de uma peça com polícias.' : '<b>🛡 Avoid</b>Used during the Avoid step, when leaving a tile with officers.', 'step-any': pt ? '<b>🕒 Qualquer momento</b>Usa-se em qualquer altura do teu turno.' : '<b>🕒 Any time</b>Can be used at any moment of your turn.' }[id]; } if (id === 'undo') return G.prefs.lang === 'pt' ? '<b>Desfazer</b>Volta atrás na tua jogada, até ao início do teu turno. Deixa de ser possível depois de se revelar algo escondido ou ao acaso (cartas, cacifos, peças) ou de terminares o turno.' : '<b>Undo</b>Take back your move, up to the start of your turn. Not possible once something hidden or random was revealed (cards, lockers, tiles) or after you end your turn.'; if (id === 'quit') return `<b>${t('quitT')}</b>${t('quitH')}`; if (id.startsWith('set_')) return `<b>${t('setTitle')}</b>${t(id === 'set_sh' ? 'setHelpSh' : 'setHelpBiz')}`; if (id === 'nbox') return `<b>${t('nbTitle')}</b>${t('nbHelp')}`; if (id === 'left') return `<b>${t('leftT')}</b>${t('leftHelp')}`; if (id === 'incHex') return `<b>$ ${t('incomeNow')}</b>${t('incHelp')}`; if (id === 'endHex') return `<b>${t('endMoney')}</b>${t('endHelp')}`; if (id === 'order') return `<b>${t('turnOrder')}</b>${G.S.order.map((x, i) => (i + 1) + '. ' + pname(x)).join('<br>')}`; return id === 'rules' ? `<b>${t('rules')}</b>${pt ? 'Manual completo com pesquisa.' : 'Full manual with search.'}` : id === 'rest' ? `<b>${t('rest')}</b>${t('restHint')}` : `<b>${t('speed')}</b>`;
   }
   return '';
 }
@@ -969,7 +984,7 @@ function flyToSpot(html, target, hold = 900) {
 // spotlight for the tutorial: dims everything except the highlighted element
 function spotlight(sel, tries) {
   $$('.spot').forEach(x => x.remove()); if (!sel) return; const els = (sel.startsWith('sec:') ? secEls(sel.slice(4)) : $$(sel)).filter(e => e.getBoundingClientRect().width); if (!els.length) return;
-  if (sel.startsWith('sec:') && !tries) { const sp = $('#sidepanel'); if (sp) { const a = els[0].getBoundingClientRect(), z = els[els.length - 1].getBoundingClientRect(), pr = sp.getBoundingClientRect(); if (a.top < pr.top || z.bottom > pr.bottom) { sp.scrollTop += a.top - pr.top - 30; const tok = spotlight.tok = (spotlight.tok || 0) + 1; return requestAnimationFrame(() => { if (spotlight.tok === tok) spotlight(sel, 1); }); } } }
+  if (sel.startsWith('sec:') && !tries) { const sp = els[0].closest('.panel'); if (sp) { const a = els[0].getBoundingClientRect(), z = els[els.length - 1].getBoundingClientRect(), pr = sp.getBoundingClientRect(); if (a.top < pr.top || z.bottom > pr.bottom) { sp.scrollTop += a.top - pr.top - 30; const tok = spotlight.tok = (spotlight.tok || 0) + 1; return requestAnimationFrame(() => { if (spotlight.tok === tok) spotlight(sel, 1); }); } } }
   const box = (list) => { const rs = list.map(e => e.getBoundingClientRect()).filter(r => r.width); if (!rs.length) return null; return { L: Math.max(4, Math.min(...rs.map(r => r.left))), T: Math.max(4, Math.min(...rs.map(r => r.top))), R: Math.min(innerWidth - 4, Math.max(...rs.map(r => r.right))), B: Math.min(innerHeight - 4, Math.max(...rs.map(r => r.bottom))) }; };
   const put = (d, b) => Object.assign(d.style, { left: Math.max(2, b.L - 8) + 'px', top: Math.max(2, b.T - 8) + 'px', width: Math.min(innerWidth - 4, b.R - b.L + 16) + 'px', height: Math.min(innerHeight - 4, b.B - b.T + 16) + 'px' });
   const { L, T, R, B } = box(els);
@@ -981,7 +996,7 @@ function spotlight(sel, tries) {
 // "?" button on each section header of the boards
 function SQ(key) { return `<button class="secq" data-sq="${key}" title="?">?</button>`; }
 function secEls(key) {
-  const panel = $('#sidepanel') || document; const head = [...panel.querySelectorAll(`[data-sec="${key}"]`)].find(e => e.getBoundingClientRect().width); if (!head) return [];
+  const head = [...document.querySelectorAll(`#sidepanel [data-sec="${key}"], #citypanel [data-sec="${key}"]`)].find(e => e.getBoundingClientRect().width); if (!head) return [];
   if (!head.classList.contains('rowlbl')) return key === 'rivals' ? [head.closest('.pcard') || head] : [head];
   const out = [head]; let n = head.nextElementSibling; while (n && !n.classList.contains('rowlbl') && !n.classList.contains('secstop')) { out.push(n); n = n.nextElementSibling; } return out;
 }
@@ -1156,7 +1171,7 @@ function coach(entry, o = {}) {
   });
 }
 const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'proj'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
-function tourTab(tab) { if (G.tab !== tab) { G.tab = tab; renderSide(); } const sd = $('#side'); if (sd && !sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') { sd.classList.add('open'); if (G.tut) G.tut.openedSide = true; } }
+function tourTab(tab) { const city = tab === 'market'; if (!city && G.tab !== tab) { G.tab = tab; renderSide(); } const sd = $(city ? '#cside' : '#side'); if (sd && !sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') { $$('#side,#cside').forEach(x => x.classList.remove('open')); sd.classList.add('open'); if (G.tut) G.tut.openedSide = true; } }
 async function tutIntro() {
   G.tut.introDone = true; const T = TUT(); const it = T.intro;
   const steps = [it[0], it[1], it[2], ...TOUR.map(([tab, k]) => ({ ...T.sec[k], h: 'sec:' + k, tab, tour: true })), ...it.slice(3)];
@@ -1168,7 +1183,7 @@ async function tutIntro() {
     await new Promise(r => requestAnimationFrame(r));
     await coach(x, x.tour || x === it[2] ? { skipTour: () => { skip = true; } } : {});
   }
-  tourTab('me'); const sp = $('#sidepanel'); if (sp) sp.scrollTop = 0; if (G.tut && G.tut.openedSide) $('#side').classList.remove('open');
+  tourTab('me'); const sp = $('#sidepanel'); if (sp) sp.scrollTop = 0; if (G.tut && G.tut.openedSide) $$('#side,#cside').forEach(x => x.classList.remove('open'));
 }
 async function tutEvent(e) {
   const tu = G.tut; if (!tu) return; const me = 0; let keys = [];
@@ -1345,7 +1360,7 @@ function showSetup() {
 function startScreen(fresh) { G.undo = [];
   G.screen = 'game'; G.fitted = false; G.vbKey = null; G.zoom = { k: 1, x: 0, y: 0 }; G.sel = {}; G.tab = 'me';
   const app = $('#app');
-  app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg><button id="bCenter" class="mapctr" data-h="ui:center">⌖</button></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
+  app.innerHTML = `<div id="game"><div id="top"></div><div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg><button id="bCenter" class="mapctr" data-h="ui:center">⌖</button></div><div id="cside"></div><div id="side"></div><div id="bar"><div id="ticker"></div><div id="prompt"></div></div></div>`;
   if (fresh) { G.VS = E.clone(G.S); G.VS.events = []; G.VS.cells = G.VS.cells.map(() => null); G.VS.display = []; G.VS.day = 1; G.VS.part = 0; G.VS.patrolSpaces = { 1: 0, 2: 0, 3: 0 }; }
   else { G.VS = E.clone(G.S); G.S.events = []; }
   // fresh: start tiles appear first

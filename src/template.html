@@ -51,7 +51,9 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .chk input{width:18px;height:18px;accent-color:var(--red)}
 @media (max-width:620px){.opts{grid-template-columns:1fr}}
 /* ---------- game layout ---------- */
-#game{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,360px);grid-template-rows:50px 1fr auto;grid-template-areas:"top top" "map side" "bar side"}
+#game{position:fixed;inset:0;display:grid;grid-template-columns:minmax(270px,330px) minmax(0,1fr) minmax(300px,360px);grid-template-rows:50px 1fr auto;grid-template-areas:"top top top" "cside map side" "cside bar side"}
+#cside{grid-area:cside;display:flex;flex-direction:column;min-height:0;background:var(--bg2);border-right:1px solid var(--line)}#cside .tabs button{cursor:default}#citypanel{flex:1;overflow:auto}
+@media (min-width:901px) and (min-height:521px){#cityToggle{display:none}}
 #top{grid-area:top;display:flex;align-items:center;gap:10px;padding:0 8px;min-width:0;overflow:hidden;background:linear-gradient(#1c2029,#161920);border-bottom:1px solid var(--line);z-index:5}
 #top .daybox{font-family:var(--ff-type);font-size:20px;color:var(--paper);white-space:nowrap}
 .timeline{display:flex;gap:4px;align-items:center}
@@ -81,10 +83,14 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 .dot{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #0005}
 @media (max-width:900px),(max-height:520px){
   #game{grid-template-columns:minmax(0,1fr);grid-template-rows:46px minmax(0,1fr) auto;grid-template-areas:"top" "map" "bar"}
+  #cside{position:fixed;left:0;top:var(--toph,46px);bottom:var(--barh,0px);width:min(300px,82vw);transform:translateX(-105%);transition:transform .25s;box-shadow:10px 0 30px #0008;z-index:4}
+  #cside.open{transform:none}
+  #citypanel{zoom:.8}
+  #game:has(#cside.open) #cityToggle{background:var(--mustard);color:#1a1a1a}
   #side{position:fixed;right:0;top:var(--toph,46px);bottom:var(--barh,0px);width:min(300px,82vw);transform:translateX(105%);transition:transform .25s;box-shadow:-10px 0 30px #0008}
   #side.open{transform:none}
   /* wide enough: the open panel takes its own column so nothing on the map (choices, popups) goes under or over it */
-  @media (min-width:600px){ #game:has(#side.open){grid-template-columns:minmax(0,1fr) min(300px,45vw);grid-template-areas:"top top" "map side" "bar bar"} #game:has(#side.open) #side{position:relative;top:auto;bottom:auto;right:auto;width:auto;transition:none;box-shadow:none} }
+  @media (min-width:600px){ #game:has(#cside.open){grid-template-columns:min(300px,45vw) minmax(0,1fr);grid-template-areas:"top top" "cside map" "bar bar"} #game:has(#cside.open) #cside{position:relative;top:auto;bottom:auto;left:auto;width:auto;transition:none;box-shadow:none;transform:none} #game:has(#side.open){grid-template-columns:minmax(0,1fr) min(300px,45vw);grid-template-areas:"top top" "map side" "bar bar"} #game:has(#side.open) #side{position:relative;top:auto;bottom:auto;right:auto;width:auto;transition:none;box-shadow:none}  #game:has(#side.open):has(#cside.open){grid-template-columns:min(280px,32vw) minmax(0,1fr) min(280px,32vw);grid-template-areas:"top top top" "cside map side" "bar bar bar"} }
   #top .daybox{font-size:16px}.tl{width:22px;height:22px}
   .exitb{font-size:12px;padding:3px 6px}
   #bSpeed span{display:none}
@@ -250,6 +256,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 #top.f1 .daybox.ph,#top.f1 #bSpeed span,#top.f1 .tbtn .lbl{display:none}
 #top.f2 .topord,#top.f2 #bLang,#top.f2 .exitb .xl{display:none}
 #top.f3 .timeline .tl:not(.on){display:none}#top.f3{gap:6px}#top.f3 .tbtn{padding:6px 7px}
+#top.f5 #bFull{display:none}#top.f5 .tbtn{padding:6px 5px}#top.f6 #bSpeed{display:none}#top.f6 .timeline{display:none}
 #top.f4 .exitb{font-size:11px;padding:2px 5px;gap:2px}#top.f4 .exitb .pc i{width:5px;height:9px}#top.f4 .daybox{font-size:14px}
 .box.pad,#rules .box.pad{background:#f7f1dc;color:#2a2620;border-radius:4px 10px 10px 4px;padding:18px 18px 16px 52px !important;background-image:linear-gradient(90deg,transparent 38px,#d9534f88 38px,#d9534f88 40px,transparent 40px),repeating-linear-gradient(0deg,transparent 0 29px,#7aa3d433 29px 30px);box-shadow:0 20px 60px #000c,inset 6px 0 0 #0000000d;font-family:var(--ff-ui)}
 .padhead small{font-family:var(--ff-type);letter-spacing:.15em;text-transform:uppercase;color:#8a7a5a;font-size:12px}.padhead h2{font-family:var(--ff-type);margin:0;font-size:30px}.padhead .verdict{font-size:20px;margin:4px 0 8px}
