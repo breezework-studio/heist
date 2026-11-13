@@ -165,7 +165,12 @@ const COPPOS = { county: -30, federal: 0, swat: 30 };
 function copXY(ci, type) { const o = cellXY(ci); const S = G.VS || G.S; const c = S && S.cells[ci]; const p = c ? tileGeo(c.tile, c.rot).cops[type] : { x: COPPOS[type], y: -R0 * 0.7 }; return { x: o.x + p.x, y: o.y + p.y }; }
 
 // ---------------- map rendering ----------------
-function svgDefs() {
+function svgDefs() { ensureDefs(); return ''; }
+// shared SVG definitions (textures, shadow) live in ONE hidden svg that is never removed:
+// if every svg carried its own copies, removing one (the tile previews are rebuilt on every action) made Chrome drop the
+// shadow filter for a moment and the locations disappeared/flickered
+function ensureDefs() { if (document.getElementById('heistDefs')) return; const d = document.createElement('div'); d.innerHTML = `<svg id="heistDefs" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">${svgDefsHTML()}</svg>`; document.body.prepend(d.firstChild); }
+function svgDefsHTML() {
   return `<defs>
   <pattern id="pI" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="${LAND.I}"/><path d="M0 11h22M11 0v22" stroke="#545966" stroke-width="1.6"/><rect x="3" y="3" width="5" height="5" fill="#33363d"/><rect x="14" y="14" width="5" height="5" fill="#33363d"/></pattern>
   <pattern id="pC" width="26" height="26" patternUnits="userSpaceOnUse"><rect width="26" height="26" fill="${LAND.C}"/><path d="M0 13h26M13 0v26M0 0l26 26" stroke="#a9a08a" stroke-width="1.2" opacity=".8"/></pattern>
