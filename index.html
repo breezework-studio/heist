@@ -3431,6 +3431,7 @@ function setTicker() { const last = G.logLines.filter(x => !x.cls).slice(-2).map
 function renderBar() {
   const S = G.S; const el = $('#prompt'); if (!el) return; closeSheet(false); setTicker();
   const pd = S.pending;
+  if (S.over) { const pt = G.prefs.lang === 'pt'; el.innerHTML = `<div class="msg">🏁 ${pt ? 'Jogo terminado' : 'Game over'}</div><div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="bRes">📒 ${pt ? 'Ver resultados' : 'See results'}</button><button class="ghost" id="bAgain">${t('playAgain')}</button><button class="ghost" id="bMenu2">${t('menu')}</button></div>`; $('#bRes').onclick = () => showEnd(); $('#bAgain').onclick = () => showSetup(); $('#bMenu2').onclick = () => showMenu(); return; }
   if (!pd) { el.innerHTML = ''; return; }
   if (G.busy || !isHuman(pd.pid)) { el.innerHTML = `<div class="msg"><span class="who"><span class="dot" style="background:${pcolor(pd.pid)}"></span>${pname(pd.pid)}</span> ${t('waiting')}</div><button class="ghost" id="bSkip">${ic('ff')} ${t('skip')}</button>`; $('#bSkip').onclick = () => { G.skip = true; }; return; }
   const p = S.players[pd.pid]; const head = `<span class="who"><span class="dot" style="background:${pcolor(p.id)}"></span>${pname(p.id)}</span>`;
@@ -4149,7 +4150,7 @@ async function loop() {
     while (true) {
       const S = G.S; if (!S || G.screen !== 'game') break;
       if (S.events.length) { G.busy = true; updUndo(); renderBar(); await playAll(); }
-      if (S.over) { G.busy = false; renderAll(); saveGame(); showEnd(); break; }
+      if (S.over) { G.busy = false; renderAll(); saveGame(); if (G.mode !== 'tutorial') { try { localStorage.setItem('heist.last', JSON.stringify({ S, log: G.logLines.slice(-400) })); } catch (e) { } } showEnd(); break; }
       const pd = S.pending; if (!pd) break;
       if (isHuman(pd.pid)) { G.busy = false; G.skip = false; G.viewer = pd.pid; renderAll(); saveGame(); if (G.tut) tutDecision(pd); break; }
       G.busy = true; renderBar();
@@ -4223,9 +4224,9 @@ function showMenu() {
     const cont = (hl ? `<button class="pri" id="mCont">${ic('play')} ${t(cl ? 'contLocal' : 'continue')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` : '') + (hc ? `<button class="pri" id="mContC">${ic('cloud')} ${t('contCloud')}<small>${t('anyDevice')}</small></button>` : '');
     const nw = `<button class="${hl || hc ? '' : 'pri'}" id="mNew">${t(cl ? 'newLocal' : 'newGame')}${cl ? `<small>${t('onDevice')}</small>` : ''}</button>` + (cl ? `<button class="${hl || hc ? '' : 'pri'}" id="mNewC">${ic('cloud')} ${t('newCloud')}<small>${t('anyDevice')}</small></button>` : '');
     return (cont ? `<div class="mrow">${cont}</div>` : '') + `<div class="mrow">${nw}</div>`;
-  })()}<div class="mrow"><button id="mTut">🎓 ${TUT().ui.start}<small>${TUT().ui.startH}</small></button><button id="mRules">${ic('book')} ${t('rules')}</button></div>${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}${/Android/i.test(navigator.userAgent) && !/[?&]app=1/.test(location.search) && !matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches ? `<div class="msmall"><a href="https://github.com/breezework-studio/heist/releases/latest/download/heist.apk">📱 ${t('apk')}</a></div>` : ''}<div class="credits">${t('credits')}</div></div>
+  })()}<div class="mrow"><button id="mTut">🎓 ${TUT().ui.start}<small>${TUT().ui.startH}</small></button><button id="mRules">${ic('book')} ${t('rules')}</button></div>${(() => { try { return localStorage.getItem('heist.last') && !G.tut ? `<div class="msmall"><a href="#" id="mLast">📒 ${G.prefs.lang === 'pt' ? 'Ver o último jogo terminado' : 'See the last finished game'}</a></div>` : ''; } catch (e) { return ''; } })()}${CLOUD && CLOUD.enabled() ? `<div class="msmall">${CLOUD.isOn() ? `<a href="#" id="mOut">${t('signOut')}</a> · ` : ''}<a href="privacy.html" target="_blank">${t('privacy')}</a></div>` : ''}${/Android/i.test(navigator.userAgent) && !/[?&]app=1/.test(location.search) && !matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches ? `<div class="msmall"><a href="https://github.com/breezework-studio/heist/releases/latest/download/heist.apk">📱 ${t('apk')}</a></div>` : ''}<div class="credits">${t('credits')}</div></div>
   <div class="lang-switch"><button class="${G.prefs.lang === 'en' ? 'on' : ''}" data-l="en">English</button><button class="${G.prefs.lang === 'pt' ? 'on' : ''}" data-l="pt">Português</button></div></div>`;
-  $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mTut').onclick = startTutorial; $('#mRules').onclick = () => openRules();
+  $('#mNew').onclick = () => { G.mode = 'local'; showSetup(); }; $('#mLast') && ($('#mLast').onclick = (ev) => { ev.preventDefault(); try { const sv = JSON.parse(localStorage.getItem('heist.last')); G.mode = 'local'; G.S = sv.S; G.logLines = sv.log || []; startScreen(); setTimeout(showEnd, 400); } catch (e) { showError(e); } }); $('#mTut').onclick = startTutorial; $('#mRules').onclick = () => openRules();
   $('#mCont') && ($('#mCont').onclick = continueLocal); $('#mContC') && ($('#mContC').onclick = continueCloud); $('#mNewC') && ($('#mNewC').onclick = newCloudGame);
   $('#mOut') && ($('#mOut').onclick = e => { e.preventDefault(); if (confirm(t('signOutQ'))) { CLOUD.disconnect(); showMenu(); } });
   $$('.lang-switch button').forEach(b => b.onclick = () => { G.prefs.lang = b.dataset.l; T.set(b.dataset.l); savePrefs(); showMenu(); });
