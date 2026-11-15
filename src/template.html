@@ -219,6 +219,7 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 #sheet h3{margin:0 0 4px;font-family:var(--ff-type);font-size:21px}
 #sheet .sub{color:var(--ink2);font-size:14px;margin-bottom:10px}
 #sheet .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+#sheet .row:last-child{position:sticky;bottom:-14px;margin-bottom:-14px;padding:8px 0 12px;background:var(--paper);box-shadow:0 -8px 12px -8px #0003;z-index:2} /* the buttons stay visible even when the window has to scroll */
 #sheet button{background:var(--ink);color:var(--paper)}
 #sheet button.pri{background:var(--red);color:#fff}
 #sheet button.ghost{background:transparent;color:var(--ink);border:1px solid #0003}

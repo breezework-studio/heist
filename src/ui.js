@@ -675,7 +675,7 @@ function contactSheet(pd, p) {
   const sel = G.sel.card;
   sheet(`<h3>${t('contactTitle')}</h3><div class="sub">${t('pickCard')}</div><div class="cardrow">${pd.display.map(c => contactCardHTML(c, 'pick ' + (sel === c ? 'sel' : ''))).join('')}</div>
    ${sel ? `<div class="sub" style="margin-top:6px"><b>${E.CONTACT[sel].name}</b>: ${T.effect(E.CONTACT[sel].effect, E.CONTACT[sel].types || (E.CONTACT[sel].type ? [E.CONTACT[sel].type] : null))}</div><div class="row">${pd.hasEmpty ? `<button class="pri" id="bB">${t('optB')}</button>` : ''}${pd.mine.length ? `<button id="bC">${t('optC')}</button>` : ''}<button class="ghost" id="bA">${t('optA')}</button></div><div id="repl" class="cardrow"></div>` : ''}`, el => {
-    $$('.ccard.pick', el).forEach(c => c.onclick = () => { G.sel.card = pd.display.find(x => String(x) === c.dataset.card); contactSheet(pd, p); });
+    $$('.ccard.pick', el).forEach(c => c.onclick = () => { G.sel.card = pd.display.find(x => String(x) === c.dataset.card); contactSheet(pd, p); const sh = $('#sheet'); if (sh) sh.scrollTop = sh.scrollHeight; });
     $('#bB') && ($('#bB').onclick = () => human({ card: sel, opt: 'B' }));
     $('#bA') && ($('#bA').onclick = () => human({ card: sel, opt: 'A' }));
     $('#bC') && ($('#bC').onclick = () => { $('#repl').innerHTML = pd.mine.map(m => contactCardHTML(m.card, 'pick', `data-i="${m.i}"`)).join(''); $$('#repl .ccard').forEach(c => c.onclick = () => human({ card: sel, opt: 'C', replace: +c.dataset.i })); });
