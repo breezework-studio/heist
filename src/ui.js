@@ -318,9 +318,11 @@ function renderMap(view) {
   // pawns
   const spots = pawnSpots(S); S.players.concat(S.npcs || []).forEach(q => { const p = spots[q.id]; if (p) s += pawnSVG(S, q, p.x, p.y); });
   // only rebuild the layers that changed: rebuilding everything on every bot action made the map flicker
-  if (!svg.querySelector('#world')) { svg.innerHTML = svgDefs() + '<g id="world"><g id="lyS"></g><g id="lyD"></g><g id="lyL"></g></g>'; }
+  // the map has its OWN copy of the definitions (ids prefixed with m): Chrome re-rasterised (flickered) the locations
+  // whenever anything else on the page changed while their shadow filter lived in another svg
+  if (!svg.querySelector('#world')) { svg.innerHTML = svgDefsHTML().replace(/id="(\w+)"/g, 'id="m$1"').replace(/url\(#/g, 'url(#m') + '<g id="world"><g id="lyS"></g><g id="lyD"></g><g id="lyL"></g></g>'; }
   $('#world').setAttribute('transform', `translate(${G.zoom.x},${G.zoom.y}) scale(${G.zoom.k})`);
-  const upd = (id, h) => { const g = svg.querySelector('#' + id); if (g._h !== h) { g.innerHTML = h; g._h = h; } };
+  const upd = (id, h) => { const g = svg.querySelector('#' + id); if (g._h !== h) { g.innerHTML = h.replace(/url\(#/g, 'url(#m'); g._h = h; } };
   upd('lyS', stat); upd('lyD', s); upd('lyL', labelsSVG + badges);
   fitMap(); if (G.tut) coachHL();
 }
