@@ -326,11 +326,10 @@ function renderMap(view) {
 }
 function fitMap() {
   const svg = $('#map'); if (!svg) return; const S = G.VS || G.S;
-  const placing = G.S && G.S.pending && G.S.pending.type === 'place' && isHuman(G.S.pending.pid);
-  const set = new Set(); S.cells.forEach((c, i) => { if (!c) return; set.add(i); if (placing) for (let e = 0; e < 6; e++) { const j = E.nb(i, e); if (j >= 0) set.add(j); } });
-  if (!set.size) E.CELLS.forEach((c, i) => set.add(i));
+  // always the whole city grid, so the zoom never changes while tiles are being placed
+  const set = new Set(); E.CELLS.forEach((c, i) => set.add(i));
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; set.forEach(i => { const o = cellXY(i); x0 = Math.min(x0, o.x - R0); x1 = Math.max(x1, o.x + R0); y0 = Math.min(y0, o.y - H0); y1 = Math.max(y1, o.y + H0); });
-  const pad = placing ? 14 : 40; const key = [x0, y0, x1, y1].map(Math.round).join(',');
+  const pad = 14; const key = [x0, y0, x1, y1].map(Math.round).join(',');
   if (G.vbKey !== key || !svg.getAttribute('viewBox')) { svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`); G.vbKey = key; }
   G.fitted = true;
 }
