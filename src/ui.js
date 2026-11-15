@@ -1001,7 +1001,7 @@ function ring(target, ms = 1600) {
   els.forEach(el => {
     // remember how to find it again: the top bar and panels are rebuilt, so the element itself may be replaced
     const sel = typeof target === 'string' ? target : '.' + el.classList[0]; const idx = $$(sel).indexOf(el);
-    const d = document.createElement('div'); d.className = 'ring'; document.body.appendChild(d);
+    const d = document.createElement('div'); d.className = 'fxring'; document.body.appendChild(d);
     const place = () => { const cur = el.isConnected ? el : $$(sel)[idx]; const r = cur && cur.getBoundingClientRect(); if (!r || !r.width) { d.style.display = 'none'; return; } d.style.display = ''; Object.assign(d.style, { left: r.left - 6 + 'px', top: r.top - 6 + 'px', width: r.width + 12 + 'px', height: r.height + 12 + 'px' }); };
     place(); const iv = setInterval(place, 60); setTimeout(() => { clearInterval(iv); d.remove(); }, ms * spd());
   });
