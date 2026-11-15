@@ -115,7 +115,6 @@ button.ghost{background:transparent;border:1px solid var(--line)}
 @keyframes glow{from{fill-opacity:.15}to{fill-opacity:.55}}
 .tile-edge{fill:none;stroke:#0b0d10;stroke-width:3}
 .loc{cursor:default}
-.loc .ring{transition:all .2s}
 .loc.dest{cursor:pointer}
 .loc.dest .halo{display:none}
 @keyframes halo{0%{stroke-opacity:.95;transform:scale(1)}100%{stroke-opacity:0;transform:scale(1.6)}}
@@ -3098,7 +3097,7 @@ function placeLabels(labels, locs, cops = []) {
 function locSVG(S, l, x, y, view) {
   const id = l.id; const k = E.locKind(S, id); let body = '', r = 27;
   const dest = view.dests && view.dests[id]; const esc = dest && dest.some(p => p.escape);
-  const cls = `loc ${dest ? 'dest' : ''} ${esc ? 'esc' : ''} ${G.sel.dest === id ? 'sel' : ''}`;
+  const cls = `loc ${dest ? 'dest' : ''} ${esc ? 'esc' : ''}`;
   const icn = (name, col, size = 26) => `<g transform="translate(${-size / 2},${-size / 2}) scale(${size / 24})" fill="${col}" color="${col}">${IC.raw(name)}</g>`;
   if (k.type === 'business') {
     const b = k.id; const grp = ['casino', 'bar', 'restaurant'].includes(b) ? '#9050c8' : '#2f62c0'; const closed = S.closed[b];
@@ -3130,7 +3129,7 @@ function locSVG(S, l, x, y, view) {
   let label = '';
   if (dest) { const best = dest[0]; label = `<g><rect x="-34" y="-11" width="68" height="20" rx="10" fill="${esc ? '#e8b546' : '#111c'}" stroke="#fff3"/><text y="4" text-anchor="middle" font-family="Barlow Condensed,Arial" font-size="13" fill="${esc ? '#221a05' : '#fff'}">${best.mp}${t('mp')}${best.police ? ' · ' + best.police + '⚑' : ''}</text></g>`; }
   if (label && view._labels) view._labels.push({ id, x, y, r, html: label });
-  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" filter="url(#sh)"><circle r="40" fill="transparent"/>${body}</g>`;
+  return `<g class="${cls}" data-loc="${id}" data-h="loc:${id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><circle r="40" fill="transparent"/><circle r="31" cy="3.5" fill="#000" opacity=".32"/>${body}</g>`; // plain shadow circle: an SVG filter here made Chrome flicker the locations
 }
 function copSVG(ci, type, cls = '', pickable = false) {
   const p = copXY(ci, type);
@@ -3163,6 +3162,7 @@ function renderMap(view) {
   if (view.ghost) { const o = cellXY(view.ghost.cell); const gd = (G.S.display || []).find(x => x.tile === view.ghost.tile); s += `<g opacity=".9">${tileSVG(view.ghost.tile, view.ghost.rot, o.x, o.y, { id: 'ghost' })}${ghostLocs(view.ghost.tile, view.ghost.rot, o)}${gd ? E.PTYPES.filter(ty => gd.police[ty]).map(ty => copSVG(view.ghost.cell, ty)).join('') : ''}</g><polygon points="${hexPts(o.x, o.y)}" fill="none" stroke="#e8b546" stroke-width="5"/>`; }
   // dest cells (police move)
   if (view.cellDests) view.cellDests.forEach(i => { const o = cellXY(i); s += `<polygon class="cell-dest" data-celldest="${i}" points="${hexPts(o.x, o.y, 0.92)}"/>`; });
+  const tilesL = s; s = '';
   // path preview
   let badges = '';
   if (view.path) {
@@ -3182,6 +3182,7 @@ function renderMap(view) {
       badges += `<g class="mpb" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><circle r="11"/><text y="4.5">${mp}</text></g>`;
     }
   }
+  const pathL = s; s = '';
   // locations
   view._labels = []; const allLocs = [];
   // locations are clipped to their own tile: spaces that reach the edge sit flush against it, like on the real tiles
@@ -3196,10 +3197,12 @@ function renderMap(view) {
   // only rebuild the layers that changed: rebuilding everything on every bot action made the map flicker
   // the map has its OWN copy of the definitions (ids prefixed with m): Chrome re-rasterised (flickered) the locations
   // whenever anything else on the page changed while their shadow filter lived in another svg
-  if (!svg.querySelector('#world')) { svg.innerHTML = svgDefsHTML().replace(/id="(\w+)"/g, 'id="m$1"').replace(/url\(#/g, 'url(#m') + '<g id="world"><g id="lyS"></g><g id="lyD"></g><g id="lyL"></g></g>'; }
+  if (!svg.querySelector('#world')) { svg.innerHTML = svgDefsHTML().replace(/id="(\w+)"/g, 'id="m$1"').replace(/url\(#/g, 'url(#m') + '<g id="world"><g id="lyT"></g><g id="lyP"></g><g id="lyS"></g><g id="lyD"></g><g id="lyL"></g></g>'; }
   $('#world').setAttribute('transform', `translate(${G.zoom.x},${G.zoom.y}) scale(${G.zoom.k})`);
   const upd = (id, h) => { const g = svg.querySelector('#' + id); if (g._h !== h) { g.innerHTML = h.replace(/url\(#/g, 'url(#m'); g._h = h; } };
-  upd('lyS', stat); upd('lyD', s); upd('lyL', labelsSVG + badges);
+  upd('lyT', tilesL); upd('lyP', pathL); upd('lyS', stat); upd('lyD', s); upd('lyL', labelsSVG + badges);
+  // the selected destination is a class toggle, so choosing/hovering a route doesn't rebuild every location
+  $$('#lyS .loc').forEach(g => g.classList.toggle('sel', g.dataset.loc === G.sel.dest));
   fitMap(); if (G.tut) coachHL();
 }
 function fitMap() {
