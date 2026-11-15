@@ -382,7 +382,7 @@ function eqAv(id) { const Q = E.EQUIP[id]; return `<span class="eqav">${eqTypes(
 function eqBorder(id) { const ty = eqTypes(id); const c = ty.map(x => x === 'swat' ? '#6b6f78' : COP[x]); return c.length > 1 ? `border-color:${c[1]} ${c[0]} ${c[0]} ${c[1]}` : `border-color:${c[0]}`; }
 function slotHTML(p, x, i, kind, viewer) {
   if (kind === 'contacts' && i >= 5 - p.cuffs && (!x || x.kind !== 'contact')) return `<div class="slot cuffed"></div>`;
-  if (!x) return `<div class="slot"></div>`;
+  if (!x) return `<div class="slot free"></div>`;
   const cuffed = kind === 'contacts' && i >= 5 - p.cuffs ? 'cuffed' : '';
   if (x.kind === 'asset') return `<div class="slot asset ${x.locked ? 'locked' : ''} ${cuffed}" data-h="asset:${x.id}">${ic(IC.ASSET[x.id], '', x.id === 'move_county' ? COP.county : x.id === 'move_federal' ? COP.federal : x.id === 'move_swat' ? '#bbb' : undefined)}<span class="lbl">${ic('lock')}</span></div>`;
   if (x.kind === 'equip') return `<div class="slot equip ${x.used ? 'used' : ''}" data-h="equip:${x.id}" style="${eqBorder(x.id)}"><span class="cost">$${E.EQUIP[x.id].cost}</span>${ic(IC.EQUIP[x.id], '', eqTypes(x.id).length === 1 ? (eqTypes(x.id)[0] === 'swat' ? '#c9ccd3' : COP[eqTypes(x.id)[0]]) : undefined)}${eqAv(x.id)}<span class="lbl">${nm(x.id)}</span></div>`;
