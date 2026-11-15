@@ -837,7 +837,12 @@ function task(s, t) {
       if (p.npc) { npcTurn(s, p, t.part); break; }
       if (s.day === 3 && s.part === 4 && false) { }
       if (t.part >= 3) { // night / dawn: optional with disc
-        if (p.discs < 1) break;
+        if (p.discs < 1) {
+          // no disc, but an unused Extra Action asset/card/fixer could give one: offer it now (cheapest first)
+          const ex = execOptions(s, p, 'any').filter(x => x.eff === 'extra_action' && (x.cost || 0) <= p.money).sort((a, b) => (a.cost || 0) - (b.cost || 0));
+          if (!ex.length) break;
+          ask(s, p.id, 'yesno', { q: 'useDiscSrc', part: t.part, x: ex[0] }, { k: 'useDiscSrc', pid: p.id, x: ex[0] }); break;
+        }
         ask(s, p.id, 'yesno', { q: 'useDisc', part: t.part }, { k: 'useDisc', pid: p.id }); break;
       }
       push(s, { k: 'turnStart', pid: p.id });
@@ -996,6 +1001,7 @@ function resolve(s, pd, a, c) {
     case 'ladyRefresh': if (a) { const x = p.items[c.i]; pay(s, p, 1 + FIXER[x.id].cost, 'power'); x.used = false; ev(s, { t: 'refreshFixer', p: p.id, id: x.id }); } break;
     case 'swapOrder': if (a) { const idx = s.order.indexOf(p.id); const o = s.order; [o[idx - 1], o[idx]] = [o[idx], o[idx - 1]]; useToken(s, p); ev(s, { t: 'order', order: o.slice() }); } break;
     case 'mission': p.mission.ability = a; ev(s, { t: 'missionAbility', p: p.id, id: p.mission.id, ab: a }); break;
+    case 'useDiscSrc': if (a) { doExec(s, p, c.x); if (p.discs > 0) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } } break;
     case 'useDisc': if (a) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } break;
     case 'end': {
       if (a && a.exec) { push(s, { k: 'turnEnd', pid: p.id }); doExec(s, p, a.exec); } // continuation first: doExec may queue a choice (unlock, take contact) that must come before it
@@ -1817,6 +1823,7 @@ AI.decide = function (E, s) {
       switch (pd.q) {
         case 'incomeUnlock': return spendable(E, s, p) >= 3;
         case 'useDisc': return true;
+        case 'useDiscSrc': return (pd.x.cost || 0) <= 3 || p.money >= 15;
         case 'gas': return true;
         case 'unlock': return true;
         case 'church': return p.notor + p.red - p.blue > 1 && spendable(E, s, p) >= 1;
@@ -1906,7 +1913,7 @@ en: {
   policeSelf: 'You crossed a notoriety line. On behalf of the Inspector/Lieutenant move an officer one tile closer to you.',
   pickOfficer: 'Pick an officer, then its destination', endTitle: 'End of turn', endHint: 'Use more abilities or end your turn.', endTurn: 'End turn',
   q: {
-    incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
+    incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', useDiscSrc: 'You have no Extra Action disc — use your Extra Action ability to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
     key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', slotPick: 'No empty item space — which tile do you replace? (+1 notoriety)', exitPick: 'Choose an exit tile to keep',
     clawsExtra: 'Tumbler: draw extra tiles ($2k each)?', mrv: 'Professor at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Madame Q.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
@@ -1977,7 +1984,7 @@ pt: {
   policeSelf: 'Passaste uma linha de notoriedade. Em nome da Inspetora/Tenente, move um polícia uma peça mais perto de ti.',
   pickOfficer: 'Escolhe um polícia e depois o destino', endTitle: 'Fim do turno', endHint: 'Usa mais habilidades ou termina o turno.', endTurn: 'Terminar turno',
   q: {
-    incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
+    incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', useDiscSrc: 'Não tens disco de Ação Extra — usar a tua habilidade de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
     key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', slotPick: 'Não há espaço de item livre — que peça substituis? (+1 de notoriedade)', exitPick: 'Escolhe a peça de saída a guardar',
     clawsExtra: 'Tumbler: tirar peças extra ($2k cada)?', mrv: 'Professor na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Madame Q.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'
@@ -2790,6 +2797,7 @@ en: {
     church: { t: 'Church', b: '<p>You may pay $1k to lose 1 notoriety.</p>' },
     exit: { t: 'Exit', b: '<p>At a closed exit you may take income, or draw Exit tiles (one per Contact card) and keep one bag of money.</p>' },
     incomeUnlock: { t: 'Unlock for $3k', b: '<p>With notoriety below the first line you may pay $3k at income time to unlock an asset.</p>' },
+    useDiscSrc: { t: 'Extra Action', b: '<p>You have no disc, but an unused Extra Action ability (asset, card or Fixer) gives you one: use it now to play at Night/Dawn.</p>' },
     useDisc: { t: 'Extra Action', b: '<p>Spend an Extra Action disc to act in this part of the day (Night or Dawn)?</p>' },
     slotPick: { t: 'No free item space', b: '<p>Choose which tile goes to the box to make room (+1 notoriety).</p>' },
     default: { t: 'A choice', b: '<p>Choose an option — or let the computer suggest one.</p>' },
@@ -2867,6 +2875,7 @@ pt: {
     church: { t: 'Igreja', b: '<p>Podes pagar $1k para perder 1 de notoriedade.</p>' },
     exit: { t: 'Saída', b: '<p>Numa saída fechada podes receber rendimento, ou tirar peças de saída (uma por carta de Contacto) e guardar um saco de dinheiro.</p>' },
     incomeUnlock: { t: 'Desbloquear por $3k', b: '<p>Com notoriedade abaixo da primeira linha podes pagar $3k no rendimento para desbloquear um ativo.</p>' },
+    useDiscSrc: { t: 'Ação Extra', b: '<p>Não tens disco, mas uma habilidade de Ação Extra por usar (ativo, carta ou Fixer) dá-te um: usa-a agora para jogar à Noite/Madrugada.</p>' },
     useDisc: { t: 'Ação Extra', b: '<p>Gastar um disco de Ação Extra para jogar nesta parte do dia (Noite ou Madrugada)?</p>' },
     slotPick: { t: 'Sem espaço de item', b: '<p>Escolhe que peça vai para a caixa para fazer espaço (+1 de notoriedade).</p>' },
     default: { t: 'Uma escolha', b: '<p>Escolhe uma opção — ou deixa o computador sugerir.</p>' },
@@ -3555,7 +3564,7 @@ function abilitiesSheet(ex, when) {
 function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
-    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
+    case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}${pd.q === 'useDiscSrc' ? (() => { const L = exLabel(pd.x); return `<div class="sub">${ic(L.icon)} ${L.src}${pd.x.cost ? ` — $${pd.x.cost}k` : ''}</div>`; })() : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
     case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${pd.why === 'threshold' ? `<b>${G.prefs.lang === 'pt' ? '⚠ Passaste uma linha de notoriedade.' : '⚠ You crossed a notoriety line.'}</b> ` : ''}${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;

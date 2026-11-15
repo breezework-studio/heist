@@ -24,7 +24,7 @@ en: {
   policeSelf: 'You crossed a notoriety line. On behalf of the Inspector/Lieutenant move an officer one tile closer to you.',
   pickOfficer: 'Pick an officer, then its destination', endTitle: 'End of turn', endHint: 'Use more abilities or end your turn.', endTurn: 'End turn',
   q: {
-    incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
+    incomeUnlock: 'Pay $3k to unlock an Asset tile?', useDisc: 'Use an Extra Action disc to play now?', useDiscSrc: 'You have no Extra Action disc — use your Extra Action ability to play now?', gas: 'Take a Gas Can (+1 movement later)?', unlock: 'Unlock an Asset tile?',
     church: 'Pay $1k to lose 1 notoriety?', bonus_biz: 'Business group complete! Choose a bonus', bonus_sh: 'All Safe Houses visited! Choose a bonus', hospital: 'Heal wounds?',
     key: 'Take a key', fixer: 'Buy a Fixer?', equip: 'Buy equipment?', locker: 'Open a locker?', exit: 'At the exit', lockerPick: 'Choose a locker tile to keep', slotPick: 'No empty item space — which tile do you replace? (+1 notoriety)', exitPick: 'Choose an exit tile to keep',
     clawsExtra: 'Tumbler: draw extra tiles ($2k each)?', mrv: 'Professor at the Safe House', mission: 'Mission complete! Choose your ability', ladyRefresh: 'Madame Q.: refresh this Fixer?', swapOrder: 'Swap turn order with the player ahead?'
@@ -95,7 +95,7 @@ pt: {
   policeSelf: 'Passaste uma linha de notoriedade. Em nome da Inspetora/Tenente, move um polícia uma peça mais perto de ti.',
   pickOfficer: 'Escolhe um polícia e depois o destino', endTitle: 'Fim do turno', endHint: 'Usa mais habilidades ou termina o turno.', endTurn: 'Terminar turno',
   q: {
-    incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
+    incomeUnlock: 'Pagar $3k para desbloquear um ativo?', useDisc: 'Usar um disco de Ação Extra para jogar agora?', useDiscSrc: 'Não tens disco de Ação Extra — usar a tua habilidade de Ação Extra para jogar agora?', gas: 'Levar uma Lata de Gasolina (+1 movimento depois)?', unlock: 'Desbloquear um ativo?',
     church: 'Pagar $1k para perder 1 de notoriedade?', bonus_biz: 'Grupo de Business completo! Escolhe um bónus', bonus_sh: 'Todas as Casas Seguras visitadas! Escolhe um bónus', hospital: 'Curar ferimentos?',
     key: 'Tirar uma chave', fixer: 'Comprar um Fixer?', equip: 'Comprar equipamento?', locker: 'Abrir um cacifo?', exit: 'Na saída', lockerPick: 'Escolhe a peça de cacifo a guardar', slotPick: 'Não há espaço de item livre — que peça substituis? (+1 de notoriedade)', exitPick: 'Escolhe a peça de saída a guardar',
     clawsExtra: 'Tumbler: tirar peças extra ($2k cada)?', mrv: 'Professor na Casa Segura', mission: 'Missão cumprida! Escolhe a tua habilidade', ladyRefresh: 'Madame Q.: recuperar este Fixer?', swapOrder: 'Trocar de lugar na ordem de turno com o jogador à tua frente?'

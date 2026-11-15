@@ -487,7 +487,12 @@ function task(s, t) {
       if (p.npc) { npcTurn(s, p, t.part); break; }
       if (s.day === 3 && s.part === 4 && false) { }
       if (t.part >= 3) { // night / dawn: optional with disc
-        if (p.discs < 1) break;
+        if (p.discs < 1) {
+          // no disc, but an unused Extra Action asset/card/fixer could give one: offer it now (cheapest first)
+          const ex = execOptions(s, p, 'any').filter(x => x.eff === 'extra_action' && (x.cost || 0) <= p.money).sort((a, b) => (a.cost || 0) - (b.cost || 0));
+          if (!ex.length) break;
+          ask(s, p.id, 'yesno', { q: 'useDiscSrc', part: t.part, x: ex[0] }, { k: 'useDiscSrc', pid: p.id, x: ex[0] }); break;
+        }
         ask(s, p.id, 'yesno', { q: 'useDisc', part: t.part }, { k: 'useDisc', pid: p.id }); break;
       }
       push(s, { k: 'turnStart', pid: p.id });
@@ -646,6 +651,7 @@ function resolve(s, pd, a, c) {
     case 'ladyRefresh': if (a) { const x = p.items[c.i]; pay(s, p, 1 + FIXER[x.id].cost, 'power'); x.used = false; ev(s, { t: 'refreshFixer', p: p.id, id: x.id }); } break;
     case 'swapOrder': if (a) { const idx = s.order.indexOf(p.id); const o = s.order; [o[idx - 1], o[idx]] = [o[idx], o[idx - 1]]; useToken(s, p); ev(s, { t: 'order', order: o.slice() }); } break;
     case 'mission': p.mission.ability = a; ev(s, { t: 'missionAbility', p: p.id, id: p.mission.id, ab: a }); break;
+    case 'useDiscSrc': if (a) { doExec(s, p, c.x); if (p.discs > 0) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } } break;
     case 'useDisc': if (a) { p.discs--; p.discDay[s.day] = (p.discDay[s.day] || 0) + 1; ev(s, { t: 'disc', p: p.id }); push(s, { k: 'turnStart', pid: p.id }); } break;
     case 'end': {
       if (a && a.exec) { push(s, { k: 'turnEnd', pid: p.id }); doExec(s, p, a.exec); } // continuation first: doExec may queue a choice (unlock, take contact) that must come before it

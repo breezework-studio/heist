@@ -156,6 +156,7 @@ AI.decide = function (E, s) {
       switch (pd.q) {
         case 'incomeUnlock': return spendable(E, s, p) >= 3;
         case 'useDisc': return true;
+        case 'useDiscSrc': return (pd.x.cost || 0) <= 3 || p.money >= 15;
         case 'gas': return true;
         case 'unlock': return true;
         case 'church': return p.notor + p.red - p.blue > 1 && spendable(E, s, p) >= 1;
