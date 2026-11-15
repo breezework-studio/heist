@@ -56,7 +56,7 @@ async function continueCloud() {
 // online game: choose single player (bots, saved on your Google account) or multiplayer (coming later)
 function newCloudGame() {
   const d = document.createElement('div'); d.className = 'overlay';
-  d.innerHTML = `<div class="paper box npick"><h3>${t('newCloud')}</h3><div class="npo"><button id="nSingle" class="choice"><b>${t('single')}</b><span>${t('singleH')}</span></button><button id="nMulti" class="choice off" disabled><b>${t('multi')} <em class="soon">${t('soon')}</em></b><span>${t('multiH')}</span></button></div><div class="row"><button class="ghost" id="nX">${t('cancel')}</button></div></div>`;
+  d.innerHTML = `<div class="npick"><h3>${t('newCloud')}</h3><div class="menu-btns"><div class="mrow"><button class="pri" id="nSingle">${t('single')}<small>${t('singleH')}</small></button><button id="nMulti" disabled>${t('multi')}<small>${t('soon')}</small></button></div><button class="ghost" id="nX">${t('cancel')}</button></div></div>`;
   document.body.appendChild(d);
   $('#nX', d).onclick = () => d.remove(); d.onclick = e => { if (e.target === d) d.remove(); };
   $('#nSingle', d).onclick = async () => {
@@ -1186,7 +1186,7 @@ function startTutorial() {
   G.tut = { seen: {}, introDone: false, humanTurns: 0, logMark: 0, hlLoc: null };
   G.mode = 'tutorial';
   const players = [{ color: 'orange', name: t('colors.orange'), ai: false }, { color: 'purple', name: t('colors.purple') + ' 🤖', ai: true }, { color: 'pink', name: t('colors.pink') + ' 🤖', ai: true }];
-  G.S = E.newGame({ seed: 20261112, players, gasCan: true, upgradeFixers: true });
+  G.S = E.newGame({ fixedOrder: true, seed: 20261112, players, gasCan: true, upgradeFixers: true });
   G.logLines = []; startScreen(true);
 }
 function coachClose() { $$('.spot').forEach(x => x.remove()); const c = document.getElementById('coach'); if (c) { c.remove(); if (c._res) c._res(); } $$('.tut-hl').forEach(x => x.classList.remove('tut-hl')); if (G.tut) G.tut.hlLoc = null; }
@@ -1450,6 +1450,6 @@ function showEnd() {
 
 // ---------------- boot ----------------
 bindTips();
-window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML, showEnd, doUndo };
+window.HeistUI = { G, E, T, startScreen, showMenu, human, loop, AI, helpHTML, showEnd, doUndo, newCloudGame };
 showMenu();
 })();

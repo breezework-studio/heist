@@ -106,7 +106,7 @@ E.newGame = function (opts) {
   s.gangPool = 6;
   // players
   const plans = shuffle(s, D.escapePlans.cards.map((c, i) => i));
-  const order = opts.players.map((p, i) => i);
+  const order = opts.players.map((p, i) => i); if (!opts.fixedOrder) shuffle(s, order); // random first player (the tutorial keeps a fixed order)
   s.players = opts.players.map((p, i) => ({
     id: i, color: p.color || COLORS[i], name: p.name || ('P' + (i + 1)), ai: !!p.ai, level: p.level || 'normal',
     money: 9, income: 9, notor: 1, red: 0, blue: 0, loc: 'hospital', plan: plans[i],
