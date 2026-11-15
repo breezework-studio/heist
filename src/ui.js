@@ -527,8 +527,17 @@ function setBonusHTML(S, g) {
   const optB = g === 'sh' ? `${ic('unlock')} + ${ic('money', '', '#7fd67f')}` : `${ic('unlock')} + ${ic('starMinus', '', '#6fb0ff')}`;
   return `<div class="setb" style="border-color:${col}" data-h="ui:set_${g}"><div class="st"><span class="dots">${keys.map(k => `<i style="${me && me.visited[k] ? 'background:' + col : ''};border-color:${col}"></i>`).join('')}</span>${t('setTitle')}</div><div class="so"><span class="opt">${ic('disc', '', '#e8b546')} ${t('setDisc')}</span><em>${t('or')}</em><span class="opt">${optB} ${t(g === 'sh' ? 'setSh' : 'setBiz')}</span></div><div class="sp">${t('setYou', n)}${got.length ? ' · ' + t('setGot') + ' ' + got.map(q => `<span class="dot" style="background:${pcolor(q.id)}" title="${pname(q.id)}"></span>`).join('') : ''}</div></div>`;
 }
+// exit cost card: what each escape costs, who already escaped, and what the next one pays
+function exitCostCost(S) { const c = E._D.exitCost[String(Math.max(2, S.n || S.players.length))] || [0, 5, 5, 10, 10]; return c; }
+function exitCostHTML(S) {
+  const pt = G.prefs.lang === 'pt'; const costs = exitCostCost(S); const n = S.escapes || 0;
+  const who = i => S.players.find(q => q.escaped && q.escapeOrder === i + 1);
+  return `<div class="rowlbl" data-sec="exitcost">${pt ? 'Custo de saída' : 'Exit cost'}${SQ('exitcost')}</div><div class="xcost">${costs.map((c, i) => { const q = who(i);
+    return `<div class="${q ? 'done' : i === n ? 'next' : ''}"><small>${pt ? (i + 1) + '.º' : ['1st', '2nd', '3rd', '4th', '5th'][i]}</small><b>${c ? '$' + c + 'k' : (pt ? 'grátis' : 'free')}</b>${q ? `<span style="color:${pcolor(q.id)}">● ${pname(q.id)}</span>` : i === n ? `<span>${pt ? 'próximo' : 'next'}</span>` : ''}</div>`; }).join('')}</div>${n ? `<div class="hint">${pt ? 'Já houve uma fuga: quem ainda está na cidade paga $1k antes de cada turno (ou é preso).' : 'Someone escaped: everyone still in the city pays $1k before each turn (or is arrested).'}</div>` : ''}`;
+}
 function marketHTML(S) {
   let h = `<div class="rowlbl" data-sec="display">${t('display')}${SQ('display')}</div><div class="cardrow">${S.cdisplay.map(c => contactCardHTML(c)).join('')}</div>`;
+  h += exitCostHTML(S);
   h += `<div class="rowlbl" data-sec="order">${t('turnOrder')}${SQ('order')}</div><div class="order">${S.order.map((id, i) => { const q = E.P(S, id); return `<span style="${q.escaped || q.arrested ? 'opacity:.4' : ''}"><b style="background:${pcolor(id)}">${i + 1}</b>${pname(id)}</span>`; }).join('')}</div>`;
   h += `<div class="rowlbl" data-sec="track">${t('notoriety')}${SQ('track')}</div><div class="track">`;
   for (let lv = 1; lv <= S.cfg.max; lv++) {
@@ -914,7 +923,7 @@ function helpHTML(key) {
     case 'asset': return `<b>${nm(id)}</b>${assetEff(id)}. ${pt ? 'Depois de desbloqueado, usa-se uma vez pagando o custo do espaço; vale $10k no fim.' : 'Once unlocked, use it once paying its space cost; worth $10k at the end.'}`;
     case 'bag': return `<b>${pt ? 'Saco de dinheiro' : 'Money bag'}</b>${pt ? 'Valor secreto, soma-se no fim.' : 'Secret value, added at the end.'}`;
     case 'part': return `<b>${t('parts')[+id]}</b>${+id >= 3 ? (pt ? 'Só joga quem gastar uma Ação Extra.' : 'Only players spending an Extra Action play.') : (pt ? 'Todos fazem uma ação.' : 'Everyone takes one action.')}`;
-    case 'exit': { const c = S.patrolSpaces[+id]; return `<b>${nm('exit' + id)}</b>${c >= 2 ? (pt ? 'Fechada (2 patrulhas).' : 'Closed (2 patrols).') : (pt ? `Aberta — ${c} patrulha(s).` : `Open — ${c} patrol card(s).`)}`; }
+    case 'exit': { const c = S.patrolSpaces[+id]; const nx = exitCostCost(S)[S.escapes || 0]; return `<b>${nm('exit' + id)}</b>${c >= 2 ? (pt ? 'Fechada (2 patrulhas).' : 'Closed (2 patrols).') : (pt ? `Aberta — ${c} patrulha(s).` : `Open — ${c} patrol card(s).`)}${S.day >= 3 ? `<br>${pt ? 'Fugir agora custa' : 'Escaping now costs'} ${nx ? '$' + nx + 'k' : (pt ? 'nada' : 'nothing')}.` : ''}`; }
     case 'stat': if (['cards', 'equip', 'bags', 'keys', 'cuffs'].includes(id)) return `<b>${t('chip.' + id)}</b>${t('chipHelp.' + id)}`; if (['money', 'income', 'notor', 'wounds', 'gas', 'gang', 'discs', 'rest', 'firstaid'].includes(id)) return `<b>${t({ notor: 'notoriety', firstaid: 'chip.firstaid' }[id] || id)}</b>${t('chipHelp.' + id)}`; if (0) return `<b>${t('chip.' + id)}</b>${t('chipHelp.' + id)}`; { const m = { money: ['money', 'exits'], income: ['income', 'business'], notor: ['notoriety', 'notoriety'], wounds: ['wounds', 'police'], gas: ['gas', 'movement'], gang: ['gang', 'others'], discs: ['discs', 'assets'], rest: ['rest', 'actions'], firstaid: ['wounds', 'police'] }[id] || ['help', 'goal']; return `<b>${t(m[0])}</b>${topic(m[1])}`; }
     case 'plan': return `<b>${t('plan')}: ${nm(id)}</b>${pt ? 'Valor no fim do jogo, ou $ = rendimento imediato quando visitas.' : 'Value at the end of the game, or $ = instant income when you visit.'}`;
     case 'key': return `<b>${t('keys')}</b>${pt ? 'Abre um cacifo desta cor ou um Business fechado.' : 'Opens a locker of this colour or a closed Business.'}`;
@@ -1209,7 +1218,7 @@ function coach(entry, o = {}) {
     $('#cSkip', d).onclick = () => { G.tut = null; coachClose(); };
   });
 }
-const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'proj'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
+const TOUR = [['me', 'stats'], ['me', 'nbox'], ['me', 'items'], ['me', 'contacts'], ['me', 'assets'], ['me', 'chips'], ['me', 'proj'], ['me', 'plan'], ['opponents', 'rivals'], ['market', 'display'], ['market', 'order'], ['market', 'exitcost'], ['market', 'track'], ['market', 'businesses'], ['market', 'safehouses'], ['market', 'lockers']];
 function tourTab(tab) { const city = tab === 'market'; if (!city && G.tab !== tab) { G.tab = tab; renderSide(); } const sd = $(city ? '#cside' : '#side'); if (sd && !sd.classList.contains('open') && getComputedStyle(sd).position === 'fixed') { $$('#side,#cside').forEach(x => x.classList.remove('open')); sd.classList.add('open'); if (G.tut) G.tut.openedSide = true; } }
 async function tutIntro() {
   G.tut.introDone = true; const T = TUT(); const it = T.intro;
