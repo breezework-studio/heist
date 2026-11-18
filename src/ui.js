@@ -808,7 +808,7 @@ function destPopover(locId) {
   const S = G.S; const pd = S.pending; const plans = pd.moves[locId]; if (!plans) return;
   const pp = $('.pop'); pp && pp.remove();
   const el = document.createElement('div'); el.className = 'pop paper';
-  el.innerHTML = `<h3 class="draggable" style="margin:0 0 6px;font-family:var(--ff-type)"><span class="grip">⠿</span> ${locName(locId)}</h3><div class="planlist">${plans.map((pl, i) => `<div class="choice" data-i="${i}" style="flex-direction:column;align-items:stretch">
+  el.innerHTML = `<h3 class="draggable" style="margin:0 0 6px;font-family:var(--ff-type)"><span class="grip">⠿</span> ${locName(locId)}</h3>${(() => { const ty = E.locKind(S, locId).type; const pt = G.prefs.lang === 'pt'; return ty === 'heliport' ? `<div class="usestrip" style="background:#ffe9a8">${pt ? '⚠ O Heliporto não tem visita: parar aqui não faz nada. Para voar, escolhe logo o destino final a 1–2 peças daqui — o caminho passa pelo Heliporto (+1 MP).' : '⚠ The Heliport has no visit: stopping here does nothing. To fly, pick your final destination 1–2 tiles away — the route goes through the Heliport (+1 MP).'}</div>` : ty === 'subway' ? `<div class="usestrip" style="background:#ffe9a8">${pt ? '⚠ O Metro não tem visita: parar aqui não faz nada. Escolhe o destino final — o caminho passa pelo Metro.' : '⚠ The Subway has no visit: stopping here does nothing. Pick the final destination — the route goes through the Subway.'}</div>` : ''; })()}<div class="planlist">${plans.map((pl, i) => `<div class="choice" data-i="${i}" style="flex-direction:column;align-items:stretch">
     <div style="display:flex;justify-content:space-between;gap:8px"><b>${t('variant.' + pl.variant)}</b><span>${pl.mp} ${t('mp')}${pl.extraMp ? ' · ' + t('extraMp', pl.extraMp) : ''} · ${pl.police} ${ic('shield', '', '#d23b33')}</span></div>${usesStrip(S, pl)}<div class="rsteps">${routeSteps(S, bestPath(S, pl.path, pl.alts), pl)}</div>
     <div class="row" style="margin-top:4px">${pl.escape ? `<button class="gold" data-esc="1" data-i="${i}">${ic('car')} ${t('escape')}</button>` : ''}<button class="pri" data-i="${i}">${t('move')}</button></div></div>`).join('')}</div><div class="row" style="margin-top:8px"><button class="ghost" id="bX">${t('cancel')}</button></div>`;
   $('#mapwrap').appendChild(el);
@@ -906,7 +906,7 @@ function helpHTML(key) {
           body = pt ? 'Ao entrar, saltas para qualquer outro metro de graça e ganhas +1 de movimento. Não é um destino: continuas a viagem. As peças pelo meio não contam para evitar polícia.' : 'When you enter, jump to any other subway for free and gain +1 MP. Not a destination: you keep travelling. Tiles in between don\'t count for avoiding police.';
           break;
         case 'heliport':
-          body = pt ? 'Gasta 1 de movimento para voar para qualquer sítio numa peça a 1–2 de distância. As peças pelo meio não contam para evitar polícia.' : 'Spend 1 MP to fly anywhere on a tile 1–2 tiles away. Tiles in between don\'t count for avoiding police.';
+          body = pt ? 'Não tem visita. Ao passar por aqui (ou se começares aqui), gastas 1 de movimento para voar para qualquer sítio numa peça a 1–2 de distância — escolhe logo o destino final. As peças pelo meio não contam para evitar polícia. Não precisa de carta.' : 'No visit. When you pass through it (or start here), spend 1 MP to fly anywhere on a tile 1–2 tiles away — pick the final destination directly. Tiles in between don\'t count for avoiding police. No card needed.';
           break;
         default: body = topic('movement');
       }
