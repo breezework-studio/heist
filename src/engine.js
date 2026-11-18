@@ -659,9 +659,9 @@ function resolve(s, pd, a, c) {
       break;
     }
     case 'bonus': {
+      push(s, { k: 'turnEnd', pid: p.id }); // continuation first, so the unlock choice below comes before it
       if (a === 'disc') { if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: 'bonus' }); } }
-      else { push(s, { k: 'unlock', pid: p.id }); if (c.g === 'sh') income(s, p, 'bonus'); else lose(s, p, 1, 'bonus'); }
-      push(s, { k: 'turnEnd', pid: p.id });
+      else { push(s, { k: 'unlock', pid: p.id, why: 'bonus' }); if (c.g === 'sh') income(s, p, 'bonus'); else lose(s, p, 1, 'bonus'); }
       break;
     }
     case 'policeMove': {

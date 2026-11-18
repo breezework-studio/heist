@@ -1009,9 +1009,9 @@ function resolve(s, pd, a, c) {
       break;
     }
     case 'bonus': {
+      push(s, { k: 'turnEnd', pid: p.id }); // continuation first, so the unlock choice below comes before it
       if (a === 'disc') { if (s.discs > 0) { s.discs--; p.discs++; ev(s, { t: 'discGain', p: p.id, why: 'bonus' }); } }
-      else { push(s, { k: 'unlock', pid: p.id }); if (c.g === 'sh') income(s, p, 'bonus'); else lose(s, p, 1, 'bonus'); }
-      push(s, { k: 'turnEnd', pid: p.id });
+      else { push(s, { k: 'unlock', pid: p.id, why: 'bonus' }); if (c.g === 'sh') income(s, p, 'bonus'); else lose(s, p, 1, 'bonus'); }
       break;
     }
     case 'policeMove': {
@@ -3565,7 +3565,7 @@ function openSheet(pd) {
   const S = G.S; const p = S.players[pd.pid];
   switch (pd.type) {
     case 'yesno': sheet(`<h3>${t('q.' + pd.q)}</h3>${pd.q === 'ladyRefresh' ? `<div class="sub">${ic(IC.FIX[pd.fixer])} ${nm(pd.fixer)} — $${pd.price}k</div>` : ''}${pd.q === 'swapOrder' ? `<div class="sub">${pname(pd.ahead)}</div>` : ''}${pd.q === 'useDiscSrc' ? (() => { const L = exLabel(pd.x); return `<div class="sub">${ic(L.icon)} ${L.src}${pd.x.cost ? ` — $${pd.x.cost}k` : ''}</div>`; })() : ''}<div class="row"><button class="pri" id="bY">${t('yes')}</button><button class="ghost" id="bN">${t('no')}</button></div>`, el => { $('#bY').onclick = () => human(true); $('#bN').onclick = () => human(false); }); break;
-    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${pd.why === 'threshold' ? `<b>${G.prefs.lang === 'pt' ? '⚠ Passaste uma linha de notoriedade.' : '⚠ You crossed a notoriety line.'}</b> ` : ''}${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
+    case 'unlock': sheet(`<h3>${t('unlockTitle')}</h3><div class="sub">${pd.why === 'threshold' ? `<b>${G.prefs.lang === 'pt' ? '⚠ Passaste uma linha de notoriedade.' : '⚠ You crossed a notoriety line.'}</b> ` : ''}${pd.why === 'bonus' ? `<b>${G.prefs.lang === 'pt' ? '🎁 Bónus de grupo completo.' : '🎁 Group bonus.'}</b> ` : ''}${t('unlockHint')}</div><div class="choices">${pd.assets.map((a, i) => `<button class="choice" data-i="${i}">${assetIc(a.id)}<span><b>${nm(a.id)}</b><br>${assetEff(a.id)}</span></button>`).join('')}</div>`, el => $$('.choice', el).forEach(b => b.onclick = () => { const a = pd.assets[+b.dataset.i]; human({ where: a.where, i: a.i }); })); break;
     case 'contact': contactSheet(pd, p); break;
     case 'avoid': avoidSheet(pd, p); break;
     case 'choose': chooseSheet(pd, p); break;
